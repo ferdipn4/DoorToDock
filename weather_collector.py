@@ -3,7 +3,7 @@
 Smart-Commute Predictor – Weather Data Collector
 Heroku Worker + Supabase PostgreSQL
 
-Sammelt alle 15 Minuten Wetterdaten von OpenWeatherMap
+Sammelt alle 15 Minuten Wetterdaten von Open-Meteo (kein API-Key nötig)
 für den Bereich Imperial College South Kensington.
 
 Usage:
@@ -13,7 +13,6 @@ Usage:
 
 Env vars (in .env oder Heroku Config Vars):
     DATABASE_URL=postgresql://user:pass@host:port/dbname
-    OPENWEATHER_API_KEY=dein_api_key
 """
 
 import requests
@@ -31,11 +30,24 @@ IMPERIAL_LAT = 51.4988
 IMPERIAL_LON = -0.1749
 POLL_INTERVAL = 900  # 15 Minuten
 
-OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
+# Open-Meteo: kostenlos, kein API-Key nötig
+OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 
-# Environment Variables
+# WMO Weather Codes → Beschreibung
+WMO_DESCRIPTIONS = {
+    0: "clear sky", 1: "mainly clear", 2: "partly cloudy",
+    3: "overcast", 45: "foggy", 48: "rime fog",
+    51: "light drizzle", 53: "moderate drizzle", 55: "dense drizzle",
+    61: "slight rain", 63: "moderate rain", 65: "heavy rain",
+    66: "light freezing rain", 67: "heavy freezing rain",
+    71: "slight snow", 73: "moderate snow", 75: "heavy snow",
+    77: "snow grains", 80: "slight showers", 81: "moderate showers",
+    82: "violent showers", 85: "slight snow showers", 86: "heavy snow showers",
+    95: "thunderstorm", 96: "thunderstorm with slight hail",
+    99: "thunderstorm with heavy hail",
+}
+
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
-OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
 
 # ============================================================
 # ZEITZONE
@@ -107,21 +119,17 @@ def init_db():
 
 def collect_once():
     """Führt eine einzelne Wetter-Datensammlung durch."""
-    if not OPENWEATHER_API_KEY:
-        print("[weather] ❌ OPENWEATHER_API_KEY nicht gesetzt!")
-        return "error"
-
     # Timestamp auf volle Minute runden, damit Bike- und Wetter-Daten
     # beim JOIN über timestamp matchen (gleiche Minutengranularität)
     now_utc = datetime.now(timezone.utc).replace(second=0, microsecond=0)
     now_london = get_london_now()
 
     try:
-        resp = requests.get(OPENWEATHER_URL, params={
-            "lat": IMPERIAL_LAT,
-            "lon": IMPERIAL_LON,
-            "appid": OPENWEATHER_API_KEY,
-            "units": "metric",
+        resp = requests.get(OPEN_METEO_URL, params={
+            "latitude": IMPERIAL_LAT,
+            "longitude": IMPERIAL_LON,
+            "current": "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code",
+            "timezone": "UTC",
         }, timeout=15)
         resp.raise_for_status()
         data = resp.json()
@@ -130,17 +138,14 @@ def collect_once():
         return "error"
 
     # Daten extrahieren
-    main = data.get("main", {})
-    wind = data.get("wind", {})
-    rain = data.get("rain", {})
-    weather = data.get("weather", [{}])[0]
+    current = data.get("current", {})
 
-    temperature = main.get("temp")
-    humidity = main.get("humidity")
-    precipitation = rain.get("1h", 0.0)  # mm in letzter Stunde
-    wind_speed = wind.get("speed")
-    weather_code = weather.get("id")
-    description = weather.get("description", "")
+    temperature = current.get("temperature_2m")
+    humidity = current.get("relative_humidity_2m")
+    precipitation = current.get("precipitation", 0.0)
+    wind_speed = current.get("wind_speed_10m")
+    weather_code = current.get("weather_code")
+    description = WMO_DESCRIPTIONS.get(weather_code, f"code {weather_code}")
 
     # In DB speichern
     conn = get_db()
@@ -171,7 +176,7 @@ def collect_once():
 def run_continuous():
     """Dauerläufer – für Heroku Worker oder lokal."""
     print("\n" + "=" * 60)
-    print("🌤️  Smart-Commute Weather Collector")
+    print("🌤️  Smart-Commute Weather Collector (Open-Meteo)")
     print(f"   Intervall:   {POLL_INTERVAL} Sekunden (15 Min)")
     print(f"   Standort:    Imperial College ({IMPERIAL_LAT}, {IMPERIAL_LON})")
     print(f"   Datenbank:   Supabase PostgreSQL")
