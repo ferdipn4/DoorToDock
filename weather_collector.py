@@ -83,6 +83,7 @@ def get_db():
         sslmode="require",
         connect_timeout=10,
         autocommit=True,
+        prepare_threshold=0,
     )
     return conn
 
