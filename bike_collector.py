@@ -73,7 +73,8 @@ def get_db():
         password=parsed.password,
         dbname=parsed.path.lstrip("/"),
         sslmode="require",
-        options="-c client_encoding=utf8",
+        options="-c client_encoding=UTF8",
+        connect_timeout=10,
     )
     conn.autocommit = True
     return conn
