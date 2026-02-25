@@ -1,1 +1,1 @@
-worker: python bike_collector.py
+worker: python worker.py
