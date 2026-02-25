@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 
 IMPERIAL_LAT = 51.4988
 IMPERIAL_LON = -0.1749
-POLL_INTERVAL = 900  # 15 Minuten
+POLL_INTERVAL = 60  # 1 Minute (wie bike_collector, für 1:1 Mapping)
 
 # Open-Meteo: kostenlos, kein API-Key nötig
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
