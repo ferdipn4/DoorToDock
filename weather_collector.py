@@ -111,7 +111,9 @@ def collect_once():
         print("[weather] ❌ OPENWEATHER_API_KEY nicht gesetzt!")
         return "error"
 
-    now_utc = datetime.now(timezone.utc)
+    # Timestamp auf volle Minute runden, damit Bike- und Wetter-Daten
+    # beim JOIN über timestamp matchen (gleiche Minutengranularität)
+    now_utc = datetime.now(timezone.utc).replace(second=0, microsecond=0)
     now_london = get_london_now()
 
     try:

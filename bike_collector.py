@@ -241,7 +241,8 @@ def collect_once():
             print("[collect] ❌ Konnte keine Stationen finden!")
             return "error"
 
-    now_utc = datetime.now(timezone.utc)
+    # Timestamp auf volle Minute runden für sauberen JOIN mit weather_data
+    now_utc = datetime.now(timezone.utc).replace(second=0, microsecond=0)
     now_london = get_london_now()
     collected = 0
 
