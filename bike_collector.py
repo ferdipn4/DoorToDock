@@ -17,8 +17,7 @@ Env vars (in .env oder Heroku Config Vars):
 """
 
 import requests
-import psycopg2
-import psycopg2.extras
+import psycopg
 import time
 import sys
 import os
@@ -62,21 +61,20 @@ def get_db():
         print("   Setze die Supabase Connection URL als Environment Variable.")
         sys.exit(1)
 
-    # URL manuell parsen, weil psycopg2 den Punkt im Username falsch handhabt
+    # URL manuell parsen, weil psycopg den Punkt im Username falsch handhabt
     from urllib.parse import urlparse
     parsed = urlparse(DATABASE_URL)
 
-    conn = psycopg2.connect(
+    conn = psycopg.connect(
         host=parsed.hostname,
         port=parsed.port,
         user=parsed.username,
         password=parsed.password,
         dbname=parsed.path.lstrip("/"),
         sslmode="require",
-        options="-c client_encoding=UTF8",
         connect_timeout=10,
+        autocommit=True,
     )
-    conn.autocommit = True
     return conn
 
 def init_db():
