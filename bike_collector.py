@@ -61,20 +61,11 @@ def get_db():
         print("   Setze die Supabase Connection URL als Environment Variable.")
         sys.exit(1)
 
-    # URL parsen und Host zu IPv4 auflösen (Heroku unterstützt kein IPv6)
     from urllib.parse import urlparse
-    import socket
     parsed = urlparse(DATABASE_URL)
 
-    # DNS auf IPv4 erzwingen, da Heroku kein ausgehendes IPv6 unterstützt
-    host = parsed.hostname
-    try:
-        ipv4 = socket.getaddrinfo(host, None, socket.AF_INET)[0][4][0]
-    except socket.gaierror:
-        ipv4 = host  # Fallback auf Hostname
-
     conn = psycopg.connect(
-        host=ipv4,
+        host=parsed.hostname,
         port=parsed.port,
         user=parsed.username,
         password=parsed.password,
