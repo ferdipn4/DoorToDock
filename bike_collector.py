@@ -61,7 +61,19 @@ def get_db():
         print("❌ DATABASE_URL nicht gesetzt!")
         print("   Setze die Supabase Connection URL als Environment Variable.")
         sys.exit(1)
-    conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+
+    # URL manuell parsen, weil psycopg2 den Punkt im Username falsch handhabt
+    from urllib.parse import urlparse
+    parsed = urlparse(DATABASE_URL)
+
+    conn = psycopg2.connect(
+        host=parsed.hostname,
+        port=parsed.port,
+        user=parsed.username,
+        password=parsed.password,
+        dbname=parsed.path.lstrip("/"),
+        sslmode="require",
+    )
     conn.autocommit = True
     return conn
 
