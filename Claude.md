@@ -107,10 +107,19 @@
   - Dark Mode (Bootstrap 5), Auto-Refresh alle 60s, responsive
   - JSON-API mit 8 Endpoints + graceful DB-Error-Handling (503)
 
+### ✅ Modell-Training (`training/`)
+- **`train_model.py`** – Trainiert und vergleicht 3 Modelle für `empty_docks`-Vorhersage
+  - Feature Engineering: Temporal (hour, weekday, cyclical encoding), Wetter, Station-Encoding, Lag-Feature
+  - Modelle: Historical Average (Baseline), Random Forest, Gradient Boosting
+  - Chronologischer 80/20 Train/Test Split (kein Data Leakage)
+  - Metriken: MAE, RMSE, R²
+  - Outputs: `model.pkl`, `feature_importance.png`, `predictions.png`, `metrics.txt`
+- **`METHODOLOGY.md`** – Dokumentation für Uni-Bericht (Zielsetzung, Features, Modellwahl, Limitationen)
+
 ### ❌ Noch offen
 - ESP32 + PIR-Sensor Setup (pausiert)
 - Raspberry Pi als lokaler Server (pausiert)
-- Vorhersage-Modell (historischer Durchschnitt + Wetter-Korrektur)
+- Dashboard-Integration der Vorhersage (`/api/forecast` Endpoint)
 
 ---
 
@@ -221,6 +230,13 @@ Door2Dock/
 │           ├── timeseries.js# Chart.js Liniendiagramme
 │           ├── heatmap.js   # CSS-Grid Heatmap
 │           └── weather.js   # Scatter-Plots + Trendlinien
+├── training/
+│   ├── train_model.py       # Modell-Training (RF, GB, Baseline)
+│   ├── METHODOLOGY.md       # Dokumentation für Uni-Bericht
+│   ├── model.pkl            # Bestes Modell (joblib)
+│   ├── feature_importance.png
+│   ├── predictions.png
+│   └── metrics.txt
 ├── esp32/
 │   └── smart_commute.ino    # ESP32 Firmware (Arduino)
 ├── Procfile                 # web + worker Dynos
