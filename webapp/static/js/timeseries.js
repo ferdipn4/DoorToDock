@@ -88,6 +88,11 @@ function initCharts() {
                                 });
                         }
                         return '';
+                    },
+                    label: (ctx) => {
+                        const val = ctx.parsed.y;
+                        const suffix = ctx.chart.options.scales.y.max === 100 ? '%' : '';
+                        return `${ctx.dataset.label}: ${val}${suffix}`;
                     }
                 }
             }
@@ -203,7 +208,7 @@ async function loadAllTimeSeries() {
         const docks = r.data.map(d => d.empty_docks);
 
         if (isSingle) {
-            // Single station: show standard/e-bike breakdown
+            // Single station: show absolute values with breakdown
             bikeDatasets.push({
                 label: 'Total Bikes',
                 data: timestamps.map((t, j) => ({ x: t, y: bikes[j] })),
@@ -245,10 +250,14 @@ async function loadAllTimeSeries() {
                 borderWidth: 2,
             });
         } else {
-            // Multi-station: one line per station
+            // Multi-station: normalized to % of capacity
             bikeDatasets.push({
                 label: shortName,
-                data: timestamps.map((t, j) => ({ x: t, y: bikes[j] })),
+                data: timestamps.map((t, j) => {
+                    const total = (bikes[j] || 0) + (docks[j] || 0);
+                    const pct = total > 0 ? Math.round(bikes[j] / total * 100) : 0;
+                    return { x: t, y: pct };
+                }),
                 borderColor: color,
                 backgroundColor: 'transparent',
                 tension: 0.3,
@@ -257,7 +266,11 @@ async function loadAllTimeSeries() {
             });
             dockDatasets.push({
                 label: shortName,
-                data: timestamps.map((t, j) => ({ x: t, y: docks[j] })),
+                data: timestamps.map((t, j) => {
+                    const total = (bikes[j] || 0) + (docks[j] || 0);
+                    const pct = total > 0 ? Math.round(docks[j] / total * 100) : 0;
+                    return { x: t, y: pct };
+                }),
                 borderColor: color,
                 backgroundColor: color + '1A',
                 fill: false,
@@ -268,9 +281,23 @@ async function loadAllTimeSeries() {
         }
     });
 
+    // Update titles and Y-axis labels based on mode
+    const yLabel = isSingle ? 'Bikes' : '% of Capacity';
+    const yLabelDocks = isSingle ? 'Empty Docks' : '% Free Docks';
+    const yMax = isSingle ? undefined : 100;
+
+    document.getElementById('chart-bikes-title').textContent =
+        isSingle ? 'Bike Availability Over Time' : 'Bike Availability (% of Capacity)';
+    document.getElementById('chart-docks-title').textContent =
+        isSingle ? 'Empty Docks Over Time' : 'Free Docks (% of Capacity)';
+
+    bikesChart.options.scales.y.title.text = yLabel;
+    bikesChart.options.scales.y.max = yMax;
     bikesChart.data = { datasets: bikeDatasets };
     bikesChart.update();
 
+    docksChart.options.scales.y.title.text = yLabelDocks;
+    docksChart.options.scales.y.max = yMax;
     docksChart.data = { datasets: dockDatasets };
     docksChart.update();
 
