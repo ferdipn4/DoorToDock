@@ -2,12 +2,24 @@
 
 let map;
 let markers = {};
+let currentStations = [];
+let currentSort = 'distance';
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
     loadStats();
     loadWeather();
     loadLiveStatus();
+
+    // Sort buttons
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentSort = e.target.dataset.sort;
+            renderStationCards();
+        });
+    });
 
     // Auto-refresh every 60 seconds
     setInterval(() => {
@@ -78,12 +90,12 @@ async function loadWeather() {
 async function loadLiveStatus() {
     try {
         const resp = await fetch('/api/live');
-        const stations = await resp.json();
+        currentStations = await resp.json();
 
-        updateStationCards(stations);
-        updateMapMarkers(stations);
-        updateCounts(stations);
-        updateTimestamp(stations);
+        renderStationCards();
+        updateMapMarkers(currentStations);
+        updateCounts(currentStations);
+        updateTimestamp(currentStations);
     } catch (e) {
         console.error('Live status error:', e);
         document.getElementById('station-list').innerHTML =
@@ -91,10 +103,36 @@ async function loadLiveStatus() {
     }
 }
 
-function updateStationCards(stations) {
+// ------------------------------------------------------------------
+// Sorting
+// ------------------------------------------------------------------
+
+function sortStations(stations) {
+    const sorted = [...stations];
+    switch (currentSort) {
+        case 'distance':
+            sorted.sort((a, b) => (a.distance_m || 999) - (b.distance_m || 999));
+            break;
+        case 'docks-desc':
+            sorted.sort((a, b) => (b.empty_docks || 0) - (a.empty_docks || 0));
+            break;
+        case 'docks-asc':
+            sorted.sort((a, b) => (a.empty_docks || 0) - (b.empty_docks || 0));
+            break;
+        case 'name':
+            sorted.sort((a, b) => a.station_name.localeCompare(b.station_name));
+            break;
+    }
+    return sorted;
+}
+
+// ------------------------------------------------------------------
+// Station Cards
+// ------------------------------------------------------------------
+
+function renderStationCards() {
     const container = document.getElementById('station-list');
-    const sorted = [...stations].sort((a, b) =>
-        (a.distance_m || 999) - (b.distance_m || 999));
+    const sorted = sortStations(currentStations);
 
     container.innerHTML = sorted.map(s => {
         const pct = s.total_docks > 0
@@ -105,7 +143,10 @@ function updateStationCards(stations) {
             : s.status === 'yellow' ? 'text-warning' : 'text-danger';
 
         return `
-        <div class="station-card bg-body-secondary status-border-${s.status}">
+        <div class="station-card bg-body-secondary status-border-${s.status}"
+             data-station-id="${s.station_id}"
+             onmouseenter="highlightMarker('${s.station_id}')"
+             onmouseleave="unhighlightMarker('${s.station_id}')">
             <div class="d-flex gap-3 align-items-center">
                 <div class="dock-hero ${dockColor}">
                     <div class="dock-hero-num">${s.empty_docks}</div>
@@ -131,6 +172,10 @@ function updateStationCards(stations) {
     }).join('');
 }
 
+// ------------------------------------------------------------------
+// Map Markers
+// ------------------------------------------------------------------
+
 function updateMapMarkers(stations) {
     const statusColors = {
         green: '#198754',
@@ -140,7 +185,6 @@ function updateMapMarkers(stations) {
 
     stations.forEach(s => {
         const color = statusColors[s.status] || '#6c757d';
-        // Marker size scales with free docks (min 7, max 16)
         const radius = Math.max(7, Math.min(16, 7 + s.empty_docks * 0.6));
         const popupHtml = `
             <strong>${s.station_name}</strong><br>
@@ -153,8 +197,11 @@ function updateMapMarkers(stations) {
         if (markers[s.station_id]) {
             markers[s.station_id].setStyle({ fillColor: color, radius: radius });
             markers[s.station_id].setPopupContent(popupHtml);
+            // Store base radius for highlight/unhighlight
+            markers[s.station_id]._baseRadius = radius;
+            markers[s.station_id]._baseColor = color;
         } else {
-            markers[s.station_id] = L.circleMarker(
+            const marker = L.circleMarker(
                 [s.latitude, s.longitude],
                 {
                     radius: radius,
@@ -164,9 +211,75 @@ function updateMapMarkers(stations) {
                     fillOpacity: 0.9,
                 }
             ).addTo(map).bindPopup(popupHtml);
+            marker._baseRadius = radius;
+            marker._baseColor = color;
+            markers[s.station_id] = marker;
         }
     });
 }
+
+// ------------------------------------------------------------------
+// Hover Highlight: pulse ring on map when hovering station card
+// ------------------------------------------------------------------
+
+let pulseRing = null;
+
+function highlightMarker(stationId) {
+    const marker = markers[stationId];
+    if (!marker) return;
+
+    // Enlarge marker and add bright glow
+    marker.setStyle({
+        radius: (marker._baseRadius || 10) + 6,
+        weight: 4,
+        color: '#fff',
+        fillOpacity: 1,
+    });
+    marker.bringToFront();
+
+    // Add pulsing ring
+    const latlng = marker.getLatLng();
+    if (pulseRing) {
+        map.removeLayer(pulseRing);
+    }
+    pulseRing = L.circleMarker(latlng, {
+        radius: (marker._baseRadius || 10) + 16,
+        fillColor: marker._baseColor || '#fff',
+        fillOpacity: 0.15,
+        color: marker._baseColor || '#fff',
+        weight: 2,
+        opacity: 0.4,
+        className: 'pulse-ring',
+    }).addTo(map);
+
+    // Open popup
+    marker.openPopup();
+}
+
+function unhighlightMarker(stationId) {
+    const marker = markers[stationId];
+    if (!marker) return;
+
+    // Restore original style
+    marker.setStyle({
+        radius: marker._baseRadius || 10,
+        weight: 2,
+        color: '#fff',
+        fillOpacity: 0.9,
+    });
+
+    // Remove pulse ring
+    if (pulseRing) {
+        map.removeLayer(pulseRing);
+        pulseRing = null;
+    }
+
+    marker.closePopup();
+}
+
+// ------------------------------------------------------------------
+// Counts & Timestamp
+// ------------------------------------------------------------------
 
 function updateCounts(stations) {
     const counts = { green: 0, yellow: 0, red: 0 };
