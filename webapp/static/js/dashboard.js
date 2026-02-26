@@ -1,11 +1,42 @@
 /* Door2Dock – Live Dashboard */
 
+const FAVORITES_KEY = 'door2dock_favorites';
+
 let map;
 let markers = {};
 let currentStations = [];
 let currentSort = 'walking';
 let showCount = 10; // 0 = all
 let forecastData = {}; // station_id -> { predicted_empty_docks, predicted_status }
+let forecastHorizon = 15; // minutes, updated from API
+
+// ------------------------------------------------------------------
+// Favorites (shared with Planner via localStorage)
+// ------------------------------------------------------------------
+
+function getDashFavorites() {
+    try {
+        return new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]'));
+    } catch {
+        return new Set();
+    }
+}
+
+function toggleDashFavorite(e, stationId) {
+    e.stopPropagation(); // don't trigger focusStation
+    const favs = getDashFavorites();
+    if (favs.has(stationId)) {
+        favs.delete(stationId);
+    } else {
+        favs.add(stationId);
+    }
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favs]));
+    renderStationCards();
+}
+
+// ------------------------------------------------------------------
+// Init
+// ------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
@@ -121,14 +152,14 @@ async function loadLiveStatus() {
 
 async function loadForecast() {
     try {
-        const now = new Date();
-        const nextHour = (now.getHours() + 1) % 24;
-        const resp = await fetch(`/api/forecast?hour=${nextHour}`);
+        // Let the API compute the default fractional hour (now + horizon)
+        const resp = await fetch('/api/forecast');
         const data = await resp.json();
         if (!data.available) {
             console.log('Forecast not available:', data.reason);
             return;
         }
+        forecastHorizon = data.prediction_horizon_min || 15;
         forecastData = {};
         (data.predictions || []).forEach(p => {
             forecastData[p.station_id] = p;
@@ -146,6 +177,10 @@ function updateForecastStat() {
     const labelEl = document.getElementById('stat-forecast-label');
     if (!el) return;
 
+    const horizonLabel = forecastHorizon >= 60
+        ? `${Math.round(forecastHorizon / 60)}h`
+        : `${forecastHorizon} min`;
+
     // Find nearest station with forecast data (by walking distance)
     const byWalking = [...currentStations].sort((a, b) =>
         (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999));
@@ -158,11 +193,11 @@ function updateForecastStat() {
             : fc.predicted_status === 'yellow' ? 'text-warning' : 'text-danger';
         el.textContent = `~${predicted} docks`;
         el.className = `fs-2 fw-bold ${colorClass}`;
-        labelEl.textContent = `${nearest.station_name.split(',')[0]} in 1h`;
+        labelEl.textContent = `${nearest.station_name.split(',')[0]} in ${horizonLabel}`;
     } else {
         el.textContent = '--';
         el.className = 'fs-2 fw-bold';
-        labelEl.textContent = 'in 1 hour';
+        labelEl.textContent = `in ${horizonLabel}`;
     }
 }
 
@@ -213,6 +248,11 @@ function renderStationCards() {
     const container = document.getElementById('station-list');
     const visible = getVisibleStations();
     const sorted = sortStations(currentStations).filter(s => visible.has(s.station_id));
+    const favs = getDashFavorites();
+
+    const horizonLabel = forecastHorizon >= 60
+        ? `${Math.round(forecastHorizon / 60)}h`
+        : `${forecastHorizon}min`;
 
     container.innerHTML = sorted.map(s => {
         const pct = s.total_docks > 0
@@ -223,6 +263,17 @@ function renderStationCards() {
             : s.status === 'yellow' ? 'text-warning' : 'text-danger';
         const walkTime = formatWalkingTime(s.walking_duration_s);
         const walkDist = Math.round(s.walking_distance_m || 0);
+        const isFav = favs.has(s.station_id);
+        const starIcon = isFav ? 'bi-star-fill text-warning' : 'bi-star';
+
+        // Forecast hint
+        let forecastHint = '';
+        if (forecastData[s.station_id]) {
+            const fc = forecastData[s.station_id];
+            const fcColor = fc.predicted_status === 'green' ? 'success'
+                : fc.predicted_status === 'yellow' ? 'warning' : 'danger';
+            forecastHint = ` · <span class="forecast-hint text-${fcColor}">&rarr; ~${Math.round(fc.predicted_empty_docks)} in ${horizonLabel}</span>`;
+        }
 
         return `
         <div class="station-card bg-body-secondary status-border-${s.status}"
@@ -238,7 +289,10 @@ function renderStationCards() {
                 <div class="flex-grow-1">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="station-name">${s.station_name}</div>
+                            <div class="station-name">
+                                <i class="bi ${starIcon} fav-star ${isFav ? 'active' : ''}" onclick="toggleDashFavorite(event, '${s.station_id}')"></i>
+                                ${s.station_name}
+                            </div>
                             <div class="station-meta">
                                 <i class="bi bi-person-walking"></i> ${walkDist}m · ${walkTime} · ${s.total_docks} total docks
                             </div>
@@ -249,7 +303,7 @@ function renderStationCards() {
                         <div class="dock-bar-fill ${fillClass}" style="width: ${pct}%"></div>
                     </div>
                     <div class="bike-detail">
-                        ${s.standard_bikes} standard · ${s.ebikes} e-bikes available${forecastData[s.station_id] ? ` · <span class="forecast-hint text-${forecastData[s.station_id].predicted_status === 'green' ? 'success' : forecastData[s.station_id].predicted_status === 'yellow' ? 'warning' : 'danger'}">→ ~${Math.round(forecastData[s.station_id].predicted_empty_docks)} in 1h</span>` : ''}
+                        ${s.standard_bikes} standard · ${s.ebikes} e-bikes available${forecastHint}
                     </div>
                 </div>
             </div>
@@ -417,4 +471,3 @@ function focusStation(stationId) {
         marker.openPopup();
     }, 500);
 }
-

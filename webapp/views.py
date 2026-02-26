@@ -25,6 +25,11 @@ def weather():
     return render_template("weather.html")
 
 
+@views.route("/planner")
+def planner():
+    return render_template("planner.html")
+
+
 @views.route("/about")
 def about():
     return render_template("about.html")

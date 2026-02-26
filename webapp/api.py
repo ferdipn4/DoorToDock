@@ -3,8 +3,8 @@
 from functools import wraps
 from flask import Blueprint, jsonify, request
 from webapp.db import query, query_one, ensure_walking_distances
-from webapp.forecast import get_forecast_service
-from datetime import datetime, timezone
+from webapp.forecast import get_forecast_service, fetch_weather_forecast
+from datetime import datetime, date, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -228,10 +228,12 @@ def forecast():
     if svc is None:
         return jsonify({"available": False, "reason": "no model loaded"})
 
-    # Default: next hour in London time
+    # Default: current fractional hour + horizon in London time
     london = ZoneInfo("Europe/London")
     now_london = datetime.now(london)
-    hour = request.args.get("hour", (now_london.hour + 1) % 24, type=int)
+    horizon = svc.prediction_horizon_min
+    default_hour = (now_london.hour + now_london.minute / 60 + horizon / 60) % 24
+    hour = request.args.get("hour", default_hour, type=float)
     weekday = request.args.get("weekday", now_london.weekday(), type=int)
 
     # Latest weather from DB
@@ -256,10 +258,123 @@ def forecast():
     return jsonify({
         "available": True,
         "model_name": svc.model_name,
-        "hour": hour,
+        "prediction_horizon_min": horizon,
+        "hour": round(hour, 2),
         "weekday": weekday,
         "predictions": predictions,
     })
+
+
+# ------------------------------------------------------------------
+# Commute Planner Scan
+# ------------------------------------------------------------------
+
+@api.route("/commute-scan")
+@db_error_handler
+def commute_scan():
+    """Scan a morning time window and predict dock availability."""
+    svc = get_forecast_service()
+    if svc is None:
+        return jsonify({"available": False, "reason": "no model loaded"})
+
+    london = ZoneInfo("Europe/London")
+    tomorrow = (datetime.now(london) + timedelta(days=1)).strftime("%Y-%m-%d")
+
+    target_date = request.args.get("date", tomorrow)
+    start = request.args.get("start", 8.0, type=float)
+    end = request.args.get("end", 10.0, type=float)
+    fav_ids = request.args.get("stations", "")
+    fav_set = set(fav_ids.split(",")) if fav_ids else set()
+
+    # Determine weekday for target date
+    try:
+        dt = datetime.strptime(target_date, "%Y-%m-%d")
+        weekday = dt.weekday()
+    except ValueError:
+        weekday = datetime.now(london).weekday()
+
+    # Fetch weather forecast from Open-Meteo
+    weather_by_hour = fetch_weather_forecast(target_date)
+    if not weather_by_hour:
+        # Fallback: latest observation from DB
+        weather_row = query_one("""
+            SELECT temperature, humidity, precipitation, wind_speed
+            FROM weather_data ORDER BY timestamp DESC LIMIT 1
+        """)
+        if weather_row:
+            for h in range(24):
+                weather_by_hour[h] = weather_row
+
+    # Station list with total_docks
+    all_stations = query("""
+        SELECT DISTINCT ON (ba.station_id)
+            ba.station_id, ba.station_name, ba.total_docks
+        FROM bike_availability ba
+        JOIN monitored_stations ms ON ba.station_id = ms.station_id
+        ORDER BY ba.station_id, ba.timestamp DESC
+    """)
+
+    if fav_set:
+        favorites = [s for s in all_stations if s["station_id"] in fav_set]
+        alternatives = [s for s in all_stations if s["station_id"] not in fav_set]
+    else:
+        favorites = all_stations
+        alternatives = []
+
+    fav_scan = svc.scan_time_range(favorites, weather_by_hour, weekday, start, end)
+    alt_scan = svc.scan_time_range(alternatives, weather_by_hour, weekday, start, end) if alternatives else {"slots": fav_scan["slots"], "stations": {}}
+
+    # Compute recommendation: last slot where at least one favorite has >= 5 docks
+    recommendation = _compute_recommendation(fav_scan)
+
+    return jsonify({
+        "available": True,
+        "date": target_date,
+        "prediction_horizon_min": svc.prediction_horizon_min,
+        "weather_forecast": {str(h): w for h, w in weather_by_hour.items()
+                             if int(start) <= h <= int(end) + 1},
+        "favorites": fav_scan,
+        "alternatives": alt_scan,
+        "recommendation": recommendation,
+    })
+
+
+def _compute_recommendation(scan):
+    """Find the last safe arrival time (>= 5 docks at any favorite station)."""
+    slots = scan["slots"]
+    stations = scan["stations"]
+    if not slots or not stations:
+        return None
+
+    last_safe_idx = None
+    last_safe_station = None
+
+    for i, slot in enumerate(slots):
+        for sid, sdata in stations.items():
+            preds = sdata["predictions"]
+            if i < len(preds) and preds[i] is not None and preds[i] >= 5:
+                last_safe_idx = i
+                last_safe_station = (sid, sdata["name"])
+                break  # at least one station is safe at this time
+
+    if last_safe_idx is not None:
+        arrive_by = slots[last_safe_idx]
+        station_id, station_name = last_safe_station
+        short_name = station_name.split(",")[0]
+        return {
+            "arrive_by": arrive_by,
+            "reason": f"Arrive by {arrive_by} for docks at {short_name}.",
+            "station_id": station_id,
+            "urgency": "green" if last_safe_idx > len(slots) * 0.6 else "yellow",
+        }
+
+    # No safe slot found
+    return {
+        "arrive_by": slots[0],
+        "reason": "All stations predicted full – arrive as early as possible.",
+        "station_id": None,
+        "urgency": "red",
+    }
 
 
 # ------------------------------------------------------------------

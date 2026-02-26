@@ -52,6 +52,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/planner' %}active{% endif %}" href="/planner">
+                            <i class="bi bi-alarm"></i> Planner
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/about' %}active{% endif %}" href="/about">
                             <i class="bi bi-info-circle"></i> About
                         </a>

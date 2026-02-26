@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Morning Planner{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h5 class="mb-0 fw-bold">Morning Commute Planner</h5>
+        <small class="text-body-secondary">Predict dock availability for your morning ride to Imperial College</small>
+    </div>
+</div>
+
+<!-- Recommendation Card -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card" id="recommendation-card">
+            <div class="card-body text-center py-4">
+                <div class="text-body-secondary small mb-1">Recommended Arrival</div>
+                <div class="fs-1 fw-bold" id="rec-time">--:--</div>
+                <div class="text-body-secondary" id="rec-reason">Run a scan to get a recommendation</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Controls Row -->
+<div class="row g-3 mb-4">
+    <!-- Date + Time Window -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-calendar3"></i> Scan Settings</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label small">Date</label>
+                    <input type="date" class="form-control form-control-sm" id="scan-date">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small">From</label>
+                        <input type="time" class="form-control form-control-sm" id="scan-start" value="08:00">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small">To</label>
+                        <input type="time" class="form-control form-control-sm" id="scan-end" value="10:00">
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100" id="scan-btn" onclick="runScan()">
+                    <i class="bi bi-search"></i> Scan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorite Stations -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-star"></i> Favorite Stations</div>
+            <div class="card-body p-2">
+                <div id="fav-station-list" class="fav-station-list">
+                    <div class="text-center text-body-secondary py-3">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                        Loading stations...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weather Forecast -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-cloud-sun"></i> Weather Forecast</div>
+            <div class="card-body">
+                <div id="weather-forecast">
+                    <div class="text-center text-body-secondary py-3">
+                        Run a scan to see forecast weather
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Timeline Charts -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-graph-up"></i> Favorite Stations – Predicted Free Docks</div>
+            <div class="card-body">
+                <canvas id="timeline-chart" height="300"></canvas>
+                <div class="text-center text-body-secondary small mt-2" id="timeline-empty">
+                    Select favorites and run a scan to see predictions
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-diagram-3"></i> Alternative Stations</div>
+            <div class="card-body">
+                <canvas id="alt-chart" height="250"></canvas>
+                <div class="text-center text-body-secondary small mt-2" id="alt-empty">
+                    Stations not in your favorites will appear here
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/planner.js') }}"></script>
+{% endblock %}

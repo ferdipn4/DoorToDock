@@ -66,15 +66,17 @@ FEATURES_FORECAST = [
 
 FEATURES_NOWCAST = FEATURES_FORECAST + ["empty_docks_lag1"]
 
-TARGET = "empty_docks"
+TARGET = "target"
+PREDICTION_HORIZON_MIN = 15
 
 
 def engineer_features(df: pd.DataFrame):
     df = df.copy()
 
-    # Temporal features
-    df["hour"] = df["timestamp"].dt.hour
-    df["weekday"] = df["timestamp"].dt.weekday          # 0=Mon .. 6=Sun
+    # Temporal features -- fractional hours for finer-grained predictions
+    dt = df["timestamp"].dt
+    df["hour"] = dt.hour + dt.minute / 60
+    df["weekday"] = dt.weekday          # 0=Mon .. 6=Sun
     df["is_weekend"] = (df["weekday"] >= 5).astype(int)
 
     # Cyclical encoding for hour (so 23->0 is close, not far apart)
@@ -85,15 +87,18 @@ def engineer_features(df: pd.DataFrame):
     le = LabelEncoder()
     df["station_enc"] = le.fit_transform(df["station_id"])
 
-    # Lag feature: previous empty_docks per station (1-minute lag)
+    # Target: empty_docks T+15 minutes ahead (data is minutely -> shift -15)
     df = df.sort_values(["station_id", "timestamp"])
+    df["target"] = df.groupby("station_id")["empty_docks"].shift(-PREDICTION_HORIZON_MIN)
+
+    # Lag feature: previous empty_docks per station (1-minute lag)
     df["empty_docks_lag1"] = df.groupby("station_id")["empty_docks"].shift(1)
 
-    # Drop rows without weather data or lag
+    # Drop rows without weather data, lag, or target
     before = len(df)
-    df = df.dropna(subset=WEATHER_COLS + ["empty_docks_lag1"])
+    df = df.dropna(subset=WEATHER_COLS + ["empty_docks_lag1", "target"])
     dropped = before - len(df)
-    print(f"  Dropped {dropped:,} rows with NaN (weather/lag) -> {len(df):,} remaining")
+    print(f"  Dropped {dropped:,} rows with NaN (weather/lag/target) -> {len(df):,} remaining")
 
     # Show weather variation (important context for interpreting results)
     print("\n  Weather variation in dataset:")
@@ -134,14 +139,17 @@ class HistoricalAverageModel:
         if df is None:
             raise ValueError("HistoricalAverageModel.fit() needs df= parameter")
         self.global_mean = y.mean()
-        grouped = df.groupby(["station_enc", "hour", "weekday"])[TARGET].mean()
+        # Round fractional hour to int for grouping
+        tmp = df.copy()
+        tmp["_hour_int"] = tmp["hour"].round().astype(int) % 24
+        grouped = tmp.groupby(["station_enc", "_hour_int", "weekday"])[TARGET].mean()
         self.lookup = grouped.to_dict()
         return self
 
     def predict(self, X):
         preds = []
         for _, row in X.iterrows():
-            key = (row["station_enc"], row["hour"], row["weekday"])
+            key = (row["station_enc"], round(row["hour"]) % 24, row["weekday"])
             preds.append(self.lookup.get(key, self.global_mean))
         return np.array(preds)
 
@@ -373,6 +381,7 @@ def main():
             "label_encoder": label_encoder,
             "model_name": best_name,
             "model_type": "forecast",
+            "prediction_horizon_min": PREDICTION_HORIZON_MIN,
             "metrics": all_results,
         },
         model_path,
@@ -393,6 +402,7 @@ def main():
         f.write(f"Data rows : {len(df):,}\n")
         f.write(f"Train     : {len(train):,}\n")
         f.write(f"Test      : {len(test):,}\n")
+        f.write(f"Prediction horizon: T+{PREDICTION_HORIZON_MIN} min\n")
         f.write(f"\nNote: Nowcast models achieve very low MAE because the 1-min\n")
         f.write(f"lag feature dominates. The FORECAST models are the honest\n")
         f.write(f"evaluation of how well we can predict from time + weather.\n")
