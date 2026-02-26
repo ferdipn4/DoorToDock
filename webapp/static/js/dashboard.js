@@ -113,8 +113,8 @@ function updateStationCards(stations) {
             </div>
             <div class="station-numbers">
                 <div>
-                    <div class="num">${s.available_bikes}</div>
-                    <div class="num-label">Bikes</div>
+                    <div class="num">${s.standard_bikes}</div>
+                    <div class="num-label">Standard</div>
                 </div>
                 <div>
                     <div class="num">${s.ebikes}</div>
@@ -148,7 +148,7 @@ function updateMapMarkers(stations) {
         const popupHtml = `
             <strong>${s.station_name}</strong><br>
             <span style="color:${color}">&#9679;</span>
-            ${s.available_bikes} bikes · ${s.ebikes} e-bikes · ${s.empty_docks} docks free<br>
+            ${s.standard_bikes} standard · ${s.ebikes} e-bikes · ${s.empty_docks} docks free<br>
             <small>${s.distance_m || '?'}m from Imperial</small>
         `;
 
