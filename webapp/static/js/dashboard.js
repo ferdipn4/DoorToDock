@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadStats();
     loadWeather();
     loadLiveStatus();
-    loadForecast();
 
     // Sort buttons
     document.querySelectorAll('.sort-btn').forEach(btn => {
@@ -369,63 +368,3 @@ function focusStation(stationId) {
     }, 500);
 }
 
-// ------------------------------------------------------------------
-// Dock Forecast (based on heatmap historical averages)
-// ------------------------------------------------------------------
-
-async function loadForecast() {
-    try {
-        const resp = await fetch('/api/heatmap');
-        const data = await resp.json();
-        if (!data.length) return;
-
-        const now = new Date();
-        // London time approximation (UTC+0 or UTC+1)
-        const londonHour = now.getUTCHours(); // close enough for display
-        const londonDay = now.getUTCDay();
-        const nextHour = (londonHour + 1) % 24;
-
-        // Build lookup: { weekday: { hour: avg_docks } }
-        const grid = {};
-        data.forEach(d => {
-            if (!grid[d.weekday]) grid[d.weekday] = {};
-            grid[d.weekday][d.hour] = d.avg_docks || 0;
-        });
-
-        const nowDocks = grid[londonDay] && grid[londonDay][londonHour];
-        const nextDocks = grid[londonDay] && grid[londonDay][nextHour];
-
-        if (nowDocks == null || nextDocks == null) return;
-
-        const card = document.getElementById('forecast-card');
-        const content = document.getElementById('forecast-content');
-        card.style.display = '';
-
-        const diff = nextDocks - nowDocks;
-        let trend, trendClass;
-        if (diff > 1) { trend = 'improving'; trendClass = 'text-success'; }
-        else if (diff < -1) { trend = 'declining'; trendClass = 'text-danger'; }
-        else { trend = 'stable'; trendClass = 'text-body-secondary'; }
-
-        const nextHourStr = nextHour.toString().padStart(2, '0') + ':00';
-        const dockColor = nextDocks >= 5 ? 'text-success' : nextDocks >= 1 ? 'text-warning' : 'text-danger';
-
-        content.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>Dock Forecast</strong>
-                    <span class="text-body-secondary"> &middot; based on historical patterns for this day & hour</span>
-                </div>
-                <span class="badge ${trendClass} border">${trend}</span>
-            </div>
-            <div class="mt-1 small">
-                Expected avg. free docks at <strong>${nextHourStr}</strong>:
-                <span class="fw-bold ${dockColor}">${Math.round(nextDocks * 10) / 10}</span>
-                across all stations
-                <span class="text-body-secondary">(currently ~${Math.round(nowDocks * 10) / 10})</span>
-            </div>
-        `;
-    } catch (e) {
-        console.error('Forecast load error:', e);
-    }
-}
