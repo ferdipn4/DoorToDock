@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showCount = parseInt(e.target.dataset.show);
             renderStationCards();
             updateMapVisibility();
+            updateStats();
         });
     });
 
@@ -75,7 +76,6 @@ async function loadStats() {
     try {
         const resp = await fetch('/api/stats');
         const s = await resp.json();
-        document.getElementById('stat-stations').textContent = s.stations || '--';
         document.getElementById('stat-datapoints').textContent =
             (s.bike_rows || 0).toLocaleString();
         document.getElementById('stat-days').textContent = s.collection_days || '--';
@@ -106,7 +106,7 @@ async function loadLiveStatus() {
 
         updateMapMarkers(currentStations);
         renderStationCards();
-        updateCounts(currentStations);
+        updateStats();
         updateTimestamp(currentStations);
         updateMapVisibility();
     } catch (e) {
@@ -323,15 +323,42 @@ function unhighlightMarker(stationId) {
 // Counts & Timestamp
 // ------------------------------------------------------------------
 
-function updateCounts(stations) {
+function updateStats() {
     const visible = getVisibleStations();
     let totalFreeDocks = 0;
-    stations.forEach(s => {
+    let visibleCount = 0;
+
+    // Sort by walking distance to find nearest
+    const byWalking = [...currentStations].sort((a, b) =>
+        (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999));
+
+    byWalking.forEach(s => {
         if (visible.has(s.station_id)) {
             totalFreeDocks += s.empty_docks || 0;
+            visibleCount++;
         }
     });
+
+    // Free docks
     document.getElementById('stat-free-docks').textContent = totalFreeDocks;
+    document.getElementById('stat-visible-count').textContent = visibleCount;
+    document.getElementById('stat-total-count').textContent = currentStations.length;
+
+    // Nearest station with free docks
+    const nearest = byWalking.find(s => visible.has(s.station_id) && s.empty_docks > 0);
+    if (nearest) {
+        const dockColor = nearest.status === 'green' ? 'text-success'
+            : nearest.status === 'yellow' ? 'text-warning' : 'text-danger';
+        const el = document.getElementById('stat-nearest-docks');
+        el.textContent = nearest.empty_docks + ' docks';
+        el.className = `fs-2 fw-bold ${dockColor}`;
+        document.getElementById('stat-nearest-name').textContent =
+            `${nearest.station_name.split(',')[0]} · ${formatWalkingTime(nearest.walking_duration_s)}`;
+    } else {
+        document.getElementById('stat-nearest-docks').textContent = '0';
+        document.getElementById('stat-nearest-docks').className = 'fs-2 fw-bold text-danger';
+        document.getElementById('stat-nearest-name').textContent = 'No docks available';
+    }
 }
 
 function updateTimestamp(stations) {
