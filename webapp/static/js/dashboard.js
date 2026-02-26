@@ -269,8 +269,6 @@ function updateMapVisibility() {
 // Hover Highlight
 // ------------------------------------------------------------------
 
-let pulseRing = null;
-
 function highlightMarker(stationId) {
     const marker = markers[stationId];
     if (!marker) return;
@@ -282,19 +280,6 @@ function highlightMarker(stationId) {
         fillOpacity: 1,
     });
     marker.bringToFront();
-
-    const latlng = marker.getLatLng();
-    if (pulseRing) map.removeLayer(pulseRing);
-    pulseRing = L.circleMarker(latlng, {
-        radius: (marker._baseRadius || 10) + 16,
-        fillColor: marker._baseColor || '#fff',
-        fillOpacity: 0.15,
-        color: marker._baseColor || '#fff',
-        weight: 2,
-        opacity: 0.4,
-        className: 'pulse-ring',
-    }).addTo(map);
-
     marker.openPopup();
 }
 
@@ -313,10 +298,6 @@ function unhighlightMarker(stationId) {
         opacity: isVisible ? 1 : 0.15,
     });
 
-    if (pulseRing) {
-        map.removeLayer(pulseRing);
-        pulseRing = null;
-    }
     marker.closePopup();
 }
 
