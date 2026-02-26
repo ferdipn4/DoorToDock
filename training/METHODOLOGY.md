@@ -125,12 +125,23 @@ The feature importance plot (`feature_importance.png`) shows the Gradient Boosti
 - **Station set is fixed:** The model is trained on 21 specific stations and does not generalise to stations outside the training set without retraining.
 - **No event data:** Special events (e.g. concerts, strikes) that disrupt normal patterns are not captured.
 
-## 11. Next Steps
+## 11. Dashboard Integration
+
+The best forecast model (Gradient Boosting) is deployed as part of the Flask web dashboard:
+
+- **Service layer** (`webapp/forecast.py`): A `ForecastService` singleton loads `model.pkl` once at startup and exposes `predict()` / `predict_all_stations()` methods. Feature vectors (cyclical hour encoding, is_weekend, weather, station encoding) are built internally. Unknown stations (not in the training set) return `None` gracefully.
+- **API endpoint** (`/api/forecast`): Accepts optional `?hour=` and `?weekday=` query parameters (defaults to the next hour in London time). Fetches the latest weather observation and station list from the database, runs predictions for all 21 stations, and returns JSON with `predicted_empty_docks` and `predicted_status` (green/yellow/red, using the same thresholds as the live status).
+- **Dashboard UI**: A "Dock Forecast" stat card shows the predicted dock count at the nearest station in 1 hour. Each station card displays a colour-coded forecast annotation (e.g. "-> ~12 in 1h"). Forecast data refreshes automatically every 60 seconds alongside live data.
+
+This architecture keeps the model decoupled from the request handling, making it straightforward to swap in a retrained model or extend the service for additional use cases (e.g. ESP32 trigger recommendations).
+
+## 12. Next Steps
 
 1. **Collect more data** (target: 1-2 weeks) and retrain -- this is the single most impactful improvement.
 2. **Capture diverse weather** -- rain, cold, and warm days will make weather features more predictive.
 3. **Add longer lag features** (5 min, 15 min, 1 hour) for a hybrid forecast/nowcast model.
 4. **Hyper-parameter tuning** with cross-validation on a larger dataset.
-5. **Dashboard integration:** Serve predictions via the Flask API (`/api/forecast`).
-6. **Evaluate per-station performance** to identify stations where the model struggles.
-7. **Explore time-series models** (e.g. LSTM, Prophet) if tree-based models plateau.
+5. **Evaluate per-station performance** to identify stations where the model struggles.
+6. **Explore time-series models** (e.g. LSTM, Prophet) if tree-based models plateau.
+7. **Time-horizon selector** in the dashboard UI (e.g. dropdown for 1h, 2h, 3h forecasts).
+8. **ESP32 trigger integration** -- on PIR departure event, push forecast to LCD/LED.
