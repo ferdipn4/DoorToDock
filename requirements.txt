@@ -1,2 +1,6 @@
 requests
 psycopg[binary]
+flask
+gunicorn
+flask-caching
+flask-compress

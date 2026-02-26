@@ -1,0 +1,200 @@
+/* Door2Dock – Custom Dashboard Styles */
+
+/* Status badges */
+.status-green {
+    background-color: #198754 !important;
+    color: #fff;
+}
+.status-yellow {
+    background-color: #ffc107 !important;
+    color: #000;
+}
+.status-red {
+    background-color: #dc3545 !important;
+    color: #fff;
+}
+
+/* Station list */
+.station-list {
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+.station-card {
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.3s ease;
+}
+.station-card:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+.station-card.status-border-green {
+    border-left: 4px solid #198754;
+}
+.station-card.status-border-yellow {
+    border-left: 4px solid #ffc107;
+}
+.station-card.status-border-red {
+    border-left: 4px solid #dc3545;
+}
+
+.station-card .station-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+.station-card .station-meta {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+.station-card .station-numbers {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.35rem;
+}
+.station-card .station-numbers .num {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.station-card .station-numbers .num-label {
+    font-size: 0.65rem;
+    color: var(--bs-secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Dock bar */
+.dock-bar {
+    height: 6px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+.dock-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+.dock-bar-fill.fill-green { background-color: #198754; }
+.dock-bar-fill.fill-yellow { background-color: #ffc107; }
+.dock-bar-fill.fill-red { background-color: #dc3545; }
+
+/* Heatmap */
+.heatmap-container {
+    overflow-x: auto;
+}
+
+.heatmap-grid {
+    display: grid;
+    grid-template-columns: 80px repeat(24, 1fr);
+    gap: 2px;
+    min-width: 700px;
+}
+
+.heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: default;
+    transition: transform 0.15s ease;
+    min-height: 36px;
+}
+.heatmap-cell:hover {
+    transform: scale(1.15);
+    z-index: 1;
+}
+
+.heatmap-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+    min-height: 36px;
+}
+
+.heatmap-row-label {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+    min-height: 36px;
+}
+
+.heatmap-legend {
+    width: 120px;
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(to right, #dc3545, #ffc107, #198754);
+}
+
+/* Leaflet dark mode fix */
+.leaflet-container {
+    background-color: #1a1a2e;
+}
+.leaflet-tile-pane {
+    filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+.leaflet-control-zoom a {
+    background-color: #2b2b3d !important;
+    color: #fff !important;
+    border-color: #444 !important;
+}
+.leaflet-control-attribution {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    color: #999 !important;
+}
+.leaflet-control-attribution a {
+    color: #aaa !important;
+}
+
+/* Map popup dark */
+.leaflet-popup-content-wrapper {
+    background-color: #2b2b3d;
+    color: #e0e0e0;
+    border-radius: 0.5rem;
+}
+.leaflet-popup-tip {
+    background-color: #2b2b3d;
+}
+.leaflet-popup-content {
+    margin: 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* Correlation card coloring */
+.corr-positive { color: #198754; }
+.corr-negative { color: #dc3545; }
+.corr-neutral { color: #6c757d; }
+
+/* Chart canvas padding */
+canvas {
+    max-height: 400px;
+}
+
+/* Smooth transitions */
+.card {
+    transition: border-color 0.3s ease;
+}
+
+/* Scrollbar styling */
+.station-list::-webkit-scrollbar {
+    width: 6px;
+}
+.station-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.station-list::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}

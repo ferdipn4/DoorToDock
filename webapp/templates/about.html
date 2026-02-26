@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+
+        <!-- Hero -->
+        <div class="card mb-4 border-0 bg-transparent">
+            <div class="card-body text-center py-4">
+                <h1 class="display-5 fw-bold"><i class="bi bi-bicycle"></i> Door2Dock</h1>
+                <p class="lead text-body-secondary">
+                    A predictive system for Santander Cycles docking station availability
+                    around Imperial College London
+                </p>
+            </div>
+        </div>
+
+        <!-- Architecture -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-diagram-3"></i> System Architecture</div>
+            <div class="card-body">
+<pre class="mb-0 text-body-secondary" style="font-size: 0.8rem; line-height: 1.4;">
+ +------------------+                +-------------------------------+
+ |  TfL BikePoint   |  REST (1/min)  |                               |
+ |  API (800 stations) +------------>|     Heroku Worker Dyno        |
+ +------------------+                |                               |
+                                     |  +-------------------------+  |
+ +------------------+                |  | bike_collector.py       |  |
+ |  Open-Meteo      |  REST (1/min)  |  |   12 stations, 1/min   |  |
+ |  Weather API     +--------------->|  +------------+------------+  |
+ +------------------+                |               |               |
+                                     |  +------------v------------+  |
+ +------------------+                |  | weather_collector.py    |  |
+ |  ESP32 + PIR     |  MQTT/HTTP     |  |   temp, rain, wind      |  |
+ |  Motion Sensor   +--------------->|  +------------+------------+  |
+ +------------------+                |               |               |
+                                     |  +------------v------------+  |
+                                     |  |  Supabase PostgreSQL    |  |
+                                     |  |  (Cloud Database)       |  |
+                                     |  +------------+------------+  |
+                                     |               |               |
+                                     |  +------------v------------+  |
+                                     |  |  Flask Web Dashboard    |  |
+                                     |  |  (This Application)     |  |
+                                     |  +-------------------------+  |
+                                     +-------------------------------+
+</pre>
+            </div>
+        </div>
+
+        <!-- Data Sources -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header"><i class="bi bi-bicycle"></i> TfL Bike API</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0 small">
+                            <li><strong>Source:</strong> Transport for London</li>
+                            <li><strong>Data:</strong> ~800 docking stations</li>
+                            <li><strong>Monitored:</strong> 12 stations within 800m of Imperial College</li>
+                            <li><strong>Interval:</strong> Every 60 seconds</li>
+                            <li><strong>Fields:</strong> Available bikes, e-bikes, empty docks, total capacity</li>
+                            <li><strong>Auth:</strong> No API key needed</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header"><i class="bi bi-cloud-sun"></i> Open-Meteo Weather</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0 small">
+                            <li><strong>Source:</strong> Open-Meteo API</li>
+                            <li><strong>Location:</strong> 51.4988, -0.1749</li>
+                            <li><strong>Interval:</strong> Every 60 seconds</li>
+                            <li><strong>Fields:</strong> Temperature, humidity, precipitation, wind speed, WMO code</li>
+                            <li><strong>Auth:</strong> No API key needed</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header"><i class="bi bi-cpu"></i> ESP32 + PIR Sensor</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0 small">
+                            <li><strong>Hardware:</strong> ESP32 + HC-SR501</li>
+                            <li><strong>Function:</strong> Departure detection</li>
+                            <li><strong>Output:</strong> RGB LED + LCD 1602</li>
+                            <li><strong>Protocol:</strong> MQTT / HTTP</li>
+                            <li><strong>Purpose:</strong> Triggers real-time recommendation at the door</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-stack"></i> Technology Stack</div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-sm-6 col-md-4">
+                        <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
+                            <i class="bi bi-filetype-py fs-5 text-info"></i>
+                            <div><strong>Python 3.12</strong><br><small class="text-body-secondary">Data collection &amp; API</small></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
+                            <i class="bi bi-globe fs-5 text-info"></i>
+                            <div><strong>Flask</strong><br><small class="text-body-secondary">Web framework</small></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
+                            <i class="bi bi-database fs-5 text-info"></i>
+                            <div><strong>Supabase PostgreSQL</strong><br><small class="text-body-secondary">Cloud database</small></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
+                            <i class="bi bi-bar-chart fs-5 text-info"></i>
+                            <div><strong>Chart.js</strong><br><small class="text-body-secondary">Data visualisation</small></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
+                            <i class="bi bi-map fs-5 text-info"></i>
+                            <div><strong>Leaflet.js</strong><br><small class="text-body-secondary">Interactive maps</small></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
+                            <i class="bi bi-cloud fs-5 text-info"></i>
+                            <div><strong>Heroku</strong><br><small class="text-body-secondary">Cloud hosting</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collection Stats (live) -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-clipboard-data"></i> Collection Statistics</div>
+            <div class="card-body" id="about-stats">
+                <div class="text-center text-body-secondary py-3">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                    Loading statistics...
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const resp = await fetch('/api/stats');
+        const s = await resp.json();
+        const el = document.getElementById('about-stats');
+        el.innerHTML = `
+            <div class="row g-3 text-center">
+                <div class="col-sm-4">
+                    <div class="fs-3 fw-bold">${(s.bike_rows || 0).toLocaleString()}</div>
+                    <div class="small text-body-secondary">Bike data points</div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="fs-3 fw-bold">${(s.weather_rows || 0).toLocaleString()}</div>
+                    <div class="small text-body-secondary">Weather data points</div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="fs-3 fw-bold">${s.collection_days || '--'} days</div>
+                    <div class="small text-body-secondary">Collection period</div>
+                </div>
+            </div>
+            <div class="mt-3 text-center small text-body-secondary">
+                First record: ${s.first_record ? new Date(s.first_record).toLocaleString() : '--'}
+                &middot;
+                Last record: ${s.last_record ? new Date(s.last_record).toLocaleString() : '--'}
+            </div>
+        `;
+    } catch (e) {
+        document.getElementById('about-stats').innerHTML =
+            '<div class="text-danger text-center">Failed to load statistics</div>';
+    }
+});
+</script>
+{% endblock %}

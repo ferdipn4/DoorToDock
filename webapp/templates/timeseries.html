@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Time Series{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <label class="form-label text-body-secondary small">Station</label>
+        <select class="form-select" id="station-select">
+            <option value="">Loading stations...</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label text-body-secondary small">Time Range</label>
+        <div class="btn-group w-100" role="group">
+            <button class="btn btn-outline-secondary" data-hours="6">6h</button>
+            <button class="btn btn-outline-secondary" data-hours="12">12h</button>
+            <button class="btn btn-outline-secondary active" data-hours="24">24h</button>
+            <button class="btn btn-outline-secondary" data-hours="48">48h</button>
+            <button class="btn btn-outline-secondary" data-hours="168">7d</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bikes Chart -->
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="bi bi-graph-up"></i> Bike Availability Over Time
+    </div>
+    <div class="card-body">
+        <canvas id="chart-bikes" height="100"></canvas>
+    </div>
+</div>
+
+<!-- Docks Chart -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-graph-down"></i> Empty Docks Over Time
+    </div>
+    <div class="card-body">
+        <canvas id="chart-docks" height="80"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/timeseries.js') }}"></script>
+{% endblock %}
