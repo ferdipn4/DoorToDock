@@ -101,36 +101,31 @@ function updateStationCards(stations) {
             ? Math.round((s.empty_docks / s.total_docks) * 100) : 0;
         const fillClass = s.status === 'green' ? 'fill-green'
             : s.status === 'yellow' ? 'fill-yellow' : 'fill-red';
+        const dockColor = s.status === 'green' ? 'text-success'
+            : s.status === 'yellow' ? 'text-warning' : 'text-danger';
 
         return `
         <div class="station-card bg-body-secondary status-border-${s.status}">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="station-name">${s.station_name}</div>
-                    <div class="station-meta">${s.distance_m || '?'}m from Imperial</div>
+            <div class="d-flex gap-3 align-items-center">
+                <div class="dock-hero ${dockColor}">
+                    <div class="dock-hero-num">${s.empty_docks}</div>
+                    <div class="dock-hero-label">FREE DOCKS</div>
                 </div>
-                <span class="badge status-${s.status}">${s.status.toUpperCase()}</span>
-            </div>
-            <div class="station-numbers">
-                <div>
-                    <div class="num">${s.standard_bikes}</div>
-                    <div class="num-label">Standard</div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="station-name">${s.station_name}</div>
+                            <div class="station-meta">${s.distance_m || '?'}m from Imperial · ${s.total_docks} total docks</div>
+                        </div>
+                        <span class="badge status-${s.status}">${s.status.toUpperCase()}</span>
+                    </div>
+                    <div class="dock-bar">
+                        <div class="dock-bar-fill ${fillClass}" style="width: ${pct}%"></div>
+                    </div>
+                    <div class="bike-detail">
+                        ${s.standard_bikes} standard · ${s.ebikes} e-bikes available
+                    </div>
                 </div>
-                <div>
-                    <div class="num">${s.ebikes}</div>
-                    <div class="num-label">E-Bikes</div>
-                </div>
-                <div>
-                    <div class="num">${s.empty_docks}</div>
-                    <div class="num-label">Docks</div>
-                </div>
-                <div>
-                    <div class="num text-body-secondary">${s.total_docks}</div>
-                    <div class="num-label">Total</div>
-                </div>
-            </div>
-            <div class="dock-bar">
-                <div class="dock-bar-fill ${fillClass}" style="width: ${pct}%"></div>
             </div>
         </div>`;
     }).join('');
@@ -145,23 +140,24 @@ function updateMapMarkers(stations) {
 
     stations.forEach(s => {
         const color = statusColors[s.status] || '#6c757d';
+        // Marker size scales with free docks (min 7, max 16)
+        const radius = Math.max(7, Math.min(16, 7 + s.empty_docks * 0.6));
         const popupHtml = `
             <strong>${s.station_name}</strong><br>
-            <span style="color:${color}">&#9679;</span>
-            ${s.standard_bikes} standard · ${s.ebikes} e-bikes · ${s.empty_docks} docks free<br>
-            <small>${s.distance_m || '?'}m from Imperial</small>
+            <span style="color:${color}; font-size:1.4em; font-weight:bold;">${s.empty_docks}</span>
+            <span style="color:${color};"> free docks</span>
+            <span style="opacity:0.6;"> / ${s.total_docks} total</span><br>
+            <small>${s.standard_bikes} standard + ${s.ebikes} e-bikes available · ${s.distance_m || '?'}m</small>
         `;
 
         if (markers[s.station_id]) {
-            // Update existing marker
-            markers[s.station_id].setStyle({ fillColor: color });
+            markers[s.station_id].setStyle({ fillColor: color, radius: radius });
             markers[s.station_id].setPopupContent(popupHtml);
         } else {
-            // Create new marker
             markers[s.station_id] = L.circleMarker(
                 [s.latitude, s.longitude],
                 {
-                    radius: 10,
+                    radius: radius,
                     fillColor: color,
                     color: '#fff',
                     weight: 2,
@@ -174,10 +170,15 @@ function updateMapMarkers(stations) {
 
 function updateCounts(stations) {
     const counts = { green: 0, yellow: 0, red: 0 };
-    stations.forEach(s => { counts[s.status] = (counts[s.status] || 0) + 1; });
+    let totalFreeDocks = 0;
+    stations.forEach(s => {
+        counts[s.status] = (counts[s.status] || 0) + 1;
+        totalFreeDocks += s.empty_docks || 0;
+    });
     document.getElementById('count-green').textContent = counts.green;
     document.getElementById('count-yellow').textContent = counts.yellow;
     document.getElementById('count-red').textContent = counts.red;
+    document.getElementById('stat-free-docks').textContent = totalFreeDocks;
 }
 
 function updateTimestamp(stations) {

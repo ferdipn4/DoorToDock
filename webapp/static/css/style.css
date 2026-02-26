@@ -48,21 +48,30 @@
     font-size: 0.75rem;
     color: var(--bs-secondary-color);
 }
-.station-card .station-numbers {
-    display: flex;
-    gap: 1rem;
-    margin-top: 0.35rem;
+/* Dock hero – prominent free dock count */
+.dock-hero {
+    text-align: center;
+    min-width: 60px;
+    flex-shrink: 0;
 }
-.station-card .station-numbers .num {
-    font-size: 1.25rem;
-    font-weight: 700;
+.dock-hero-num {
+    font-size: 2rem;
+    font-weight: 800;
     line-height: 1;
 }
-.station-card .station-numbers .num-label {
-    font-size: 0.65rem;
-    color: var(--bs-secondary-color);
+.dock-hero-label {
+    font-size: 0.55rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    opacity: 0.85;
+}
+
+/* Bike detail line */
+.bike-detail {
+    font-size: 0.72rem;
+    color: var(--bs-secondary-color);
+    margin-top: 0.3rem;
 }
 
 /* Dock bar */
