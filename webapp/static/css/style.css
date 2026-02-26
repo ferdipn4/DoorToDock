@@ -73,6 +73,9 @@
     color: var(--bs-secondary-color);
     margin-top: 0.3rem;
 }
+.forecast-hint {
+    font-weight: 600;
+}
 
 /* Dock bar */
 .dock-bar {

@@ -4,3 +4,7 @@ flask
 gunicorn
 flask-caching
 flask-compress
+scikit-learn
+joblib
+pandas
+numpy

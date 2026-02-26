@@ -3,7 +3,9 @@
 from functools import wraps
 from flask import Blueprint, jsonify, request
 from webapp.db import query, query_one, ensure_walking_distances
+from webapp.forecast import get_forecast_service
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 api = Blueprint("api", __name__, url_prefix="/api")
 
@@ -212,6 +214,52 @@ def correlation_stats():
             if row[key] is not None:
                 row[key] = round(float(row[key]), 4)
     return jsonify(row or {})
+
+
+# ------------------------------------------------------------------
+# Dock Forecast
+# ------------------------------------------------------------------
+
+@api.route("/forecast")
+@db_error_handler
+def forecast():
+    """Predicted dock availability using the trained model."""
+    svc = get_forecast_service()
+    if svc is None:
+        return jsonify({"available": False, "reason": "no model loaded"})
+
+    # Default: next hour in London time
+    london = ZoneInfo("Europe/London")
+    now_london = datetime.now(london)
+    hour = request.args.get("hour", (now_london.hour + 1) % 24, type=int)
+    weekday = request.args.get("weekday", now_london.weekday(), type=int)
+
+    # Latest weather from DB
+    weather_row = query_one("""
+        SELECT temperature, humidity, precipitation, wind_speed
+        FROM weather_data
+        ORDER BY timestamp DESC
+        LIMIT 1
+    """)
+    weather = weather_row or {}
+
+    # Station list with total_docks
+    stations = query("""
+        SELECT DISTINCT ON (ba.station_id)
+            ba.station_id, ba.station_name, ba.total_docks
+        FROM bike_availability ba
+        JOIN monitored_stations ms ON ba.station_id = ms.station_id
+        ORDER BY ba.station_id, ba.timestamp DESC
+    """)
+
+    predictions = svc.predict_all_stations(stations, weather, hour, weekday)
+    return jsonify({
+        "available": True,
+        "model_name": svc.model_name,
+        "hour": hour,
+        "weekday": weekday,
+        "predictions": predictions,
+    })
 
 
 # ------------------------------------------------------------------

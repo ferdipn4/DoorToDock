@@ -5,12 +5,14 @@ let markers = {};
 let currentStations = [];
 let currentSort = 'walking';
 let showCount = 10; // 0 = all
+let forecastData = {}; // station_id -> { predicted_empty_docks, predicted_status }
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
     loadStats();
     loadWeather();
     loadLiveStatus();
+    loadForecast();
 
     // Sort buttons
     document.querySelectorAll('.sort-btn').forEach(btn => {
@@ -38,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         loadLiveStatus();
         loadWeather();
+        loadForecast();
     }, 60000);
 });
 
@@ -113,6 +116,53 @@ async function loadLiveStatus() {
         console.error('Live status error:', e);
         document.getElementById('station-list').innerHTML =
             '<div class="text-danger text-center py-5">Failed to load station data</div>';
+    }
+}
+
+async function loadForecast() {
+    try {
+        const now = new Date();
+        const nextHour = (now.getHours() + 1) % 24;
+        const resp = await fetch(`/api/forecast?hour=${nextHour}`);
+        const data = await resp.json();
+        if (!data.available) {
+            console.log('Forecast not available:', data.reason);
+            return;
+        }
+        forecastData = {};
+        (data.predictions || []).forEach(p => {
+            forecastData[p.station_id] = p;
+        });
+        // Re-render cards to show forecast annotations
+        renderStationCards();
+        updateForecastStat();
+    } catch (e) {
+        console.error('Forecast load error:', e);
+    }
+}
+
+function updateForecastStat() {
+    const el = document.getElementById('stat-forecast-docks');
+    const labelEl = document.getElementById('stat-forecast-label');
+    if (!el) return;
+
+    // Find nearest station with forecast data (by walking distance)
+    const byWalking = [...currentStations].sort((a, b) =>
+        (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999));
+    const nearest = byWalking.find(s => forecastData[s.station_id]);
+
+    if (nearest && forecastData[nearest.station_id]) {
+        const fc = forecastData[nearest.station_id];
+        const predicted = Math.round(fc.predicted_empty_docks);
+        const colorClass = fc.predicted_status === 'green' ? 'text-success'
+            : fc.predicted_status === 'yellow' ? 'text-warning' : 'text-danger';
+        el.textContent = `~${predicted} docks`;
+        el.className = `fs-2 fw-bold ${colorClass}`;
+        labelEl.textContent = `${nearest.station_name.split(',')[0]} in 1h`;
+    } else {
+        el.textContent = '--';
+        el.className = 'fs-2 fw-bold';
+        labelEl.textContent = 'in 1 hour';
     }
 }
 
@@ -199,7 +249,7 @@ function renderStationCards() {
                         <div class="dock-bar-fill ${fillClass}" style="width: ${pct}%"></div>
                     </div>
                     <div class="bike-detail">
-                        ${s.standard_bikes} standard · ${s.ebikes} e-bikes available
+                        ${s.standard_bikes} standard · ${s.ebikes} e-bikes available${forecastData[s.station_id] ? ` · <span class="forecast-hint text-${forecastData[s.station_id].predicted_status === 'green' ? 'success' : forecastData[s.station_id].predicted_status === 'yellow' ? 'warning' : 'danger'}">→ ~${Math.round(forecastData[s.station_id].predicted_empty_docks)} in 1h</span>` : ''}
                     </div>
                 </div>
             </div>
