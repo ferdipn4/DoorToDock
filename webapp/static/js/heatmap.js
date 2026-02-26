@@ -2,7 +2,7 @@
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Mon-Sun display order
-let currentMetric = 'avg_bikes';
+let currentMetric = 'avg_docks';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadStations();
@@ -31,7 +31,8 @@ async function loadStations() {
         stations.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.station_id;
-            opt.textContent = `${s.station_name} (${s.distance_m}m)`;
+            const walkMin = Math.round((s.walking_duration_s || 0) / 60);
+            opt.textContent = `${s.station_name} (${walkMin} min walk)`;
             select.appendChild(opt);
         });
     } catch (e) {
@@ -130,6 +131,15 @@ function heatmapColor(norm) {
 function computeInsights(data) {
     if (!data.length) return;
 
+    // Update insight labels based on metric
+    const isDocks = currentMetric === 'avg_docks';
+    document.getElementById('insight-peak-label').textContent =
+        isDocks ? 'Best Hours (Most Docks)' : 'Peak Hours (Most Bikes)';
+    document.getElementById('insight-low-label').textContent =
+        isDocks ? 'Worst Hours (Fewest Docks)' : 'Low Hours (Fewest Bikes)';
+    document.getElementById('insight-busiest-label').textContent =
+        isDocks ? 'Hardest Day to Dock' : 'Busiest Day';
+
     // Group by hour
     const byHour = {};
     const byDay = {};
@@ -158,7 +168,7 @@ function computeInsights(data) {
         .slice(0, 3).map(h => `${h.hour.toString().padStart(2, '0')}:00`);
     document.getElementById('insight-low').textContent = bottom3.join(', ');
 
-    // Busiest day (lowest average = most bikes taken)
+    // Day with lowest average (hardest to find docks / busiest for bikes)
     const dayAvgs = Object.entries(byDay).map(([d, vals]) => ({
         day: parseInt(d),
         avg: vals.reduce((a, b) => a + b, 0) / vals.length,

@@ -232,3 +232,61 @@ canvas {
     background-color: rgba(255, 255, 255, 0.15);
     border-radius: 3px;
 }
+
+/* Live dot indicator */
+.live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #198754;
+    margin-right: 4px;
+    animation: live-pulse 2s ease-in-out infinite;
+}
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Page headers */
+h5.fw-bold {
+    letter-spacing: -0.01em;
+}
+
+/* Station card active/focus state */
+.station-card:active {
+    transform: scale(0.98);
+}
+
+/* Summary stat cards */
+#ts-summary .card {
+    border-left: 3px solid transparent;
+}
+
+/* Weather correlation interpretation */
+[id^="corr-"][id$="-desc"] {
+    font-size: 0.72rem;
+}
+
+/* Better mobile layout for station cards */
+@media (max-width: 767.98px) {
+    .dock-hero-num {
+        font-size: 1.6rem;
+    }
+    .dock-hero {
+        min-width: 48px;
+    }
+    .station-card .station-name {
+        font-size: 0.8rem;
+    }
+    .station-card .station-meta {
+        font-size: 0.7rem;
+    }
+    #stats-row .fs-2 {
+        font-size: 1.4rem !important;
+    }
+    .heatmap-cell {
+        font-size: 0.55rem;
+        min-height: 28px;
+    }
+}

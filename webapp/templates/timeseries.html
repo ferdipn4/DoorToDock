@@ -2,6 +2,12 @@
 {% block title %}Time Series{% endblock %}
 
 {% block content %}
+<!-- Page Header -->
+<div class="mb-3">
+    <h5 class="mb-0 fw-bold">Time Series Analysis</h5>
+    <small class="text-body-secondary">Track how bike and dock availability changes over time at each station</small>
+</div>
+
 <div class="row g-3 mb-3">
     <div class="col-md-6">
         <label class="form-label text-body-secondary small">Station</label>
@@ -17,6 +23,42 @@
             <button class="btn btn-outline-secondary active" data-hours="24">24h</button>
             <button class="btn btn-outline-secondary" data-hours="48">48h</button>
             <button class="btn btn-outline-secondary" data-hours="168">7d</button>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="row g-3 mb-3" id="ts-summary" style="display: none;">
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center py-2">
+                <div class="text-body-secondary small">Current Docks</div>
+                <div class="fs-3 fw-bold" id="ts-current">--</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center py-2">
+                <div class="text-body-secondary small">Average</div>
+                <div class="fs-3 fw-bold text-info" id="ts-avg">--</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center py-2">
+                <div class="text-body-secondary small">Minimum</div>
+                <div class="fs-3 fw-bold text-danger" id="ts-min">--</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body text-center py-2">
+                <div class="text-body-secondary small">Maximum</div>
+                <div class="fs-3 fw-bold text-success" id="ts-max">--</div>
+            </div>
         </div>
     </div>
 </div>

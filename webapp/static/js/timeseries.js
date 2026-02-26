@@ -105,7 +105,8 @@ async function loadStations() {
         stations.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.station_id;
-            opt.textContent = `${s.station_name} (${s.distance_m}m)`;
+            const walkMin = Math.round((s.walking_duration_s || 0) / 60);
+            opt.textContent = `${s.station_name} (${walkMin} min walk)`;
             select.appendChild(opt);
         });
 
@@ -186,7 +187,30 @@ async function loadTimeSeries() {
         };
         docksChart.update();
 
+        // Update summary stats (focused on docks)
+        updateSummary(docks);
+
     } catch (e) {
         console.error('Failed to load time series:', e);
     }
+}
+
+function updateSummary(docks) {
+    const container = document.getElementById('ts-summary');
+    if (!docks.length) {
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = '';
+    const current = docks[docks.length - 1];
+    const avg = Math.round(docks.reduce((a, b) => a + b, 0) / docks.length * 10) / 10;
+    const min = Math.min(...docks);
+    const max = Math.max(...docks);
+
+    const elCurrent = document.getElementById('ts-current');
+    elCurrent.textContent = current;
+    elCurrent.className = 'fs-3 fw-bold ' + (current >= 5 ? 'text-success' : current >= 1 ? 'text-warning' : 'text-danger');
+    document.getElementById('ts-avg').textContent = avg;
+    document.getElementById('ts-min').textContent = min;
+    document.getElementById('ts-max').textContent = max;
 }

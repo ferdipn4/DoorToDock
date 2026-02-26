@@ -10,20 +10,27 @@ async function loadCorrelationStats() {
         const resp = await fetch('/api/correlation-stats');
         const data = await resp.json();
 
-        setCorr('corr-temp', data.temp_corr);
-        setCorr('corr-rain', data.rain_corr);
-        setCorr('corr-wind', data.wind_corr);
-        setCorr('corr-humidity', data.humidity_corr);
+        setCorr('corr-temp', data.temp_corr, 'corr-temp-desc');
+        setCorr('corr-rain', data.rain_corr, 'corr-rain-desc');
+        setCorr('corr-wind', data.wind_corr, 'corr-wind-desc');
+        setCorr('corr-humidity', data.humidity_corr, 'corr-humidity-desc');
+
+        if (data.samples) {
+            document.getElementById('sample-badge').textContent =
+                `${Number(data.samples).toLocaleString()} samples`;
+        }
     } catch (e) {
         console.error('Failed to load correlation stats:', e);
     }
 }
 
-function setCorr(elementId, value) {
+function setCorr(elementId, value, descId) {
     const el = document.getElementById(elementId);
+    const descEl = descId ? document.getElementById(descId) : null;
     if (value == null) {
         el.textContent = 'N/A';
         el.className = 'fs-2 fw-bold corr-neutral';
+        if (descEl) descEl.textContent = 'Insufficient data';
         return;
     }
     const rounded = value.toFixed(3);
@@ -31,6 +38,18 @@ function setCorr(elementId, value) {
     if (value > 0.1) el.className = 'fs-2 fw-bold corr-positive';
     else if (value < -0.1) el.className = 'fs-2 fw-bold corr-negative';
     else el.className = 'fs-2 fw-bold corr-neutral';
+
+    // Add interpretation
+    if (descEl) {
+        const abs = Math.abs(value);
+        let strength;
+        if (abs > 0.7) strength = 'Strong';
+        else if (abs > 0.4) strength = 'Moderate';
+        else if (abs > 0.1) strength = 'Weak';
+        else { descEl.textContent = 'No correlation'; return; }
+        const direction = value > 0 ? 'positive' : 'negative';
+        descEl.textContent = `${strength} ${direction} (r = ${rounded})`;
+    }
 }
 
 async function loadScatterPlots() {

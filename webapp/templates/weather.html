@@ -2,41 +2,50 @@
 {% block title %}Weather Correlation{% endblock %}
 
 {% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h5 class="mb-0 fw-bold">Weather Correlation</h5>
+        <small class="text-body-secondary">How weather conditions influence bike usage across all monitored stations</small>
+    </div>
+    <span class="badge bg-body-secondary text-body-secondary border" id="sample-badge">-- samples</span>
+</div>
+
 <!-- Correlation Stats Cards -->
 <div class="row g-3 mb-4" id="corr-cards">
     <div class="col-6 col-md-3">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small">Temperature vs Bikes</div>
+                <div class="text-body-secondary small"><i class="bi bi-thermometer-half"></i> Temperature</div>
                 <div class="fs-2 fw-bold" id="corr-temp">--</div>
-                <div class="small text-body-secondary">Pearson r</div>
+                <div class="small text-body-secondary" id="corr-temp-desc">Pearson r</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small">Rain vs Bikes</div>
+                <div class="text-body-secondary small"><i class="bi bi-cloud-rain"></i> Precipitation</div>
                 <div class="fs-2 fw-bold" id="corr-rain">--</div>
-                <div class="small text-body-secondary">Pearson r</div>
+                <div class="small text-body-secondary" id="corr-rain-desc">Pearson r</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small">Wind vs Bikes</div>
+                <div class="text-body-secondary small"><i class="bi bi-wind"></i> Wind Speed</div>
                 <div class="fs-2 fw-bold" id="corr-wind">--</div>
-                <div class="small text-body-secondary">Pearson r</div>
+                <div class="small text-body-secondary" id="corr-wind-desc">Pearson r</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small">Humidity vs Bikes</div>
+                <div class="text-body-secondary small"><i class="bi bi-droplet"></i> Humidity</div>
                 <div class="fs-2 fw-bold" id="corr-humidity">--</div>
-                <div class="small text-body-secondary">Pearson r</div>
+                <div class="small text-body-secondary" id="corr-humidity-desc">Pearson r</div>
             </div>
         </div>
     </div>

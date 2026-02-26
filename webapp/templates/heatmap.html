@@ -2,6 +2,12 @@
 {% block title %}Heatmap{% endblock %}
 
 {% block content %}
+<!-- Page Header -->
+<div class="mb-3">
+    <h5 class="mb-0 fw-bold">Availability Heatmap</h5>
+    <small class="text-body-secondary">Discover patterns in dock availability by hour and day of week</small>
+</div>
+
 <div class="row g-3 mb-3">
     <div class="col-md-6">
         <label class="form-label text-body-secondary small">Station</label>
@@ -12,8 +18,8 @@
     <div class="col-md-6">
         <label class="form-label text-body-secondary small">Metric</label>
         <div class="btn-group w-100" role="group">
-            <button class="btn btn-outline-secondary active" data-metric="avg_bikes">Available Bikes</button>
-            <button class="btn btn-outline-secondary" data-metric="avg_docks">Empty Docks</button>
+            <button class="btn btn-outline-secondary" data-metric="avg_bikes">Available Bikes</button>
+            <button class="btn btn-outline-secondary active" data-metric="avg_docks">Empty Docks</button>
         </div>
     </div>
 </div>
@@ -43,7 +49,7 @@
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small">Peak Hours (Most Bikes)</div>
+                <div class="text-body-secondary small" id="insight-peak-label">Best Hours (Most Docks)</div>
                 <div class="fs-4 fw-bold text-success" id="insight-peak">--</div>
             </div>
         </div>
@@ -51,7 +57,7 @@
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small">Low Hours (Fewest Bikes)</div>
+                <div class="text-body-secondary small" id="insight-low-label">Worst Hours (Fewest Docks)</div>
                 <div class="fs-4 fw-bold text-danger" id="insight-low">--</div>
             </div>
         </div>
@@ -59,7 +65,7 @@
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small">Busiest Day</div>
+                <div class="text-body-secondary small" id="insight-busiest-label">Busiest Day</div>
                 <div class="fs-4 fw-bold text-warning" id="insight-busiest">--</div>
             </div>
         </div>

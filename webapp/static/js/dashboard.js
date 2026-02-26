@@ -177,6 +177,7 @@ function renderStationCards() {
         return `
         <div class="station-card bg-body-secondary status-border-${s.status}"
              data-station-id="${s.station_id}"
+             onclick="focusStation('${s.station_id}')"
              onmouseenter="highlightMarker('${s.station_id}')"
              onmouseleave="unhighlightMarker('${s.station_id}')">
             <div class="d-flex gap-3 align-items-center">
@@ -364,7 +365,24 @@ function updateStats() {
 function updateTimestamp(stations) {
     if (stations.length > 0 && stations[0].timestamp) {
         const t = new Date(stations[0].timestamp);
-        document.getElementById('update-time').textContent =
-            t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        const now = new Date();
+        const diffMin = Math.round((now - t) / 60000);
+        const timeStr = t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        const agoStr = diffMin <= 1 ? 'just now' : `${diffMin} min ago`;
+        document.getElementById('update-time').textContent = `${timeStr} (${agoStr})`;
     }
+}
+
+// ------------------------------------------------------------------
+// Click-to-Focus: Pan map to station and open popup
+// ------------------------------------------------------------------
+
+function focusStation(stationId) {
+    const marker = markers[stationId];
+    if (!marker) return;
+    const latlng = marker.getLatLng();
+    map.flyTo(latlng, 17, { duration: 0.5 });
+    setTimeout(() => {
+        marker.openPopup();
+    }, 500);
 }
