@@ -32,17 +32,28 @@ async function loadCorrelationStats() {
 function setCorr(elementId, value, descId) {
     const el = document.getElementById(elementId);
     const descEl = descId ? document.getElementById(descId) : null;
+    // Find parent card for background styling
+    const card = el.closest('.card');
+
     if (value == null) {
         el.textContent = 'N/A';
         el.className = 'fs-2 fw-bold corr-neutral';
         if (descEl) descEl.textContent = 'Insufficient data';
+        if (card) card.className = 'card h-100 corr-card-neutral';
         return;
     }
     const rounded = value.toFixed(3);
     el.textContent = (value > 0 ? '+' : '') + rounded;
-    if (value > 0.1) el.className = 'fs-2 fw-bold corr-positive';
-    else if (value < -0.1) el.className = 'fs-2 fw-bold corr-negative';
-    else el.className = 'fs-2 fw-bold corr-neutral';
+    if (value > 0.1) {
+        el.className = 'fs-2 fw-bold corr-positive';
+        if (card) card.className = 'card h-100 corr-card-positive';
+    } else if (value < -0.1) {
+        el.className = 'fs-2 fw-bold corr-negative';
+        if (card) card.className = 'card h-100 corr-card-negative';
+    } else {
+        el.className = 'fs-2 fw-bold corr-neutral';
+        if (card) card.className = 'card h-100 corr-card-neutral';
+    }
 
     // Add interpretation
     if (descEl) {

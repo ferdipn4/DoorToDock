@@ -186,6 +186,29 @@
 .corr-negative { color: #dc3545; }
 .corr-neutral { color: #6c757d; }
 
+/* Correlation card backgrounds (set via JS) */
+.corr-card-positive {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.12), transparent) !important;
+    border-color: rgba(25, 135, 84, 0.3) !important;
+}
+.corr-card-negative {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.12), transparent) !important;
+    border-color: rgba(220, 53, 69, 0.3) !important;
+}
+.corr-card-neutral {
+    opacity: 0.7;
+}
+
+/* Status legend dots */
+.legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
 /* Chart canvas padding */
 canvas {
     max-height: 400px;

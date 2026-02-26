@@ -31,6 +31,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 60000);
 });
 
+// Crosshair plugin – draws a vertical line at hover position
+const crosshairPlugin = {
+    id: 'crosshair',
+    afterDraw(chart) {
+        if (chart.tooltip && chart.tooltip._active && chart.tooltip._active.length) {
+            const x = chart.tooltip._active[0].element.x;
+            const yAxis = chart.scales.y;
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, yAxis.top);
+            ctx.lineTo(x, yAxis.bottom);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.setLineDash([4, 3]);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+};
+
 function initCharts() {
     const commonOpts = {
         responsive: true,
@@ -83,7 +104,8 @@ function initCharts() {
                     ...commonOpts.scales,
                     y: { ...commonOpts.scales.y, title: { display: true, text: 'Bikes' } }
                 }
-            }
+            },
+            plugins: [crosshairPlugin],
         });
 
         docksChart = new Chart(document.getElementById('chart-docks'), {
@@ -95,7 +117,8 @@ function initCharts() {
                     ...commonOpts.scales,
                     y: { ...commonOpts.scales.y, title: { display: true, text: 'Empty Docks' } }
                 }
-            }
+            },
+            plugins: [crosshairPlugin],
         });
     };
     document.head.appendChild(script);

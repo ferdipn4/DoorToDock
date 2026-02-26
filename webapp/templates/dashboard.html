@@ -53,6 +53,25 @@
     </div>
 </div>
 
+<!-- Dock Forecast -->
+<div class="card mb-4" id="forecast-card" style="display: none;">
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-center" style="min-width: 50px;">
+                <i class="bi bi-clock-history fs-3 text-info"></i>
+            </div>
+            <div class="flex-grow-1" id="forecast-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Legend -->
+<div class="d-flex gap-3 mb-3 small text-body-secondary">
+    <span><span class="legend-dot bg-success"></span> 5+ free docks</span>
+    <span><span class="legend-dot bg-warning"></span> 1–4 free docks</span>
+    <span><span class="legend-dot bg-danger"></span> 0 free docks</span>
+</div>
+
 <!-- Map + Stations -->
 <div class="row g-3">
     <!-- Map -->
