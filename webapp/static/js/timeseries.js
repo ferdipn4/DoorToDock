@@ -24,6 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentStation) loadTimeSeries();
         });
     });
+
+    // Auto-refresh every 60 seconds
+    setInterval(() => {
+        if (currentStation) loadTimeSeries();
+    }, 60000);
 });
 
 function initCharts() {

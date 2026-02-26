@@ -3,6 +3,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     loadCorrelationStats();
     loadScatterPlots();
+
+    // Auto-refresh every 60 seconds
+    setInterval(() => {
+        loadCorrelationStats();
+    }, 60000);
 });
 
 async function loadCorrelationStats() {

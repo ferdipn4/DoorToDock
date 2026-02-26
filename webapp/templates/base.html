@@ -81,6 +81,34 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Global: update navbar timestamp on all pages -->
+    <script>
+    async function _updateNavTime() {
+        try {
+            const resp = await fetch('/api/weather-now');
+            const w = await resp.json();
+            if (w.timestamp) {
+                const t = new Date(w.timestamp);
+                const now = new Date();
+                const diffMin = Math.round((now - t) / 60000);
+                const timeStr = t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const agoStr = diffMin <= 1 ? 'just now' : diffMin + ' min ago';
+                document.getElementById('update-time').textContent = timeStr + ' (' + agoStr + ')';
+            }
+        } catch (e) { /* silent */ }
+    }
+    // Only run the global updater if the page script hasn't already set it
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initial fetch after a short delay (let page scripts run first)
+        setTimeout(() => {
+            if (document.getElementById('update-time').textContent === '--') {
+                _updateNavTime();
+            }
+        }, 1500);
+        // Refresh every 60s on all pages
+        setInterval(_updateNavTime, 60000);
+    });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
