@@ -3,7 +3,8 @@
 let map;
 let markers = {};
 let currentStations = [];
-let currentSort = 'distance';
+let currentSort = 'walking';
+let showCount = 10; // 0 = all
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
@@ -18,6 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.classList.add('active');
             currentSort = e.target.dataset.sort;
             renderStationCards();
+        });
+    });
+
+    // Show count buttons
+    document.querySelectorAll('.show-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.show-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            showCount = parseInt(e.target.dataset.show);
+            renderStationCards();
+            updateMapVisibility();
         });
     });
 
@@ -92,10 +104,11 @@ async function loadLiveStatus() {
         const resp = await fetch('/api/live');
         currentStations = await resp.json();
 
-        renderStationCards();
         updateMapMarkers(currentStations);
+        renderStationCards();
         updateCounts(currentStations);
         updateTimestamp(currentStations);
+        updateMapVisibility();
     } catch (e) {
         console.error('Live status error:', e);
         document.getElementById('station-list').innerHTML =
@@ -104,14 +117,14 @@ async function loadLiveStatus() {
 }
 
 // ------------------------------------------------------------------
-// Sorting
+// Sorting & Filtering
 // ------------------------------------------------------------------
 
 function sortStations(stations) {
     const sorted = [...stations];
     switch (currentSort) {
-        case 'distance':
-            sorted.sort((a, b) => (a.distance_m || 999) - (b.distance_m || 999));
+        case 'walking':
+            sorted.sort((a, b) => (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999));
             break;
         case 'docks-desc':
             sorted.sort((a, b) => (b.empty_docks || 0) - (a.empty_docks || 0));
@@ -126,13 +139,30 @@ function sortStations(stations) {
     return sorted;
 }
 
+function getVisibleStations() {
+    // Always sort by walking distance first to determine the "nearest"
+    const byWalking = [...currentStations].sort((a, b) =>
+        (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999));
+    if (showCount > 0) {
+        return new Set(byWalking.slice(0, showCount).map(s => s.station_id));
+    }
+    return new Set(byWalking.map(s => s.station_id));
+}
+
 // ------------------------------------------------------------------
 // Station Cards
 // ------------------------------------------------------------------
 
+function formatWalkingTime(seconds) {
+    if (!seconds) return '?';
+    const mins = Math.round(seconds / 60);
+    return `${mins} min walk`;
+}
+
 function renderStationCards() {
     const container = document.getElementById('station-list');
-    const sorted = sortStations(currentStations);
+    const visible = getVisibleStations();
+    const sorted = sortStations(currentStations).filter(s => visible.has(s.station_id));
 
     container.innerHTML = sorted.map(s => {
         const pct = s.total_docks > 0
@@ -141,6 +171,8 @@ function renderStationCards() {
             : s.status === 'yellow' ? 'fill-yellow' : 'fill-red';
         const dockColor = s.status === 'green' ? 'text-success'
             : s.status === 'yellow' ? 'text-warning' : 'text-danger';
+        const walkTime = formatWalkingTime(s.walking_duration_s);
+        const walkDist = Math.round(s.walking_distance_m || 0);
 
         return `
         <div class="station-card bg-body-secondary status-border-${s.status}"
@@ -156,7 +188,9 @@ function renderStationCards() {
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="station-name">${s.station_name}</div>
-                            <div class="station-meta">${s.distance_m || '?'}m from Imperial · ${s.total_docks} total docks</div>
+                            <div class="station-meta">
+                                <i class="bi bi-person-walking"></i> ${walkDist}m · ${walkTime} · ${s.total_docks} total docks
+                            </div>
                         </div>
                         <span class="badge status-${s.status}">${s.status.toUpperCase()}</span>
                     </div>
@@ -186,18 +220,19 @@ function updateMapMarkers(stations) {
     stations.forEach(s => {
         const color = statusColors[s.status] || '#6c757d';
         const radius = Math.max(7, Math.min(16, 7 + s.empty_docks * 0.6));
+        const walkTime = formatWalkingTime(s.walking_duration_s);
+        const walkDist = Math.round(s.walking_distance_m || 0);
         const popupHtml = `
             <strong>${s.station_name}</strong><br>
             <span style="color:${color}; font-size:1.4em; font-weight:bold;">${s.empty_docks}</span>
             <span style="color:${color};"> free docks</span>
             <span style="opacity:0.6;"> / ${s.total_docks} total</span><br>
-            <small>${s.standard_bikes} standard + ${s.ebikes} e-bikes available · ${s.distance_m || '?'}m</small>
+            <small>${s.standard_bikes} standard + ${s.ebikes} e-bikes · ${walkDist}m · ${walkTime}</small>
         `;
 
         if (markers[s.station_id]) {
             markers[s.station_id].setStyle({ fillColor: color, radius: radius });
             markers[s.station_id].setPopupContent(popupHtml);
-            // Store base radius for highlight/unhighlight
             markers[s.station_id]._baseRadius = radius;
             markers[s.station_id]._baseColor = color;
         } else {
@@ -218,8 +253,19 @@ function updateMapMarkers(stations) {
     });
 }
 
+function updateMapVisibility() {
+    const visible = getVisibleStations();
+    for (const [stationId, marker] of Object.entries(markers)) {
+        if (visible.has(stationId)) {
+            marker.setStyle({ opacity: 1, fillOpacity: 0.9 });
+        } else {
+            marker.setStyle({ opacity: 0.15, fillOpacity: 0.1 });
+        }
+    }
+}
+
 // ------------------------------------------------------------------
-// Hover Highlight: pulse ring on map when hovering station card
+// Hover Highlight
 // ------------------------------------------------------------------
 
 let pulseRing = null;
@@ -228,7 +274,6 @@ function highlightMarker(stationId) {
     const marker = markers[stationId];
     if (!marker) return;
 
-    // Enlarge marker and add bright glow
     marker.setStyle({
         radius: (marker._baseRadius || 10) + 6,
         weight: 4,
@@ -237,11 +282,8 @@ function highlightMarker(stationId) {
     });
     marker.bringToFront();
 
-    // Add pulsing ring
     const latlng = marker.getLatLng();
-    if (pulseRing) {
-        map.removeLayer(pulseRing);
-    }
+    if (pulseRing) map.removeLayer(pulseRing);
     pulseRing = L.circleMarker(latlng, {
         radius: (marker._baseRadius || 10) + 16,
         fillColor: marker._baseColor || '#fff',
@@ -252,7 +294,6 @@ function highlightMarker(stationId) {
         className: 'pulse-ring',
     }).addTo(map);
 
-    // Open popup
     marker.openPopup();
 }
 
@@ -260,20 +301,21 @@ function unhighlightMarker(stationId) {
     const marker = markers[stationId];
     if (!marker) return;
 
-    // Restore original style
+    const visible = getVisibleStations();
+    const isVisible = visible.has(stationId);
+
     marker.setStyle({
         radius: marker._baseRadius || 10,
         weight: 2,
         color: '#fff',
-        fillOpacity: 0.9,
+        fillOpacity: isVisible ? 0.9 : 0.1,
+        opacity: isVisible ? 1 : 0.15,
     });
 
-    // Remove pulse ring
     if (pulseRing) {
         map.removeLayer(pulseRing);
         pulseRing = null;
     }
-
     marker.closePopup();
 }
 
@@ -282,15 +324,13 @@ function unhighlightMarker(stationId) {
 // ------------------------------------------------------------------
 
 function updateCounts(stations) {
-    const counts = { green: 0, yellow: 0, red: 0 };
+    const visible = getVisibleStations();
     let totalFreeDocks = 0;
     stations.forEach(s => {
-        counts[s.status] = (counts[s.status] || 0) + 1;
-        totalFreeDocks += s.empty_docks || 0;
+        if (visible.has(s.station_id)) {
+            totalFreeDocks += s.empty_docks || 0;
+        }
     });
-    document.getElementById('count-green').textContent = counts.green;
-    document.getElementById('count-yellow').textContent = counts.yellow;
-    document.getElementById('count-red').textContent = counts.red;
     document.getElementById('stat-free-docks').textContent = totalFreeDocks;
 }
 

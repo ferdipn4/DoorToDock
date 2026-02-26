@@ -2,7 +2,7 @@
 
 from functools import wraps
 from flask import Blueprint, jsonify, request
-from webapp.db import query, query_one
+from webapp.db import query, query_one, ensure_walking_distances
 from datetime import datetime, timezone
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -36,12 +36,15 @@ def _serialise(rows):
 @db_error_handler
 def live_status():
     """Current bike availability at all monitored stations."""
+    ensure_walking_distances()
     rows = query("""
         SELECT DISTINCT ON (ba.station_id)
             ba.station_id, ba.station_name, ba.available_bikes,
             ba.standard_bikes, ba.ebikes, ba.empty_docks,
             ba.total_docks, ba.latitude, ba.longitude, ba.timestamp,
-            ms.distance_m
+            ms.distance_m,
+            COALESCE(ms.walking_distance_m, ms.distance_m * 1.3) AS walking_distance_m,
+            COALESCE(ms.walking_duration_s, ms.distance_m * 1.3 / 1.2) AS walking_duration_s
         FROM bike_availability ba
         JOIN monitored_stations ms ON ba.station_id = ms.station_id
         ORDER BY ba.station_id, ba.timestamp DESC
@@ -81,11 +84,14 @@ def weather_now():
 @db_error_handler
 def stations():
     """List of all monitored stations."""
+    ensure_walking_distances()
     rows = query("""
         SELECT station_id, station_name, latitude, longitude,
-               ROUND(distance_m::numeric) AS distance_m
+               ROUND(distance_m::numeric) AS distance_m,
+               ROUND(COALESCE(walking_distance_m, distance_m * 1.3)::numeric) AS walking_distance_m,
+               ROUND(COALESCE(walking_duration_s, distance_m * 1.3 / 1.2)::numeric) AS walking_duration_s
         FROM monitored_stations
-        ORDER BY distance_m
+        ORDER BY walking_distance_m
     """)
     return jsonify(rows)
 
