@@ -104,8 +104,9 @@
   - **Heatmap:** Custom CSS-Grid Heatmap (Stunde × Wochentag), umschaltbar Bikes/Docks
   - **Wetter-Korrelation:** 4 Scatter-Plots mit Trendlinien + Pearson-Korrelationskoeffizienten
   - **About-Seite:** Architektur-Diagramm, Tech Stack, Live-Statistiken
+  - **Dock Forecast:** Stat-Card mit Vorhersage (nächste Stunde), Forecast-Annotation pro Station-Card ("→ ~N in 1h")
   - Dark Mode (Bootstrap 5), Auto-Refresh alle 60s, responsive
-  - JSON-API mit 8 Endpoints + graceful DB-Error-Handling (503)
+  - JSON-API mit 9 Endpoints + graceful DB-Error-Handling (503)
 
 ### ✅ Modell-Training (`training/`)
 - **`train_model.py`** – Trainiert und vergleicht 3 Modelle für `empty_docks`-Vorhersage
@@ -116,10 +117,19 @@
   - Outputs: `model.pkl`, `feature_importance.png`, `predictions.png`, `metrics.txt`
 - **`METHODOLOGY.md`** – Dokumentation für Uni-Bericht (Zielsetzung, Features, Modellwahl, Limitationen)
 
+### ✅ Forecast-Integration ins Dashboard
+- **`webapp/forecast.py`** – ForecastService Singleton
+  - Lädt `training/model.pkl` (Gradient Boosting) einmalig beim Start
+  - Baut Feature-Vektoren intern (hour_sin/cos, is_weekend, station_enc via LabelEncoder, Wetter)
+  - `predict_all_stations()` für alle 21 Stationen, unbekannte Stationen → `None`
+- **`/api/forecast`** Endpoint – Query-Params: `?hour=`, `?weekday=` (Default: nächste Stunde London-Zeit)
+  - Holt aktuelle Wetterdaten + Stationsliste aus DB
+  - Return: `{ available, model_name, predictions: [{ station_id, predicted_empty_docks, predicted_status }] }`
+- **Dashboard-UI** – Forecast Stat-Card + "→ ~N in 1h" Annotation pro Station-Card (farbcodiert)
+
 ### ❌ Noch offen
 - ESP32 + PIR-Sensor Setup (pausiert)
 - Raspberry Pi als lokaler Server (pausiert)
-- Dashboard-Integration der Vorhersage (`/api/forecast` Endpoint)
 
 ---
 
@@ -214,7 +224,8 @@ Door2Dock/
 ├── webapp/
 │   ├── app.py               # Flask App Factory
 │   ├── db.py                # Shared DB-Helper
-│   ├── api.py               # JSON-API Endpoints (8 Routes)
+│   ├── api.py               # JSON-API Endpoints (9 Routes)
+│   ├── forecast.py          # ForecastService (Modell-Vorhersage)
 │   ├── views.py             # HTML-Seitenrouten (5 Seiten)
 │   ├── templates/
 │   │   ├── base.html        # Dark-Mode Layout, Nav
