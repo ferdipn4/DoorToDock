@@ -9,13 +9,13 @@
 </div>
 
 <div class="row g-3 mb-3">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <label class="form-label text-body-secondary small">Station</label>
         <select class="form-select" id="station-select">
             <option value="">Loading stations...</option>
         </select>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
         <label class="form-label text-body-secondary small">Time Range</label>
         <div class="btn-group w-100" role="group">
             <button class="btn btn-outline-secondary" data-hours="6">6h</button>
@@ -23,6 +23,15 @@
             <button class="btn btn-outline-secondary active" data-hours="24">24h</button>
             <button class="btn btn-outline-secondary" data-hours="48">48h</button>
             <button class="btn btn-outline-secondary" data-hours="168">7d</button>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label text-body-secondary small">Show Nearest</label>
+        <div class="btn-group w-100" role="group">
+            <button class="btn btn-outline-secondary ts-show-btn" data-show="1">1</button>
+            <button class="btn btn-outline-secondary ts-show-btn active" data-show="3">3</button>
+            <button class="btn btn-outline-secondary ts-show-btn" data-show="5">5</button>
+            <button class="btn btn-outline-secondary ts-show-btn" data-show="10">10</button>
         </div>
     </div>
 </div>
