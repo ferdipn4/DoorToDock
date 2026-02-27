@@ -51,12 +51,15 @@
         </div>
     </div>
 
-    <!-- Favorite Stations -->
+    <!-- Select Stations -->
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header"><i class="bi bi-star"></i> Favorite Stations</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-check2-square"></i> Select Stations</span>
+                <span class="badge bg-primary" id="selected-count-badge">0 selected</span>
+            </div>
             <div class="card-body p-2">
-                <div id="fav-station-list" class="fav-station-list">
+                <div id="station-check-list" class="station-check-list">
                     <div class="text-center text-body-secondary py-3">
                         <div class="spinner-border spinner-border-sm" role="status"></div>
                         Loading stations...
@@ -85,11 +88,11 @@
 <div class="row g-3 mb-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header"><i class="bi bi-graph-up"></i> Favorite Stations – Predicted Free Docks</div>
+            <div class="card-header"><i class="bi bi-graph-up"></i> Selected Stations – Predicted Free Docks</div>
             <div class="card-body">
                 <canvas id="timeline-chart" height="300"></canvas>
                 <div class="text-center text-body-secondary small mt-2" id="timeline-empty">
-                    Select favorites and run a scan to see predictions
+                    Select stations and run a scan to see predictions
                 </div>
             </div>
         </div>
@@ -103,7 +106,7 @@
             <div class="card-body">
                 <canvas id="alt-chart" height="250"></canvas>
                 <div class="text-center text-body-secondary small mt-2" id="alt-empty">
-                    Stations not in your favorites will appear here
+                    Stations not selected will appear here
                 </div>
             </div>
         </div>

@@ -1,36 +1,43 @@
 /* Door2Dock – Morning Commute Planner */
 
-const FAVORITES_KEY = 'door2dock_favorites';
 const SCAN_CACHE_KEY = 'door2dock_planner_cache';
+const SELECTED_KEY = 'door2dock_planner_selected';
 let allStations = [];
+let selectedStations = new Set();
 let timelineChart = null;
 let altChart = null;
 
 // ------------------------------------------------------------------
-// Favorites (localStorage)
+// Selected stations (sessionStorage)
 // ------------------------------------------------------------------
 
-function getFavorites() {
+function saveSelected() {
     try {
-        return new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]'));
-    } catch {
-        return new Set();
-    }
+        sessionStorage.setItem(SELECTED_KEY, JSON.stringify([...selectedStations]));
+    } catch { /* ignore */ }
+    updateSelectedBadge();
 }
 
-function saveFavorites(favSet) {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favSet]));
+function restoreSelected() {
+    try {
+        const raw = sessionStorage.getItem(SELECTED_KEY);
+        if (raw) selectedStations = new Set(JSON.parse(raw));
+    } catch { /* ignore */ }
 }
 
-function toggleFavorite(stationId) {
-    const favs = getFavorites();
-    if (favs.has(stationId)) {
-        favs.delete(stationId);
+function toggleStation(stationId) {
+    if (selectedStations.has(stationId)) {
+        selectedStations.delete(stationId);
     } else {
-        favs.add(stationId);
+        selectedStations.add(stationId);
     }
-    saveFavorites(favs);
-    renderFavoriteList();
+    saveSelected();
+    renderStationList();
+}
+
+function updateSelectedBadge() {
+    const badge = document.getElementById('selected-count-badge');
+    if (badge) badge.textContent = `${selectedStations.size} selected`;
 }
 
 // ------------------------------------------------------------------
@@ -41,34 +48,48 @@ async function loadStations() {
     try {
         const resp = await fetch('/api/stations');
         allStations = await resp.json();
-        renderFavoriteList();
+
+        // Restore previous selection from sessionStorage
+        restoreSelected();
+
+        // If nothing was restored, auto-select nearest 3
+        if (selectedStations.size === 0 && allStations.length > 0) {
+            allStations.slice(0, 3).forEach(s => selectedStations.add(s.station_id));
+            saveSelected();
+        }
+
+        renderStationList();
     } catch (e) {
         console.error('Failed to load stations:', e);
     }
 }
 
-function renderFavoriteList() {
-    const container = document.getElementById('fav-station-list');
-    const favs = getFavorites();
+function renderStationList() {
+    const container = document.getElementById('station-check-list');
 
     const sorted = [...allStations].sort((a, b) => {
-        const aFav = favs.has(a.station_id) ? 0 : 1;
-        const bFav = favs.has(b.station_id) ? 0 : 1;
-        if (aFav !== bFav) return aFav - bFav;
+        const aSel = selectedStations.has(a.station_id) ? 0 : 1;
+        const bSel = selectedStations.has(b.station_id) ? 0 : 1;
+        if (aSel !== bSel) return aSel - bSel;
         return (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999);
     });
 
     container.innerHTML = sorted.map(s => {
-        const isFav = favs.has(s.station_id);
+        const isSelected = selectedStations.has(s.station_id);
         const dist = Math.round(s.walking_distance_m || 0);
         return `
-        <div class="fav-station-item ${isFav ? 'fav-active' : ''}"
-             onclick="toggleFavorite('${s.station_id}')">
-            <i class="bi ${isFav ? 'bi-star-fill text-warning' : 'bi-star'} me-2"></i>
+        <div class="station-check-item ${isSelected ? 'check-active' : ''}"
+             onclick="toggleStation('${s.station_id}')">
+            <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''}
+                       onclick="event.stopPropagation(); toggleStation('${s.station_id}')">
+            </div>
             <span class="flex-grow-1 small">${s.station_name}</span>
             <span class="text-body-secondary small">${dist}m</span>
         </div>`;
     }).join('');
+
+    updateSelectedBadge();
 }
 
 // ------------------------------------------------------------------
@@ -79,9 +100,7 @@ function saveToCache(formValues, scanResult) {
     const cache = { form: formValues, result: scanResult };
     try {
         sessionStorage.setItem(SCAN_CACHE_KEY, JSON.stringify(cache));
-    } catch {
-        // sessionStorage full or unavailable – ignore
-    }
+    } catch { /* ignore */ }
 }
 
 function loadFromCache() {
@@ -97,14 +116,12 @@ function restoreFromCache() {
     const cache = loadFromCache();
     if (!cache) return;
 
-    // Restore form values
     if (cache.form) {
         if (cache.form.date) document.getElementById('scan-date').value = cache.form.date;
         if (cache.form.start) document.getElementById('scan-start').value = cache.form.start;
         if (cache.form.end) document.getElementById('scan-end').value = cache.form.end;
     }
 
-    // Restore scan results
     if (cache.result && cache.result.available) {
         renderWeatherForecast(cache.result.weather_forecast);
         renderTimeline(cache.result.favorites, 'timeline-chart', 'timeline-empty');
@@ -130,8 +147,7 @@ async function runScan() {
         const startHour = timeToFloat(startTime);
         const endHour = timeToFloat(endTime);
 
-        const favs = getFavorites();
-        const stationIds = [...favs].join(',');
+        const stationIds = [...selectedStations].join(',');
 
         const params = new URLSearchParams({
             date: dateVal,
@@ -153,7 +169,6 @@ async function runScan() {
         renderTimeline(data.alternatives, 'alt-chart', 'alt-empty');
         showRecommendation(data.recommendation);
 
-        // Cache results + form values
         saveToCache(
             { date: dateVal, start: startTime, end: endTime },
             data

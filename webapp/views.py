@@ -10,19 +10,14 @@ def dashboard():
     return render_template("dashboard.html")
 
 
-@views.route("/timeseries")
-def timeseries():
-    return render_template("timeseries.html")
+@views.route("/trends")
+def trends():
+    return render_template("trends.html")
 
 
-@views.route("/heatmap")
-def heatmap():
-    return render_template("heatmap.html")
-
-
-@views.route("/weather")
-def weather():
-    return render_template("weather.html")
+@views.route("/weather-impact")
+def weather_impact():
+    return render_template("weather_impact.html")
 
 
 @views.route("/planner")

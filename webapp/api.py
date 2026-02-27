@@ -200,14 +200,14 @@ def correlation_stats():
     """Pearson correlation coefficients."""
     row = query_one("""
         SELECT
-            CORR(w.temperature, sub.avg_bikes) AS temp_corr,
-            CORR(w.precipitation, sub.avg_bikes) AS rain_corr,
-            CORR(w.wind_speed, sub.avg_bikes) AS wind_corr,
-            CORR(w.humidity, sub.avg_bikes) AS humidity_corr,
+            CORR(w.temperature, sub.avg_docks) AS temp_corr,
+            CORR(w.precipitation, sub.avg_docks) AS rain_corr,
+            CORR(w.wind_speed, sub.avg_docks) AS wind_corr,
+            CORR(w.humidity, sub.avg_docks) AS humidity_corr,
             COUNT(*) AS samples
         FROM weather_data w
         INNER JOIN (
-            SELECT timestamp, AVG(available_bikes) AS avg_bikes
+            SELECT timestamp, AVG(empty_docks) AS avg_docks
             FROM bike_availability
             GROUP BY timestamp
         ) sub ON w.timestamp = sub.timestamp

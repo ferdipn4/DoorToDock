@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Weather Correlation{% endblock %}
+{% block title %}Weather Impact{% endblock %}
 
 {% block content %}
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h5 class="mb-0 fw-bold">Weather Correlation</h5>
-        <small class="text-body-secondary">How weather conditions influence bike usage across all monitored stations</small>
+        <h5 class="mb-0 fw-bold">Weather Impact on Dock Availability</h5>
+        <small class="text-body-secondary">Historical analysis: how many docks were free under different weather conditions</small>
     </div>
     <span class="badge bg-body-secondary text-body-secondary border" id="sample-badge">-- samples</span>
 </div>
@@ -16,7 +16,7 @@
     <div class="col-6 col-md-3">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-thermometer-half"></i> Temperature</div>
+                <div class="text-body-secondary small"><i class="bi bi-thermometer-half"></i> Temperature vs. Free Docks</div>
                 <div class="fs-2 fw-bold" id="corr-temp">--</div>
                 <div class="small text-body-secondary" id="corr-temp-desc">Pearson r</div>
             </div>
@@ -25,7 +25,7 @@
     <div class="col-6 col-md-3">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-cloud-rain"></i> Precipitation</div>
+                <div class="text-body-secondary small"><i class="bi bi-cloud-rain"></i> Precipitation vs. Free Docks</div>
                 <div class="fs-2 fw-bold" id="corr-rain">--</div>
                 <div class="small text-body-secondary" id="corr-rain-desc">Pearson r</div>
             </div>
@@ -34,7 +34,7 @@
     <div class="col-6 col-md-3">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-wind"></i> Wind Speed</div>
+                <div class="text-body-secondary small"><i class="bi bi-wind"></i> Wind Speed vs. Free Docks</div>
                 <div class="fs-2 fw-bold" id="corr-wind">--</div>
                 <div class="small text-body-secondary" id="corr-wind-desc">Pearson r</div>
             </div>
@@ -43,7 +43,7 @@
     <div class="col-6 col-md-3">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-droplet"></i> Humidity</div>
+                <div class="text-body-secondary small"><i class="bi bi-droplet"></i> Humidity vs. Free Docks</div>
                 <div class="fs-2 fw-bold" id="corr-humidity">--</div>
                 <div class="small text-body-secondary" id="corr-humidity-desc">Pearson r</div>
             </div>
@@ -56,7 +56,7 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header">
-                <i class="bi bi-thermometer-half"></i> Avg Bikes by Temperature
+                <i class="bi bi-thermometer-half"></i> Avg Free Docks by Temperature
             </div>
             <div class="card-body">
                 <canvas id="chart-temp" height="130"></canvas>
@@ -66,7 +66,7 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header">
-                <i class="bi bi-cloud-rain"></i> Avg Bikes by Precipitation
+                <i class="bi bi-cloud-rain"></i> Avg Free Docks by Precipitation
             </div>
             <div class="card-body">
                 <canvas id="chart-rain" height="130"></canvas>
@@ -78,7 +78,7 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header">
-                <i class="bi bi-wind"></i> Avg Bikes by Wind Speed
+                <i class="bi bi-wind"></i> Avg Free Docks by Wind Speed
             </div>
             <div class="card-body">
                 <canvas id="chart-wind" height="130"></canvas>
@@ -88,7 +88,7 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header">
-                <i class="bi bi-droplet"></i> Avg Bikes by Humidity
+                <i class="bi bi-droplet"></i> Avg Free Docks by Humidity
             </div>
             <div class="card-body">
                 <canvas id="chart-humidity" height="130"></canvas>
@@ -102,7 +102,7 @@
     <div class="col-md-6">
         <div class="card h-100 corr-card-positive">
             <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-hand-thumbs-up"></i> Best Conditions for Bikes</div>
+                <div class="text-body-secondary small"><i class="bi bi-hand-thumbs-up"></i> Best Conditions for Finding Docks</div>
                 <div class="fs-5 fw-bold text-success" id="insight-best">--</div>
                 <div class="small text-body-secondary" id="insight-best-detail"></div>
             </div>
@@ -111,7 +111,7 @@
     <div class="col-md-6">
         <div class="card h-100 corr-card-negative">
             <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-hand-thumbs-down"></i> Worst Conditions for Bikes</div>
+                <div class="text-body-secondary small"><i class="bi bi-hand-thumbs-down"></i> Worst Conditions for Finding Docks</div>
                 <div class="fs-5 fw-bold text-danger" id="insight-worst">--</div>
                 <div class="small text-body-secondary" id="insight-worst-detail"></div>
             </div>

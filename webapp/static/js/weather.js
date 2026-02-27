@@ -81,14 +81,14 @@ async function loadBinnedCharts() {
             tempEdges.push(t);
             tempLabels.push(`${t}–${t + 3}°C`);
         }
-        createBinnedBar('chart-temp', data, 'temperature', 'avg_bikes',
-            tempEdges, tempLabels, 'Avg Available Bikes');
+        createBinnedBar('chart-temp', data, 'temperature', 'avg_docks',
+            tempEdges, tempLabels, 'Avg Free Docks');
 
         // Precipitation bins: categorical
         const rainEdges = [0, 0.1, 1, 5, 100];
         const rainLabels = ['Dry', 'Light', 'Moderate', 'Heavy'];
-        createBinnedBar('chart-rain', data, 'precipitation', 'avg_bikes',
-            rainEdges, rainLabels, 'Avg Available Bikes');
+        createBinnedBar('chart-rain', data, 'precipitation', 'avg_docks',
+            rainEdges, rainLabels, 'Avg Free Docks');
 
         // Wind bins: 2 m/s steps
         const windEdges = [];
@@ -97,8 +97,8 @@ async function loadBinnedCharts() {
             windEdges.push(w);
             windLabels.push(`${w}–${w + 2}`);
         }
-        createBinnedBar('chart-wind', data, 'wind_speed', 'avg_bikes',
-            windEdges, windLabels, 'Avg Available Bikes');
+        createBinnedBar('chart-wind', data, 'wind_speed', 'avg_docks',
+            windEdges, windLabels, 'Avg Free Docks');
 
         // Humidity bins: 10% steps
         const humEdges = [];
@@ -107,8 +107,8 @@ async function loadBinnedCharts() {
             humEdges.push(h);
             humLabels.push(`${h}–${h + 10}%`);
         }
-        createBinnedBar('chart-humidity', data, 'humidity', 'avg_bikes',
-            humEdges, humLabels, 'Avg Available Bikes');
+        createBinnedBar('chart-humidity', data, 'humidity', 'avg_docks',
+            humEdges, humLabels, 'Avg Free Docks');
 
         computeWeatherInsights(data);
     } catch (e) {
@@ -155,7 +155,7 @@ function createBinnedBar(canvasId, data, xKey, yKey, edges, labels, yLabel) {
 
     if (filteredAvgs.length === 0) return;
 
-    // Color bars: green for high values, red for low
+    // Color bars: green for many docks, red for few
     const minAvg = Math.min(...filteredAvgs);
     const maxAvg = Math.max(...filteredAvgs);
     const range = maxAvg - minAvg || 1;
@@ -211,7 +211,7 @@ function createBinnedBar(canvasId, data, xKey, yKey, edges, labels, yLabel) {
 }
 
 function barColor(norm, alpha) {
-    // Red (low bikes) -> Yellow (mid) -> Green (high bikes)
+    // Red (few docks) -> Yellow (mid) -> Green (many docks)
     let r, g, b;
     if (norm < 0.5) {
         const t = norm * 2;
@@ -235,11 +235,11 @@ function computeWeatherInsights(data) {
     // Bin temperature by 3°C
     const tempBins = {};
     data.forEach(d => {
-        if (d.temperature == null || d.avg_bikes == null) return;
+        if (d.temperature == null || d.avg_docks == null) return;
         const bin = Math.floor(d.temperature / 3) * 3;
         const label = `${bin}–${bin + 3}°C`;
         if (!tempBins[label]) tempBins[label] = { sum: 0, count: 0 };
-        tempBins[label].sum += d.avg_bikes;
+        tempBins[label].sum += d.avg_docks;
         tempBins[label].count++;
     });
 
@@ -247,13 +247,13 @@ function computeWeatherInsights(data) {
     const rainBins = { 'Dry (0mm)': { sum: 0, count: 0 }, 'Light rain': { sum: 0, count: 0 },
         'Moderate rain': { sum: 0, count: 0 }, 'Heavy rain': { sum: 0, count: 0 } };
     data.forEach(d => {
-        if (d.precipitation == null || d.avg_bikes == null) return;
+        if (d.precipitation == null || d.avg_docks == null) return;
         let label;
         if (d.precipitation < 0.1) label = 'Dry (0mm)';
         else if (d.precipitation < 1) label = 'Light rain';
         else if (d.precipitation < 5) label = 'Moderate rain';
         else label = 'Heavy rain';
-        rainBins[label].sum += d.avg_bikes;
+        rainBins[label].sum += d.avg_docks;
         rainBins[label].count++;
     });
 
@@ -272,11 +272,11 @@ function computeWeatherInsights(data) {
     if (bestLabel) {
         document.getElementById('insight-best').textContent = bestLabel;
         document.getElementById('insight-best-detail').textContent =
-            `~${Math.round(bestAvg)} avg bikes available`;
+            `~${Math.round(bestAvg)} avg free docks`;
     }
     if (worstLabel) {
         document.getElementById('insight-worst').textContent = worstLabel;
         document.getElementById('insight-worst-detail').textContent =
-            `~${Math.round(worstAvg)} avg bikes available`;
+            `~${Math.round(worstAvg)} avg free docks`;
     }
 }

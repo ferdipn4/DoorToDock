@@ -27,24 +27,30 @@
  +------------------+                |                               |
                                      |  +-------------------------+  |
  +------------------+                |  | bike_collector.py       |  |
- |  Open-Meteo      |  REST (1/min)  |  |   12 stations, 1/min   |  |
+ |  Open-Meteo      |  REST (1/min)  |  |   21 stations, 1/min   |  |
  |  Weather API     +--------------->|  +------------+------------+  |
  +------------------+                |               |               |
                                      |  +------------v------------+  |
  +------------------+                |  | weather_collector.py    |  |
- |  ESP32 + PIR     |  MQTT/HTTP     |  |   temp, rain, wind      |  |
- |  Motion Sensor   +--------------->|  +------------+------------+  |
- +------------------+                |               |               |
-                                     |  +------------v------------+  |
-                                     |  |  Supabase PostgreSQL    |  |
-                                     |  |  (Cloud Database)       |  |
-                                     |  +------------+------------+  |
-                                     |               |               |
-                                     |  +------------v------------+  |
-                                     |  |  Flask Web Dashboard    |  |
-                                     |  |  (This Application)     |  |
-                                     |  +-------------------------+  |
-                                     +-------------------------------+
+ |  ESP32 + PIR     |  HTTPS         |  |   temp, rain, wind      |  |
+ |  Motion Sensor   +------+------->|  +------------+------------+  |
+ +------------------+      |        |               |               |
+                           |        |  +------------v------------+  |
+                           |        |  |  Supabase PostgreSQL    |  |
+                           |        |  |  (Cloud Database)       |  |
+                           |        |  +------------+------------+  |
+                           |        |               |               |
+                           |        |  +------------v------------+  |
+                           |        |  |  Flask Web Dashboard    |  |
+                           |        |  |  (This Application)     |  |
+                           |        |  +-------------------------+  |
+                           |        +-------------------------------+
+                           |
+                           v
+                  +--------------------+
+                  |  Telegram Bot API  |
+                  |  (push alerts)     |
+                  +--------------------+
 </pre>
             </div>
         </div>
@@ -87,8 +93,9 @@
                         <ul class="list-unstyled mb-0 small">
                             <li><strong>Hardware:</strong> ESP32 + HC-SR501</li>
                             <li><strong>Function:</strong> Departure detection</li>
-                            <li><strong>Output:</strong> RGB LED + LCD 1602</li>
-                            <li><strong>Protocol:</strong> MQTT / HTTP</li>
+                            <li><strong>Output:</strong> LED indicator (GPIO 15)</li>
+                            <li><strong>Protocol:</strong> HTTPS (Supabase + Telegram)</li>
+                            <li><strong>Notifications:</strong> Telegram push with live dock status</li>
                             <li><strong>Purpose:</strong> Triggers real-time recommendation at the door</li>
                         </ul>
                     </div>
