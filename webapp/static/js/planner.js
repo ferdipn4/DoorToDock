@@ -1,6 +1,7 @@
 /* Door2Dock – Morning Commute Planner */
 
 const FAVORITES_KEY = 'door2dock_favorites';
+const SCAN_CACHE_KEY = 'door2dock_planner_cache';
 let allStations = [];
 let timelineChart = null;
 let altChart = null;
@@ -50,7 +51,6 @@ function renderFavoriteList() {
     const container = document.getElementById('fav-station-list');
     const favs = getFavorites();
 
-    // Sort: favorites first, then by name
     const sorted = [...allStations].sort((a, b) => {
         const aFav = favs.has(a.station_id) ? 0 : 1;
         const bFav = favs.has(b.station_id) ? 0 : 1;
@@ -72,6 +72,48 @@ function renderFavoriteList() {
 }
 
 // ------------------------------------------------------------------
+// SessionStorage Cache
+// ------------------------------------------------------------------
+
+function saveToCache(formValues, scanResult) {
+    const cache = { form: formValues, result: scanResult };
+    try {
+        sessionStorage.setItem(SCAN_CACHE_KEY, JSON.stringify(cache));
+    } catch {
+        // sessionStorage full or unavailable – ignore
+    }
+}
+
+function loadFromCache() {
+    try {
+        const raw = sessionStorage.getItem(SCAN_CACHE_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+function restoreFromCache() {
+    const cache = loadFromCache();
+    if (!cache) return;
+
+    // Restore form values
+    if (cache.form) {
+        if (cache.form.date) document.getElementById('scan-date').value = cache.form.date;
+        if (cache.form.start) document.getElementById('scan-start').value = cache.form.start;
+        if (cache.form.end) document.getElementById('scan-end').value = cache.form.end;
+    }
+
+    // Restore scan results
+    if (cache.result && cache.result.available) {
+        renderWeatherForecast(cache.result.weather_forecast);
+        renderTimeline(cache.result.favorites, 'timeline-chart', 'timeline-empty');
+        renderTimeline(cache.result.alternatives, 'alt-chart', 'alt-empty');
+        showRecommendation(cache.result.recommendation);
+    }
+}
+
+// ------------------------------------------------------------------
 // Scan
 // ------------------------------------------------------------------
 
@@ -85,7 +127,6 @@ async function runScan() {
         const startTime = document.getElementById('scan-start').value;
         const endTime = document.getElementById('scan-end').value;
 
-        // Convert HH:MM to float
         const startHour = timeToFloat(startTime);
         const endHour = timeToFloat(endTime);
 
@@ -111,6 +152,12 @@ async function runScan() {
         renderTimeline(data.favorites, 'timeline-chart', 'timeline-empty');
         renderTimeline(data.alternatives, 'alt-chart', 'alt-empty');
         showRecommendation(data.recommendation);
+
+        // Cache results + form values
+        saveToCache(
+            { date: dateVal, start: startTime, end: endTime },
+            data
+        );
     } catch (e) {
         console.error('Scan error:', e);
         showRecommendation(null);
@@ -134,7 +181,6 @@ function showRecommendation(rec) {
     const timeEl = document.getElementById('rec-time');
     const reasonEl = document.getElementById('rec-reason');
 
-    // Remove previous urgency classes
     card.classList.remove('rec-green', 'rec-yellow', 'rec-red');
 
     if (!rec) {
@@ -221,7 +267,6 @@ function renderTimeline(scanData, canvasId, emptyId) {
         colorIdx++;
     }
 
-    // Destroy existing chart on this canvas
     const existing = canvasId === 'timeline-chart' ? timelineChart : altChart;
     if (existing) existing.destroy();
 
@@ -290,5 +335,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateStr = tomorrow.toISOString().split('T')[0];
     document.getElementById('scan-date').value = dateStr;
 
-    loadStations();
+    loadStations().then(() => restoreFromCache());
 });

@@ -127,40 +127,43 @@ def timeseries(station_id):
 @api.route("/heatmap")
 @db_error_handler
 def heatmap():
-    """Average availability by hour (London time) and weekday."""
-    station_id = request.args.get("station_id")
+    """Average dock availability by half-hour (London time) and weekday."""
+    station_ids = request.args.get("station_ids", "")
+    id_list = [s.strip() for s in station_ids.split(",") if s.strip()]
 
-    if station_id:
-        rows = query("""
+    if id_list:
+        placeholders = ",".join(["%s"] * len(id_list))
+        rows = query(f"""
             SELECT
                 EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London')::int AS weekday,
                 EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
-                ROUND(AVG(available_bikes)::numeric, 1) AS avg_bikes,
+                CASE WHEN EXTRACT(MINUTE FROM timestamp AT TIME ZONE 'Europe/London') < 30
+                     THEN 0 ELSE 30 END AS minute,
                 ROUND(AVG(empty_docks)::numeric, 1) AS avg_docks,
                 COUNT(*) AS samples
             FROM bike_availability
-            WHERE station_id = %s
-            GROUP BY weekday, hour
-            ORDER BY weekday, hour
-        """, (station_id,))
+            WHERE station_id IN ({placeholders})
+            GROUP BY weekday, hour, minute
+            ORDER BY weekday, hour, minute
+        """, tuple(id_list))
     else:
         rows = query("""
             SELECT
                 EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London')::int AS weekday,
                 EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
-                ROUND(AVG(available_bikes)::numeric, 1) AS avg_bikes,
+                CASE WHEN EXTRACT(MINUTE FROM timestamp AT TIME ZONE 'Europe/London') < 30
+                     THEN 0 ELSE 30 END AS minute,
                 ROUND(AVG(empty_docks)::numeric, 1) AS avg_docks,
                 COUNT(*) AS samples
             FROM bike_availability
-            GROUP BY weekday, hour
-            ORDER BY weekday, hour
+            GROUP BY weekday, hour, minute
+            ORDER BY weekday, hour, minute
         """)
 
-    # Convert Decimal to float for JSON
     for row in rows:
-        for key in ("avg_bikes", "avg_docks"):
-            if row[key] is not None:
-                row[key] = float(row[key])
+        if row["avg_docks"] is not None:
+            row["avg_docks"] = float(row["avg_docks"])
+        row["minute"] = int(row["minute"])
     return jsonify(rows)
 
 

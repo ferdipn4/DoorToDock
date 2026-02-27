@@ -101,22 +101,21 @@
 
 .heatmap-grid {
     display: grid;
-    grid-template-columns: 80px repeat(24, 1fr);
+    grid-template-columns: 80px repeat(28, 1fr);
     gap: 2px;
-    min-width: 700px;
+    min-width: 800px;
 }
 
 .heatmap-cell {
-    aspect-ratio: 1;
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     font-weight: 600;
     cursor: default;
     transition: transform 0.15s ease;
-    min-height: 36px;
+    min-height: 32px;
 }
 .heatmap-cell:hover {
     transform: scale(1.15);
@@ -374,7 +373,7 @@ h5.fw-bold {
         font-size: 1.4rem !important;
     }
     .heatmap-cell {
-        font-size: 0.55rem;
-        min-height: 28px;
+        font-size: 0.45rem;
+        min-height: 24px;
     }
 }

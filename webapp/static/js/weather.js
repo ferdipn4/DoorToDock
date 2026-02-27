@@ -1,10 +1,9 @@
-/* Door2Dock – Weather Correlation Charts */
+/* Door2Dock – Weather Correlation (Binned Bar Charts) */
 
 document.addEventListener('DOMContentLoaded', () => {
     loadCorrelationStats();
-    loadScatterPlots();
+    loadBinnedCharts();
 
-    // Auto-refresh every 60 seconds
     setInterval(() => {
         loadCorrelationStats();
     }, 60000);
@@ -32,7 +31,6 @@ async function loadCorrelationStats() {
 function setCorr(elementId, value, descId) {
     const el = document.getElementById(elementId);
     const descEl = descId ? document.getElementById(descId) : null;
-    // Find parent card for background styling
     const card = el.closest('.card');
 
     if (value == null) {
@@ -55,7 +53,6 @@ function setCorr(elementId, value, descId) {
         if (card) card.className = 'card h-100 corr-card-neutral';
     }
 
-    // Add interpretation
     if (descEl) {
         const abs = Math.abs(value);
         let strength;
@@ -68,65 +65,122 @@ function setCorr(elementId, value, descId) {
     }
 }
 
-async function loadScatterPlots() {
+// ------------------------------------------------------------------
+// Binned bar charts
+// ------------------------------------------------------------------
+
+async function loadBinnedCharts() {
     try {
         const resp = await fetch('/api/weather-correlation');
         const data = await resp.json();
 
-        createScatter('chart-temp', data, 'temperature', 'avg_bikes',
-            'Temperature (°C)', 'Avg Available Bikes', '#ff6384');
-        createScatter('chart-rain', data, 'precipitation', 'avg_bikes',
-            'Precipitation (mm/h)', 'Avg Available Bikes', '#36a2eb');
-        createScatter('chart-wind', data, 'wind_speed', 'avg_bikes',
-            'Wind Speed (m/s)', 'Avg Available Bikes', '#4bc0c0');
-        createScatter('chart-humidity', data, 'humidity', 'avg_bikes',
-            'Humidity (%)', 'Avg Available Bikes', '#9966ff');
+        // Temperature bins: 3°C steps
+        const tempEdges = [];
+        const tempLabels = [];
+        for (let t = -3; t <= 30; t += 3) {
+            tempEdges.push(t);
+            tempLabels.push(`${t}–${t + 3}°C`);
+        }
+        createBinnedBar('chart-temp', data, 'temperature', 'avg_bikes',
+            tempEdges, tempLabels, 'Avg Available Bikes');
 
+        // Precipitation bins: categorical
+        const rainEdges = [0, 0.1, 1, 5, 100];
+        const rainLabels = ['Dry', 'Light', 'Moderate', 'Heavy'];
+        createBinnedBar('chart-rain', data, 'precipitation', 'avg_bikes',
+            rainEdges, rainLabels, 'Avg Available Bikes');
+
+        // Wind bins: 2 m/s steps
+        const windEdges = [];
+        const windLabels = [];
+        for (let w = 0; w <= 20; w += 2) {
+            windEdges.push(w);
+            windLabels.push(`${w}–${w + 2}`);
+        }
+        createBinnedBar('chart-wind', data, 'wind_speed', 'avg_bikes',
+            windEdges, windLabels, 'Avg Available Bikes');
+
+        // Humidity bins: 10% steps
+        const humEdges = [];
+        const humLabels = [];
+        for (let h = 0; h <= 100; h += 10) {
+            humEdges.push(h);
+            humLabels.push(`${h}–${h + 10}%`);
+        }
+        createBinnedBar('chart-humidity', data, 'humidity', 'avg_bikes',
+            humEdges, humLabels, 'Avg Available Bikes');
+
+        computeWeatherInsights(data);
     } catch (e) {
-        console.error('Failed to load scatter plots:', e);
+        console.error('Failed to load weather charts:', e);
     }
 }
 
-function createScatter(canvasId, data, xKey, yKey, xLabel, yLabel, color) {
-    const points = data
-        .filter(d => d[xKey] != null && d[yKey] != null)
-        .map(d => ({ x: d[xKey], y: d[yKey] }));
+function binData(data, key, yKey, edges) {
+    // Each bin covers [edges[i], edges[i+1])
+    const bins = new Array(edges.length - 1).fill(null).map(() => ({ sum: 0, count: 0 }));
 
-    // Compute trend line (linear regression)
-    const trend = linearRegression(points);
+    data.forEach(d => {
+        const x = d[key];
+        const y = d[yKey];
+        if (x == null || y == null) return;
+        for (let i = 0; i < edges.length - 1; i++) {
+            if (x >= edges[i] && x < edges[i + 1]) {
+                bins[i].sum += y;
+                bins[i].count++;
+                break;
+            }
+        }
+    });
 
-    const datasets = [{
-        label: yLabel,
-        data: points,
-        backgroundColor: color + '66',
-        borderColor: color,
-        pointRadius: 2.5,
-        pointHoverRadius: 5,
-    }];
+    return bins.map(b => b.count > 0
+        ? { avg: Math.round(b.sum / b.count * 10) / 10, count: b.count }
+        : null);
+}
 
-    // Add trend line if we have enough points
-    if (trend && points.length > 2) {
-        const xVals = points.map(p => p.x);
-        const xMin = Math.min(...xVals);
-        const xMax = Math.max(...xVals);
-        datasets.push({
-            label: 'Trend',
-            data: [
-                { x: xMin, y: trend.slope * xMin + trend.intercept },
-                { x: xMax, y: trend.slope * xMax + trend.intercept },
-            ],
-            type: 'line',
-            borderColor: '#ffffff88',
-            borderWidth: 2,
-            borderDash: [6, 3],
-            pointRadius: 0,
-            fill: false,
-        });
-    }
+function createBinnedBar(canvasId, data, xKey, yKey, edges, labels, yLabel) {
+    const binned = binData(data, xKey, yKey, edges);
+
+    // Filter out empty bins
+    const filteredLabels = [];
+    const filteredAvgs = [];
+    const filteredCounts = [];
+    binned.forEach((b, i) => {
+        if (b && b.count >= 3) {
+            filteredLabels.push(labels[i]);
+            filteredAvgs.push(b.avg);
+            filteredCounts.push(b.count);
+        }
+    });
+
+    if (filteredAvgs.length === 0) return;
+
+    // Color bars: green for high values, red for low
+    const minAvg = Math.min(...filteredAvgs);
+    const maxAvg = Math.max(...filteredAvgs);
+    const range = maxAvg - minAvg || 1;
+
+    const bgColors = filteredAvgs.map(v => {
+        const norm = (v - minAvg) / range;
+        return barColor(norm, 0.7);
+    });
+    const borderColors = filteredAvgs.map(v => {
+        const norm = (v - minAvg) / range;
+        return barColor(norm, 1);
+    });
 
     new Chart(document.getElementById(canvasId), {
-        type: 'scatter',
-        data: { datasets },
+        type: 'bar',
+        data: {
+            labels: filteredLabels,
+            datasets: [{
+                label: yLabel,
+                data: filteredAvgs,
+                backgroundColor: bgColors,
+                borderColor: borderColors,
+                borderWidth: 1,
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: true,
@@ -134,15 +188,17 @@ function createScatter(canvasId, data, xKey, yKey, xLabel, yLabel, color) {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: (ctx) =>
-                            `${xLabel}: ${ctx.parsed.x} · ${yLabel}: ${ctx.parsed.y}`
+                        afterLabel: (ctx) => {
+                            const count = filteredCounts[ctx.dataIndex];
+                            return `(${count} samples)`;
+                        }
                     }
                 }
             },
             scales: {
                 x: {
-                    title: { display: true, text: xLabel },
                     grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { font: { size: 10 } },
                 },
                 y: {
                     title: { display: true, text: yLabel },
@@ -154,23 +210,73 @@ function createScatter(canvasId, data, xKey, yKey, xLabel, yLabel, color) {
     });
 }
 
-function linearRegression(points) {
-    const n = points.length;
-    if (n < 2) return null;
+function barColor(norm, alpha) {
+    // Red (low bikes) -> Yellow (mid) -> Green (high bikes)
+    let r, g, b;
+    if (norm < 0.5) {
+        const t = norm * 2;
+        r = 220;
+        g = Math.round(53 + t * 140);
+        b = Math.round(69 - t * 62);
+    } else {
+        const t = (norm - 0.5) * 2;
+        r = Math.round(255 - t * 230);
+        g = Math.round(193 - t * 58);
+        b = Math.round(7 + t * 77);
+    }
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
-    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
-    for (const p of points) {
-        sumX += p.x;
-        sumY += p.y;
-        sumXY += p.x * p.y;
-        sumX2 += p.x * p.x;
+// ------------------------------------------------------------------
+// Best / Worst insights
+// ------------------------------------------------------------------
+
+function computeWeatherInsights(data) {
+    // Bin temperature by 3°C
+    const tempBins = {};
+    data.forEach(d => {
+        if (d.temperature == null || d.avg_bikes == null) return;
+        const bin = Math.floor(d.temperature / 3) * 3;
+        const label = `${bin}–${bin + 3}°C`;
+        if (!tempBins[label]) tempBins[label] = { sum: 0, count: 0 };
+        tempBins[label].sum += d.avg_bikes;
+        tempBins[label].count++;
+    });
+
+    // Bin precipitation categorically
+    const rainBins = { 'Dry (0mm)': { sum: 0, count: 0 }, 'Light rain': { sum: 0, count: 0 },
+        'Moderate rain': { sum: 0, count: 0 }, 'Heavy rain': { sum: 0, count: 0 } };
+    data.forEach(d => {
+        if (d.precipitation == null || d.avg_bikes == null) return;
+        let label;
+        if (d.precipitation < 0.1) label = 'Dry (0mm)';
+        else if (d.precipitation < 1) label = 'Light rain';
+        else if (d.precipitation < 5) label = 'Moderate rain';
+        else label = 'Heavy rain';
+        rainBins[label].sum += d.avg_bikes;
+        rainBins[label].count++;
+    });
+
+    // Find best/worst across all factors
+    const allBins = { ...tempBins, ...rainBins };
+    let bestLabel = null, bestAvg = -Infinity;
+    let worstLabel = null, worstAvg = Infinity;
+
+    for (const [label, b] of Object.entries(allBins)) {
+        if (b.count < 5) continue;
+        const avg = b.sum / b.count;
+        if (avg > bestAvg) { bestAvg = avg; bestLabel = label; }
+        if (avg < worstAvg) { worstAvg = avg; worstLabel = label; }
     }
 
-    const denom = n * sumX2 - sumX * sumX;
-    if (Math.abs(denom) < 1e-10) return null;
-
-    const slope = (n * sumXY - sumX * sumY) / denom;
-    const intercept = (sumY - slope * sumX) / n;
-
-    return { slope, intercept };
+    if (bestLabel) {
+        document.getElementById('insight-best').textContent = bestLabel;
+        document.getElementById('insight-best-detail').textContent =
+            `~${Math.round(bestAvg)} avg bikes available`;
+    }
+    if (worstLabel) {
+        document.getElementById('insight-worst').textContent = worstLabel;
+        document.getElementById('insight-worst-detail').textContent =
+            `~${Math.round(worstAvg)} avg bikes available`;
+    }
 }

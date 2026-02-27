@@ -4,30 +4,24 @@
 {% block content %}
 <!-- Page Header -->
 <div class="mb-3">
-    <h5 class="mb-0 fw-bold">Availability Heatmap</h5>
-    <small class="text-body-secondary">Discover patterns in dock availability by hour and day of week</small>
+    <h5 class="mb-0 fw-bold">Dock Availability Heatmap</h5>
+    <small class="text-body-secondary">Average free docks by half-hour and day of week (07:00 – 21:00)</small>
 </div>
 
 <div class="row g-3 mb-3">
     <div class="col-md-6">
-        <label class="form-label text-body-secondary small">Station</label>
-        <select class="form-select" id="station-select">
-            <option value="">All Stations (Average)</option>
-        </select>
-    </div>
-    <div class="col-md-6">
-        <label class="form-label text-body-secondary small">Metric</label>
+        <label class="form-label text-body-secondary small">Show nearest stations</label>
         <div class="btn-group w-100" role="group">
-            <button class="btn btn-outline-secondary" data-metric="avg_bikes">Available Bikes</button>
-            <button class="btn btn-outline-secondary active" data-metric="avg_docks">Empty Docks</button>
+            <button class="btn btn-outline-secondary active" data-count="3">Top 3 Nearest</button>
+            <button class="btn btn-outline-secondary" data-count="5">Top 5 Nearest</button>
         </div>
     </div>
 </div>
 
-<!-- Heatmap: Available Bikes -->
+<!-- Heatmap -->
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-grid-3x3"></i> <span id="heatmap-title">Average Available Bikes</span> by Hour &amp; Day</span>
+        <span><i class="bi bi-grid-3x3"></i> Average Free Docks by Hour &amp; Day</span>
         <div class="d-flex align-items-center gap-2 small">
             <span class="text-body-secondary">Low</span>
             <div class="heatmap-legend"></div>
@@ -49,7 +43,7 @@
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small" id="insight-peak-label">Best Hours (Most Docks)</div>
+                <div class="text-body-secondary small">Best Slots (Most Docks)</div>
                 <div class="fs-4 fw-bold text-success" id="insight-peak">--</div>
             </div>
         </div>
@@ -57,7 +51,7 @@
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small" id="insight-low-label">Worst Hours (Fewest Docks)</div>
+                <div class="text-body-secondary small">Worst Slots (Fewest Docks)</div>
                 <div class="fs-4 fw-bold text-danger" id="insight-low">--</div>
             </div>
         </div>
@@ -65,7 +59,7 @@
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body text-center">
-                <div class="text-body-secondary small" id="insight-busiest-label">Busiest Day</div>
+                <div class="text-body-secondary small">Hardest Day to Dock</div>
                 <div class="fs-4 fw-bold text-warning" id="insight-busiest">--</div>
             </div>
         </div>
