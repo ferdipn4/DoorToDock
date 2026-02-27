@@ -27,26 +27,31 @@
 ## Architektur
 
 ```
-┌──────────────────┐     MQTT/HTTP      ┌─────────────────────────────┐
-│  ESP32 + PIR     │ ─────────────────▶ │     Raspberry Pi (lokal)    │
-│  + RGB-LED       │ ◀───────────────── │  oder Heroku Worker (Cloud) │
-│  + LCD 1602      │   (Empfehlung)     │                             │
-└──────────────────┘                    │  ┌───────────────────────┐  │
-                                        │  │  bike_collector.py    │  │
-┌──────────────────┐                    │  │  (jede Minute)        │  │
-│ TfL BikePoint API│ ──────────────────▶│  └───────────┬───────────┘  │
-│ (Santander Cycles)│                   │              │              │
-└──────────────────┘                    │  ┌───────────▼───────────┐  │
-                                        │  │  Datenbank            │  │
-┌──────────────────┐                    │  │  (MongoDB Atlas oder  │  │
-│ OpenWeatherMap   │ ──────────────────▶│  │   Supabase PostgreSQL)│  │
-│ API              │                    │  └───────────┬───────────┘  │
+┌──────────────────┐                    ┌─────────────────────────────┐
+│  TfL BikePoint   │  REST (1/min)      │                             │
+│  API (800 stations)├─────────────────▶│     Heroku Worker Dyno      │
+└──────────────────┘                    │                             │
+                                        │  ┌───────────────────────┐  │
+┌──────────────────┐  REST (1/min)      │  │  bike_collector.py    │  │
+│  Open-Meteo      ├──────────────────▶│  │  21 stations, 1/min   │  │
+│  Weather API     │                    │  └───────────┬───────────┘  │
 └──────────────────┘                    │              │              │
                                         │  ┌───────────▼───────────┐  │
-                                        │  │  Web-Dashboard        │  │
-                                        │  │  (Flask + Chart.js)   │  │
-                                        │  └───────────────────────┘  │
-                                        └─────────────────────────────┘
+┌──────────────────┐  HTTPS             │  │  Supabase PostgreSQL  │  │
+│  ESP32 + PIR     ├──────┬────────────▶│  │  (Cloud Database)     │  │
+│  Motion Sensor   │      │             │  └───────────┬───────────┘  │
+└──────────────────┘      │             │              │              │
+                          │             │  ┌───────────▼───────────┐  │
+                          │             │  │  Flask Web Dashboard   │  │
+                          │             │  │  (5 Seiten)            │  │
+                          │             │  └───────────────────────┘  │
+                          │             └─────────────────────────────┘
+                          │
+                          ▼
+                 ┌──────────────────┐
+                 │  Telegram Bot API│
+                 │  (push alerts)   │
+                 └──────────────────┘
 ```
 
 ---
@@ -63,7 +68,7 @@
   - `NbEBikes` – E-Bikes
   - `NbEmptyDocks` – Freie Docking-Plätze
   - `NbDocks` – Gesamtkapazität
-- **Monitoring:** ~12 Stationen im 800m-Radius um Imperial College (South Kensington)
+- **Monitoring:** 21 Stationen im 800m-Radius um Imperial College (South Kensington)
 - **Polling-Intervall:** Jede Minute
 
 ### 2. OpenWeatherMap API (Zweite Datenquelle)
@@ -76,8 +81,9 @@
 ### 3. PIR-Bewegungssensor (Custom Hardware – Trigger)
 - **Hardware:** HC-SR501 PIR-Sensor + ESP32
 - **Funktion:** Registriert Verlassen der Wohnung als Event-Trigger
-- **Kommunikation:** MQTT oder HTTP-POST an Server
-- **Zusatz-Output:** RGB-LED (Grün/Gelb/Rot) + LCD 1602 Anzeige
+- **Kommunikation:** HTTPS (Supabase + Telegram)
+- **Output:** LED indicator (GPIO 15)
+- **Notifications:** Telegram push with live dock status
 
 ---
 
@@ -96,36 +102,55 @@
 - **Heroku Deployment** – Worker Dyno (Datensammlung) + Web Dyno (Dashboard)
   - App: `smart-commute-imperial`
   - URL: `https://smart-commute-imperial-0cac549c4dd9.herokuapp.com/`
-- **Flask Web-Dashboard** (`webapp/`)
+- **Flask Web-Dashboard** (`webapp/`) – 5 Seiten: Live Status | Trends | Weather Impact | Planner | About
   - **Live Status:** Leaflet-Karte mit farbcodierten Stationsmarkern (Grün/Gelb/Rot), Fokus auf freie Docks
   - **Hover-Interaktion:** Station-Card hovern → Marker pulsiert auf der Karte + Popup öffnet sich
   - **Sortierung:** Stationen sortierbar nach Distanz, meiste/wenigste Docks, Name
-  - **Time Series:** Chart.js Liniendiagramme (Standard-Bikes, E-Bikes, freie Docks) mit Stations- und Zeitraumselektor
-  - **Heatmap:** Custom CSS-Grid Heatmap (Stunde × Wochentag), umschaltbar Bikes/Docks
-  - **Wetter-Korrelation:** 4 Scatter-Plots mit Trendlinien + Pearson-Korrelationskoeffizienten
-  - **About-Seite:** Architektur-Diagramm, Tech Stack, Live-Statistiken
-  - **Dock Forecast:** Stat-Card mit Vorhersage (nächste Stunde), Forecast-Annotation pro Station-Card ("→ ~N in 1h")
+  - **Trends:** Zusammengelegte Seite aus Time Series + Heatmap
+    - Oben: Station-Selector + Zeitraum-Buttons (6h/12h/24h/48h/7d) + Summary-Stats + Free Docks Chart
+    - Unten: Weekly Patterns Heatmap (CSS-Grid, Stunde × Wochentag) mit Top 3/5 Toggle + 3 Insight-Cards
+  - **Weather Impact:** 4 Pearson-Korrelationskarten (Temperatur/Regen/Wind/Feuchtigkeit vs. Free Docks) + 4 Binned-Bar-Charts + Best/Worst Insight-Cards
+  - **About-Seite:** Architektur-Diagramm (inkl. Telegram), Tech Stack, Live-Statistiken
+  - **Dock Forecast:** Stat-Card mit T+15min Vorhersage, dynamische Forecast-Annotation pro Station-Card ("→ ~N in 15min")
+  - **Favoriten-Sterne:** Klickbare Stern-Icons pro Station-Card auf Live Status, gespeichert in localStorage
   - Dark Mode (Bootstrap 5), Auto-Refresh alle 60s, responsive
-  - JSON-API mit 9 Endpoints + graceful DB-Error-Handling (503)
+  - JSON-API mit 10 Endpoints + graceful DB-Error-Handling (503)
 
 ### ✅ Modell-Training (`training/`)
-- **`train_model.py`** – Trainiert und vergleicht 3 Modelle für `empty_docks`-Vorhersage
-  - Feature Engineering: Temporal (hour, weekday, cyclical encoding), Wetter, Station-Encoding, Lag-Feature
+- **`train_model.py`** – Trainiert und vergleicht 3 Modelle für `empty_docks`-Vorhersage (T+15min)
+  - Feature Engineering: Temporal (fractional hour, weekday, cyclical encoding), Wetter, Station-Encoding, Lag-Feature
+  - **T+15min Target Shift:** `shift(-15)` auf minutlichen Daten → Vorhersage 15 Min in die Zukunft
+  - **Fractional Hours:** `hour + minute/60` für feingranulare Vorhersagen
   - Modelle: Historical Average (Baseline), Random Forest, Gradient Boosting
   - Chronologischer 80/20 Train/Test Split (kein Data Leakage)
   - Metriken: MAE, RMSE, R²
-  - Outputs: `model.pkl`, `feature_importance.png`, `predictions.png`, `metrics.txt`
+  - Outputs: `model.pkl` (inkl. `prediction_horizon_min`), `feature_importance.png`, `predictions.png`, `metrics.txt`
 - **`METHODOLOGY.md`** – Dokumentation für Uni-Bericht (Zielsetzung, Features, Modellwahl, Limitationen)
 
 ### ✅ Forecast-Integration ins Dashboard
 - **`webapp/forecast.py`** – ForecastService Singleton
-  - Lädt `training/model.pkl` (Gradient Boosting) einmalig beim Start
-  - Baut Feature-Vektoren intern (hour_sin/cos, is_weekend, station_enc via LabelEncoder, Wetter)
+  - Lädt `training/model.pkl` einmalig beim Start, liest `prediction_horizon_min` (Default 60, aktuell 15)
+  - Baut Feature-Vektoren intern (fractional hour_sin/cos, is_weekend, station_enc via LabelEncoder, Wetter)
   - `predict_all_stations()` für alle 21 Stationen, unbekannte Stationen → `None`
-- **`/api/forecast`** Endpoint – Query-Params: `?hour=`, `?weekday=` (Default: nächste Stunde London-Zeit)
+  - `scan_time_range()` – Scannt Zeitfenster in 5-Min-Schritten, predicted pro Station pro Slot
+  - `fetch_weather_forecast()` – Holt stündliche Wettervorhersage von Open-Meteo für ein Zieldatum
+- **`/api/forecast`** Endpoint – Query-Params: `?hour=` (float), `?weekday=` (Default: aktuelle fractional hour + horizon)
   - Holt aktuelle Wetterdaten + Stationsliste aus DB
-  - Return: `{ available, model_name, predictions: [{ station_id, predicted_empty_docks, predicted_status }] }`
-- **Dashboard-UI** – Forecast Stat-Card + "→ ~N in 1h" Annotation pro Station-Card (farbcodiert)
+  - Return: `{ available, model_name, prediction_horizon_min, hour, weekday, predictions: [...] }`
+- **Dashboard-UI** – Forecast Stat-Card + dynamische "→ ~N in 15min" Annotation pro Station-Card (farbcodiert)
+
+### ✅ Morning Commute Planner
+- **`/api/commute-scan`** Endpoint – Query-Params: `?date=`, `?start=`, `?end=`, `?stations=` (kommaseparierte IDs)
+  - Holt Wetter-Forecast via Open-Meteo `/v1/forecast` (Fallback: letzte DB-Observation)
+  - Scannt gewählte Stationen via `scan_time_range()` in 5-Min-Schritten
+  - `_compute_recommendation()`: Findet letzten "sicheren" Zeitpunkt (≥5 Docks bei mindestens einer gewählten Station)
+  - Return: `{ available, date, prediction_horizon_min, weather_forecast, favorites, alternatives, recommendation }`
+- **Planner-Seite** (`/planner`) – Layout: Stationen (links) | Scan-Settings (Mitte) | Wetter (rechts)
+  - **Recommendation-Card:** Farbcodiert (grün/gelb/rot) mit empfohlener Ankunftszeit
+  - **Stations-Selektor:** Checkboxen statt Sterne, nächste 3 Stationen automatisch vorausgewählt, in sessionStorage gespeichert
+  - **Scan-Settings:** Datumswähler + Zeitfenster (Default: morgen 08:00–10:00), Scan-Button disabled bis mindestens 1 Station gewählt
+  - **Wetter-Forecast-Card:** Stundenwerte für das gewählte Zeitfenster
+  - **Timeline-Chart:** Chart.js Liniendiagramm (X=Zeit, Y=predicted free docks, eine Linie pro gewählter Station)
 
 ### ❌ Noch offen
 - ESP32 + PIR-Sensor Setup (pausiert)
@@ -190,10 +215,10 @@
 | Datenbank | MongoDB Atlas ODER Supabase PostgreSQL |
 | TfL API | REST, kein Key nötig |
 | Wetter API | OpenWeatherMap (Free Tier) |
-| Hardware | ESP32 + HC-SR501 PIR + RGB-LED + LCD 1602 |
-| Dashboard | Flask + Chart.js oder Plotly |
-| Edge Device | Raspberry Pi 3 (optional) |
-| Kommunikation | MQTT (ESP32 ↔ Pi) oder HTTP |
+| Hardware | ESP32 + HC-SR501 PIR + LED (GPIO 15) |
+| Dashboard | Flask + Chart.js |
+| Notifications | Telegram Bot API (push alerts) |
+| Kommunikation | HTTPS (Supabase + Telegram) |
 
 ---
 
@@ -201,10 +226,10 @@
 
 ### Zeitreihen-Analyse
 - **Muster erkennen:** Verfügbarkeit nach Stunde × Wochentag (Heatmap)
-- **Pearson-Korrelation:** Niederschlag ↔ verfügbare Bikes
-- **Pearson-Korrelation:** Temperatur ↔ verfügbare Bikes
+- **Pearson-Korrelation:** Niederschlag ↔ freie Docks
+- **Pearson-Korrelation:** Temperatur ↔ freie Docks
 - **Peak-Erkennung:** Wann sind Stationen am vollsten (morgens 08:00-09:00?)
-- **Vorhersage:** Einfaches Modell (historischer Durchschnitt + Wetter-Korrektur)
+- **Vorhersage:** Gradient Boosting Modell (T+15min) mit Wetter + Temporal Features
 
 ### Empfehlungslogik
 - **Grün:** ≥5 freie Plätze an der Zielstation
@@ -224,25 +249,25 @@ Door2Dock/
 ├── webapp/
 │   ├── app.py               # Flask App Factory
 │   ├── db.py                # Shared DB-Helper
-│   ├── api.py               # JSON-API Endpoints (9 Routes)
-│   ├── forecast.py          # ForecastService (Modell-Vorhersage)
+│   ├── api.py               # JSON-API Endpoints (10 Routes)
+│   ├── forecast.py          # ForecastService + scan_time_range + weather forecast
 │   ├── views.py             # HTML-Seitenrouten (5 Seiten)
 │   ├── templates/
-│   │   ├── base.html        # Dark-Mode Layout, Nav
+│   │   ├── base.html        # Dark-Mode Layout, Nav (5 Items)
 │   │   ├── dashboard.html   # Live Status + Karte
-│   │   ├── timeseries.html  # Zeitreihen-Charts
-│   │   ├── heatmap.html     # Stunde × Wochentag Heatmap
-│   │   ├── weather.html     # Wetter-Korrelation
-│   │   └── about.html       # System-Info
+│   │   ├── trends.html      # Time Series + Heatmap (zusammengelegt)
+│   │   ├── weather_impact.html # Wetter-Korrelation (Docks statt Bikes)
+│   │   ├── planner.html     # Morning Commute Planner (Checkboxen)
+│   │   └── about.html       # System-Info (inkl. Telegram)
 │   └── static/
 │       ├── css/style.css    # Custom Styles
 │       └── js/
-│           ├── dashboard.js # Karte, Station-Cards, Hover, Sort
-│           ├── timeseries.js# Chart.js Liniendiagramme
-│           ├── heatmap.js   # CSS-Grid Heatmap
-│           └── weather.js   # Scatter-Plots + Trendlinien
+│           ├── dashboard.js # Karte, Station-Cards, Hover, Sort, Favoriten
+│           ├── trends.js    # Time Series Chart + CSS-Grid Heatmap (merged)
+│           ├── weather.js   # Binned-Bar-Charts + Korrelationen (Free Docks)
+│           └── planner.js   # Commute-Scan, Timeline-Chart, Checkbox-Selektion
 ├── training/
-│   ├── train_model.py       # Modell-Training (RF, GB, Baseline)
+│   ├── train_model.py       # Modell-Training (RF, GB, Baseline), T+15min
 │   ├── METHODOLOGY.md       # Dokumentation für Uni-Bericht
 │   ├── model.pkl            # Bestes Modell (joblib)
 │   ├── feature_importance.png
