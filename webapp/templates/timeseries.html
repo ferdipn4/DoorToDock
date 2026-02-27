@@ -9,13 +9,13 @@
 </div>
 
 <div class="row g-3 mb-3">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <label class="form-label text-body-secondary small">Station</label>
         <select class="form-select" id="station-select">
             <option value="">Loading stations...</option>
         </select>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
         <label class="form-label text-body-secondary small">Time Range</label>
         <div class="btn-group w-100" role="group">
             <button class="btn btn-outline-secondary" data-hours="6">6h</button>
@@ -23,15 +23,6 @@
             <button class="btn btn-outline-secondary active" data-hours="24">24h</button>
             <button class="btn btn-outline-secondary" data-hours="48">48h</button>
             <button class="btn btn-outline-secondary" data-hours="168">7d</button>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <label class="form-label text-body-secondary small">Show Nearest</label>
-        <div class="btn-group w-100" role="group">
-            <button class="btn btn-outline-secondary ts-show-btn" data-show="1">1</button>
-            <button class="btn btn-outline-secondary ts-show-btn active" data-show="3">3</button>
-            <button class="btn btn-outline-secondary ts-show-btn" data-show="5">5</button>
-            <button class="btn btn-outline-secondary ts-show-btn" data-show="10">10</button>
         </div>
     </div>
 </div>
@@ -72,23 +63,23 @@
     </div>
 </div>
 
-<!-- Bikes Chart -->
+<!-- Docks Chart (primary) -->
 <div class="card mb-3">
     <div class="card-header">
-        <i class="bi bi-graph-up"></i> <span id="chart-bikes-title">Bike Availability Over Time</span>
+        <i class="bi bi-graph-up"></i> Free Docks Over Time
     </div>
     <div class="card-body">
-        <canvas id="chart-bikes" height="100"></canvas>
+        <canvas id="chart-docks" height="100"></canvas>
     </div>
 </div>
 
-<!-- Docks Chart -->
+<!-- Bikes Chart -->
 <div class="card">
     <div class="card-header">
-        <i class="bi bi-graph-down"></i> <span id="chart-docks-title">Empty Docks Over Time</span>
+        <i class="bi bi-bicycle"></i> Available Bikes Over Time
     </div>
     <div class="card-body">
-        <canvas id="chart-docks" height="80"></canvas>
+        <canvas id="chart-bikes" height="80"></canvas>
     </div>
 </div>
 {% endblock %}

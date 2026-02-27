@@ -1,51 +1,31 @@
-/* Door2Dock – Time Series Charts */
+/* Door2Dock – Time Series Charts (single station, absolute values) */
 
 let bikesChart, docksChart;
 let allStations = [];
 let currentStation = '';
 let currentHours = 24;
-let showCount = 3;
-
-const STATION_COLORS = [
-    '#42a5f5', '#66bb6a', '#ffa726', '#ef5350', '#ab47bc',
-    '#26c6da', '#8d6e63', '#78909c', '#d4e157', '#ec407a',
-];
 
 document.addEventListener('DOMContentLoaded', () => {
     initCharts();
     loadStations();
 
-    // Station selector
     document.getElementById('station-select').addEventListener('change', (e) => {
         currentStation = e.target.value;
-        loadAllTimeSeries();
+        loadTimeSeries();
     });
 
-    // Time range buttons
     document.querySelectorAll('[data-hours]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('[data-hours]').forEach(b =>
                 b.classList.remove('active'));
             e.target.classList.add('active');
             currentHours = parseInt(e.target.dataset.hours);
-            loadAllTimeSeries();
+            loadTimeSeries();
         });
     });
 
-    // Show count buttons
-    document.querySelectorAll('.ts-show-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.ts-show-btn').forEach(b =>
-                b.classList.remove('active'));
-            e.target.classList.add('active');
-            showCount = parseInt(e.target.dataset.show);
-            loadAllTimeSeries();
-        });
-    });
-
-    // Auto-refresh every 60 seconds
     setInterval(() => {
-        if (currentStation || showCount > 1) loadAllTimeSeries();
+        if (currentStation) loadTimeSeries();
     }, 60000);
 });
 
@@ -88,11 +68,6 @@ function initCharts() {
                                 });
                         }
                         return '';
-                    },
-                    label: (ctx) => {
-                        const val = ctx.parsed.y;
-                        const suffix = ctx.chart.options.scales.y.max === 100 ? '%' : '';
-                        return `${ctx.dataset.label}: ${val}${suffix}`;
                     }
                 }
             }
@@ -110,19 +85,27 @@ function initCharts() {
         }
     };
 
-    // Need the date adapter
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3';
     script.onload = () => {
+        docksChart = new Chart(document.getElementById('chart-docks'), {
+            type: 'line',
+            data: { datasets: [] },
+            options: {
+                ...commonOpts,
+                scales: {
+                    ...commonOpts.scales,
+                    y: { ...commonOpts.scales.y, title: { display: true, text: 'Free Docks' } }
+                }
+            },
+            plugins: [crosshairPlugin],
+        });
+
         bikesChart = new Chart(document.getElementById('chart-bikes'), {
             type: 'line',
             data: { datasets: [] },
             options: {
                 ...commonOpts,
-                plugins: {
-                    ...commonOpts.plugins,
-                    legend: { position: 'top' },
-                },
                 scales: {
                     ...commonOpts.scales,
                     y: { ...commonOpts.scales.y, title: { display: true, text: 'Bikes' } }
@@ -131,18 +114,8 @@ function initCharts() {
             plugins: [crosshairPlugin],
         });
 
-        docksChart = new Chart(document.getElementById('chart-docks'), {
-            type: 'line',
-            data: { datasets: [] },
-            options: {
-                ...commonOpts,
-                scales: {
-                    ...commonOpts.scales,
-                    y: { ...commonOpts.scales.y, title: { display: true, text: 'Empty Docks' } }
-                }
-            },
-            plugins: [crosshairPlugin],
-        });
+        // Load data for first station once charts are ready
+        if (currentStation) loadTimeSeries();
     };
     document.head.appendChild(script);
 }
@@ -152,7 +125,7 @@ async function loadStations() {
         const resp = await fetch('/api/stations');
         allStations = await resp.json();
         const select = document.getElementById('station-select');
-        select.innerHTML = '<option value="">All (by nearest)</option>';
+        select.innerHTML = '<option value="">Select a station...</option>';
         allStations.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.station_id;
@@ -161,86 +134,34 @@ async function loadStations() {
             select.appendChild(opt);
         });
 
-        // Load initial multi-station view
-        loadAllTimeSeries();
+        // Auto-select nearest station
+        if (allStations.length > 0) {
+            currentStation = allStations[0].station_id;
+            select.value = currentStation;
+            loadTimeSeries();
+        }
     } catch (e) {
         console.error('Failed to load stations:', e);
     }
 }
 
-function getStationsToShow() {
-    if (currentStation) {
-        // Single station selected
-        return allStations.filter(s => s.station_id === currentStation);
-    }
-    // Nearest N by walking distance
-    return allStations.slice(0, showCount);
-}
+async function loadTimeSeries() {
+    if (!docksChart || !currentStation) return;
 
-async function loadAllTimeSeries() {
-    if (!bikesChart) return;
+    try {
+        const resp = await fetch(`/api/timeseries/${currentStation}?hours=${currentHours}`);
+        const data = await resp.json();
 
-    const stations = getStationsToShow();
-    if (stations.length === 0) return;
+        const timestamps = data.map(d => d.timestamp);
+        const bikes = data.map(d => d.available_bikes);
+        const standard = data.map(d => d.standard_bikes);
+        const ebikes = data.map(d => d.ebikes);
+        const docks = data.map(d => d.empty_docks);
 
-    // Fetch all in parallel
-    const fetches = stations.map(s =>
-        fetch(`/api/timeseries/${s.station_id}?hours=${currentHours}`)
-            .then(r => r.json())
-            .then(data => ({ station: s, data }))
-            .catch(() => ({ station: s, data: [] }))
-    );
-    const results = await Promise.all(fetches);
-
-    const isSingle = results.length === 1;
-
-    // Build bike datasets
-    const bikeDatasets = [];
-    const dockDatasets = [];
-
-    results.forEach((r, i) => {
-        const color = STATION_COLORS[i % STATION_COLORS.length];
-        const shortName = r.station.station_name.split(',')[0];
-        const timestamps = r.data.map(d => d.timestamp);
-        const bikes = r.data.map(d => d.available_bikes);
-        const standard = r.data.map(d => d.standard_bikes);
-        const ebikes = r.data.map(d => d.ebikes);
-        const docks = r.data.map(d => d.empty_docks);
-
-        if (isSingle) {
-            // Single station: show absolute values with breakdown
-            bikeDatasets.push({
-                label: 'Total Bikes',
-                data: timestamps.map((t, j) => ({ x: t, y: bikes[j] })),
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                fill: true,
-                tension: 0.3,
-                pointRadius: 0,
-                borderWidth: 2,
-            });
-            bikeDatasets.push({
-                label: 'Standard',
-                data: timestamps.map((t, j) => ({ x: t, y: standard[j] })),
-                borderColor: '#20c997',
-                backgroundColor: 'transparent',
-                tension: 0.3,
-                pointRadius: 0,
-                borderWidth: 1.5,
-                borderDash: [4, 2],
-            });
-            bikeDatasets.push({
-                label: 'E-Bikes',
-                data: timestamps.map((t, j) => ({ x: t, y: ebikes[j] })),
-                borderColor: '#ffc107',
-                backgroundColor: 'transparent',
-                tension: 0.3,
-                pointRadius: 0,
-                borderWidth: 1.5,
-                borderDash: [4, 2],
-            });
-            dockDatasets.push({
-                label: 'Empty Docks',
+        // Docks chart (primary)
+        docksChart.data = {
+            datasets: [{
+                label: 'Free Docks',
                 data: timestamps.map((t, j) => ({ x: t, y: docks[j] })),
                 borderColor: '#198754',
                 backgroundColor: 'rgba(25, 135, 84, 0.1)',
@@ -248,64 +169,50 @@ async function loadAllTimeSeries() {
                 tension: 0.3,
                 pointRadius: 0,
                 borderWidth: 2,
-            });
-        } else {
-            // Multi-station: normalized to % of capacity
-            bikeDatasets.push({
-                label: shortName,
-                data: timestamps.map((t, j) => {
-                    const total = (bikes[j] || 0) + (docks[j] || 0);
-                    const pct = total > 0 ? Math.round(bikes[j] / total * 100) : 0;
-                    return { x: t, y: pct };
-                }),
-                borderColor: color,
-                backgroundColor: 'transparent',
-                tension: 0.3,
-                pointRadius: 0,
-                borderWidth: 2,
-            });
-            dockDatasets.push({
-                label: shortName,
-                data: timestamps.map((t, j) => {
-                    const total = (bikes[j] || 0) + (docks[j] || 0);
-                    const pct = total > 0 ? Math.round(docks[j] / total * 100) : 0;
-                    return { x: t, y: pct };
-                }),
-                borderColor: color,
-                backgroundColor: color + '1A',
-                fill: false,
-                tension: 0.3,
-                pointRadius: 0,
-                borderWidth: 2,
-            });
-        }
-    });
+            }]
+        };
+        docksChart.update();
 
-    // Update titles and Y-axis labels based on mode
-    const yLabel = isSingle ? 'Bikes' : '% of Capacity';
-    const yLabelDocks = isSingle ? 'Empty Docks' : '% Free Docks';
-    const yMax = isSingle ? undefined : 100;
+        // Bikes chart
+        bikesChart.data = {
+            datasets: [
+                {
+                    label: 'Total Bikes',
+                    data: timestamps.map((t, j) => ({ x: t, y: bikes[j] })),
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'Standard',
+                    data: timestamps.map((t, j) => ({ x: t, y: standard[j] })),
+                    borderColor: '#20c997',
+                    backgroundColor: 'transparent',
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 1.5,
+                    borderDash: [4, 2],
+                },
+                {
+                    label: 'E-Bikes',
+                    data: timestamps.map((t, j) => ({ x: t, y: ebikes[j] })),
+                    borderColor: '#ffc107',
+                    backgroundColor: 'transparent',
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 1.5,
+                    borderDash: [4, 2],
+                },
+            ]
+        };
+        bikesChart.update();
 
-    document.getElementById('chart-bikes-title').textContent =
-        isSingle ? 'Bike Availability Over Time' : 'Bike Availability (% of Capacity)';
-    document.getElementById('chart-docks-title').textContent =
-        isSingle ? 'Empty Docks Over Time' : 'Free Docks (% of Capacity)';
-
-    bikesChart.options.scales.y.title.text = yLabel;
-    bikesChart.options.scales.y.max = yMax;
-    bikesChart.data = { datasets: bikeDatasets };
-    bikesChart.update();
-
-    docksChart.options.scales.y.title.text = yLabelDocks;
-    docksChart.options.scales.y.max = yMax;
-    docksChart.data = { datasets: dockDatasets };
-    docksChart.update();
-
-    // Summary stats for the first (or only) station
-    if (results.length > 0 && results[0].data.length > 0) {
-        const docks = results[0].data.map(d => d.empty_docks);
         updateSummary(docks);
-    } else {
+    } catch (e) {
+        console.error('Failed to load time series:', e);
         updateSummary([]);
     }
 }
