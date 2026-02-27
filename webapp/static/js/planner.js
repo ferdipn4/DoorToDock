@@ -5,7 +5,6 @@ const SELECTED_KEY = 'door2dock_planner_selected';
 let allStations = [];
 let selectedStations = new Set();
 let timelineChart = null;
-let altChart = null;
 
 // ------------------------------------------------------------------
 // Selected stations (sessionStorage)
@@ -38,6 +37,12 @@ function toggleStation(stationId) {
 function updateSelectedBadge() {
     const badge = document.getElementById('selected-count-badge');
     if (badge) badge.textContent = `${selectedStations.size} selected`;
+    updateScanButton();
+}
+
+function updateScanButton() {
+    const btn = document.getElementById('scan-btn');
+    if (btn) btn.disabled = selectedStations.size === 0;
 }
 
 // ------------------------------------------------------------------
@@ -125,7 +130,6 @@ function restoreFromCache() {
     if (cache.result && cache.result.available) {
         renderWeatherForecast(cache.result.weather_forecast);
         renderTimeline(cache.result.favorites, 'timeline-chart', 'timeline-empty');
-        renderTimeline(cache.result.alternatives, 'alt-chart', 'alt-empty');
         showRecommendation(cache.result.recommendation);
     }
 }
@@ -166,7 +170,6 @@ async function runScan() {
 
         renderWeatherForecast(data.weather_forecast);
         renderTimeline(data.favorites, 'timeline-chart', 'timeline-empty');
-        renderTimeline(data.alternatives, 'alt-chart', 'alt-empty');
         showRecommendation(data.recommendation);
 
         saveToCache(
@@ -177,8 +180,8 @@ async function runScan() {
         console.error('Scan error:', e);
         showRecommendation(null);
     } finally {
-        btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-search"></i> Scan';
+        updateScanButton();
     }
 }
 
@@ -282,8 +285,7 @@ function renderTimeline(scanData, canvasId, emptyId) {
         colorIdx++;
     }
 
-    const existing = canvasId === 'timeline-chart' ? timelineChart : altChart;
-    if (existing) existing.destroy();
+    if (timelineChart) timelineChart.destroy();
 
     const chart = new Chart(canvas, {
         type: 'line',
@@ -332,11 +334,7 @@ function renderTimeline(scanData, canvasId, emptyId) {
         },
     });
 
-    if (canvasId === 'timeline-chart') {
-        timelineChart = chart;
-    } else {
-        altChart = chart;
-    }
+    timelineChart = chart;
 }
 
 // ------------------------------------------------------------------
