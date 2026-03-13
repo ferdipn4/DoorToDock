@@ -24,6 +24,7 @@ let showCount = 3;
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
     loadAboutStats();
+    loadModelInfo();
 
     document.getElementById('station-select').addEventListener('change', (e) => {
         currentStation = e.target.value;
@@ -560,6 +561,46 @@ function computeWeatherInsights(data) {
     if (worstLabel) {
         document.getElementById('insight-worst').textContent = worstLabel;
         document.getElementById('insight-worst-detail').textContent = `~${Math.round(worstAvg)} avg free docks`;
+    }
+}
+
+// ------------------------------------------------------------------
+// Model Info
+// ------------------------------------------------------------------
+
+async function loadModelInfo() {
+    try {
+        const resp = await fetch('/api/model-info');
+        const data = await resp.json();
+        if (!data.available) return;
+
+        const placeholder = document.getElementById('model-placeholder');
+        const featuresSection = document.getElementById('model-features-section');
+
+        // Show nowcast model on the insights page (it's the primary prediction model)
+        const nc = data.nowcast;
+        const fc = data.forecast;
+        const model = nc || fc;
+        if (!model) return;
+
+        document.getElementById('model-name').textContent = model.name;
+        document.getElementById('model-mae').textContent = model.mae;
+        document.getElementById('model-r2').textContent = model.r2;
+        document.getElementById('model-horizon').textContent = model.horizon_min;
+
+        if (placeholder) placeholder.style.display = 'none';
+
+        // Show top features
+        if (model.features && featuresSection) {
+            const topFeatures = model.features
+                .filter(f => !['hour_sin', 'hour_cos', 'is_weekend'].includes(f))
+                .slice(0, 6)
+                .join(', ');
+            document.getElementById('model-features').textContent = topFeatures;
+            featuresSection.style.display = '';
+        }
+    } catch (e) {
+        console.error('Failed to load model info:', e);
     }
 }
 

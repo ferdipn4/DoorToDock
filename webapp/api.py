@@ -412,6 +412,43 @@ def _compute_recommendation(scan, mode="morning"):
 
 
 # ------------------------------------------------------------------
+# Model Info
+# ------------------------------------------------------------------
+
+@api.route("/model-info")
+def model_info():
+    """Return model metadata and metrics for both forecast and nowcast."""
+    fc = get_forecast_service()
+    nc = get_nowcast_service()
+
+    def _model_dict(svc):
+        if svc is None:
+            return None
+        # Find this model's metrics in the saved list
+        best_metrics = {}
+        for m in svc.metrics:
+            name = m.get("model", "")
+            if svc.model_name in name:
+                best_metrics = m
+                break
+        return {
+            "name": svc.model_name,
+            "type": svc.model_type,
+            "horizon_min": svc.prediction_horizon_min,
+            "features": svc.features,
+            "mae": round(best_metrics.get("MAE", 0), 2),
+            "rmse": round(best_metrics.get("RMSE", 0), 2),
+            "r2": round(best_metrics.get("R2", 0), 4),
+        }
+
+    return jsonify({
+        "available": fc is not None or nc is not None,
+        "forecast": _model_dict(fc),
+        "nowcast": _model_dict(nc),
+    })
+
+
+# ------------------------------------------------------------------
 # Overall Stats
 # ------------------------------------------------------------------
 
