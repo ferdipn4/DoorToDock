@@ -1,37 +1,40 @@
-/* Door2Dock – Live Dashboard */
+/* Door2Dock – Now Page (Live Status with Priority Stations) */
 
-const FAVORITES_KEY = 'door2dock_favorites';
+// Priority stations in order of importance
+const PRIORITY_STATION_NAMES = [
+    'Exhibition Road Museums 1',
+    'Exhibition Road Museums 2',
+    'Victoria & Albert Museum',
+    'Exhibition Road',
+    'South Kensington Station',
+    'Holy Trinity Brompton',
+    'Natural History Museum',
+];
 
 let map;
 let markers = {};
 let currentStations = [];
 let currentSort = 'walking';
-let showCount = 10; // 0 = all
-let forecastData = {}; // station_id -> { predicted_empty_docks, predicted_status }
-let forecastHorizon = 15; // minutes, updated from API
+let showCount = 10;
+let forecastData = {};
+let forecastHorizon = 15;
 
 // ------------------------------------------------------------------
-// Favorites (shared with Planner via localStorage)
+// Priority station matching
 // ------------------------------------------------------------------
 
-function getDashFavorites() {
-    try {
-        return new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]'));
-    } catch {
-        return new Set();
+function getPriorityIndex(stationName) {
+    const name = stationName.toLowerCase();
+    for (let i = 0; i < PRIORITY_STATION_NAMES.length; i++) {
+        if (name.includes(PRIORITY_STATION_NAMES[i].toLowerCase())) {
+            return i;
+        }
     }
+    return -1;
 }
 
-function toggleDashFavorite(e, stationId) {
-    e.stopPropagation(); // don't trigger focusStation
-    const favs = getDashFavorites();
-    if (favs.has(stationId)) {
-        favs.delete(stationId);
-    } else {
-        favs.add(stationId);
-    }
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favs]));
-    renderStationCards();
+function isPriorityStation(stationName) {
+    return getPriorityIndex(stationName) >= 0;
 }
 
 // ------------------------------------------------------------------
@@ -40,12 +43,10 @@ function toggleDashFavorite(e, stationId) {
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
-    loadStats();
     loadWeather();
     loadLiveStatus();
     loadForecast();
 
-    // Sort buttons
     document.querySelectorAll('.sort-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -55,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Show count buttons
     document.querySelectorAll('.show-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.show-btn').forEach(b => b.classList.remove('active'));
@@ -63,11 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
             showCount = parseInt(e.target.dataset.show);
             renderStationCards();
             updateMapVisibility();
-            updateStats();
         });
     });
 
-    // Auto-refresh every 60 seconds
     setInterval(() => {
         loadLiveStatus();
         loadWeather();
@@ -86,7 +84,6 @@ function initMap() {
         maxZoom: 19,
     }).addTo(map);
 
-    // Imperial College marker
     L.circleMarker([51.4988, -0.1749], {
         radius: 8,
         fillColor: '#0d6efd',
@@ -95,7 +92,6 @@ function initMap() {
         fillOpacity: 0.9,
     }).addTo(map).bindPopup('<strong>Imperial College London</strong><br>South Kensington Campus');
 
-    // 800m radius circle
     L.circle([51.4988, -0.1749], {
         radius: 800,
         color: '#0d6efd',
@@ -106,27 +102,14 @@ function initMap() {
     }).addTo(map);
 }
 
-async function loadStats() {
-    try {
-        const resp = await fetch('/api/stats');
-        const s = await resp.json();
-        document.getElementById('stat-datapoints').textContent =
-            (s.bike_rows || 0).toLocaleString();
-        document.getElementById('stat-days').textContent = s.collection_days || '--';
-    } catch (e) {
-        console.error('Stats load error:', e);
-    }
-}
-
 async function loadWeather() {
     try {
         const resp = await fetch('/api/weather-now');
         const w = await resp.json();
         if (w.temperature != null) {
-            document.getElementById('stat-temp').textContent =
-                Math.round(w.temperature);
-            document.getElementById('stat-weather-desc').textContent =
-                `${w.description || ''} · ${w.wind_speed || 0} m/s wind`;
+            document.getElementById('banner-temp').textContent = Math.round(w.temperature);
+            document.getElementById('banner-weather-desc').textContent =
+                `${w.description || ''} · ${w.wind_speed || 0} m/s`;
         }
     } catch (e) {
         console.error('Weather load error:', e);
@@ -137,73 +120,154 @@ async function loadLiveStatus() {
     try {
         const resp = await fetch('/api/live');
         currentStations = await resp.json();
-
         updateMapMarkers(currentStations);
+        renderPriorityStations();
         renderStationCards();
-        updateStats();
-        updateTimestamp(currentStations);
+        updateQuickRecommendation();
         updateMapVisibility();
+        updateTimestamp(currentStations);
     } catch (e) {
         console.error('Live status error:', e);
-        document.getElementById('station-list').innerHTML =
-            '<div class="text-danger text-center py-5">Failed to load station data</div>';
     }
 }
 
 async function loadForecast() {
     try {
-        // Let the API compute the default fractional hour (now + horizon)
         const resp = await fetch('/api/forecast');
         const data = await resp.json();
-        if (!data.available) {
-            console.log('Forecast not available:', data.reason);
-            return;
-        }
+        if (!data.available) return;
         forecastHorizon = data.prediction_horizon_min || 15;
         forecastData = {};
         (data.predictions || []).forEach(p => {
             forecastData[p.station_id] = p;
         });
-        // Re-render cards to show forecast annotations
+        renderPriorityStations();
         renderStationCards();
-        updateForecastStat();
+        updateQuickRecommendation();
     } catch (e) {
         console.error('Forecast load error:', e);
     }
 }
 
-function updateForecastStat() {
-    const el = document.getElementById('stat-forecast-docks');
-    const labelEl = document.getElementById('stat-forecast-label');
-    if (!el) return;
+// ------------------------------------------------------------------
+// Quick Recommendation Banner
+// ------------------------------------------------------------------
+
+function updateQuickRecommendation() {
+    const signal = document.getElementById('quick-rec-signal');
+    const text = document.getElementById('quick-rec-text');
+    const detail = document.getElementById('quick-rec-detail');
+    const card = document.getElementById('quick-rec-card');
+
+    // Find best priority station (by current docks)
+    const priorityStations = currentStations
+        .filter(s => isPriorityStation(s.station_name))
+        .sort((a, b) => getPriorityIndex(a.station_name) - getPriorityIndex(b.station_name));
+
+    const best = priorityStations
+        .filter(s => s.empty_docks >= 5)
+        .sort((a, b) => (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999))[0];
 
     const horizonLabel = forecastHorizon >= 60
-        ? `${Math.round(forecastHorizon / 60)}h`
-        : `${forecastHorizon} min`;
+        ? `${Math.round(forecastHorizon / 60)}h` : `${forecastHorizon}min`;
 
-    // Find nearest station with forecast data (by walking distance)
-    const byWalking = [...currentStations].sort((a, b) =>
-        (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999));
-    const nearest = byWalking.find(s => forecastData[s.station_id]);
+    card.classList.remove('rec-green', 'rec-yellow', 'rec-red');
 
-    if (nearest && forecastData[nearest.station_id]) {
-        const fc = forecastData[nearest.station_id];
-        const predicted = Math.round(fc.predicted_empty_docks);
-        const colorClass = fc.predicted_status === 'green' ? 'text-success'
-            : fc.predicted_status === 'yellow' ? 'text-warning' : 'text-danger';
-        el.textContent = `~${predicted} docks`;
-        el.className = `fs-2 fw-bold ${colorClass}`;
-        labelEl.textContent = `${nearest.station_name.split(',')[0]} in ${horizonLabel}`;
+    if (best) {
+        const walkMin = Math.round((best.walking_duration_s || 0) / 60);
+        const fc = forecastData[best.station_id];
+        let forecastText = '';
+        if (fc) {
+            forecastText = ` → ~${Math.round(fc.predicted_empty_docks)} in ${horizonLabel}`;
+        }
+        card.classList.add('rec-green');
+        signal.className = 'rec-signal rec-signal-green';
+        text.textContent = `${best.station_name} — ${best.empty_docks} free docks${forecastText}`;
+        detail.textContent = `${walkMin} min walk · Best option right now`;
     } else {
-        el.textContent = '--';
-        el.className = 'fs-2 fw-bold';
-        labelEl.textContent = `in ${horizonLabel}`;
+        const anyAvailable = priorityStations.find(s => s.empty_docks >= 1);
+        if (anyAvailable) {
+            const walkMin = Math.round((anyAvailable.walking_duration_s || 0) / 60);
+            card.classList.add('rec-yellow');
+            signal.className = 'rec-signal rec-signal-yellow';
+            text.textContent = `${anyAvailable.station_name} — only ${anyAvailable.empty_docks} free dock${anyAvailable.empty_docks > 1 ? 's' : ''}`;
+            detail.textContent = `${walkMin} min walk · Limited availability, consider alternatives`;
+        } else {
+            card.classList.add('rec-red');
+            signal.className = 'rec-signal rec-signal-red';
+            text.textContent = 'No free docks at your stations';
+            detail.textContent = 'Check the map for alternatives further away';
+        }
     }
 }
 
 // ------------------------------------------------------------------
-// Sorting & Filtering
+// Priority Station Cards (top section)
 // ------------------------------------------------------------------
+
+function renderPriorityStations() {
+    const container = document.getElementById('priority-stations');
+    const horizonLabel = forecastHorizon >= 60
+        ? `${Math.round(forecastHorizon / 60)}h` : `${forecastHorizon}min`;
+
+    const priority = currentStations
+        .filter(s => isPriorityStation(s.station_name))
+        .sort((a, b) => getPriorityIndex(a.station_name) - getPriorityIndex(b.station_name));
+
+    if (priority.length === 0) {
+        container.innerHTML = '<div class="text-body-secondary text-center py-3">No priority stations found</div>';
+        return;
+    }
+
+    container.innerHTML = priority.map(s => {
+        const dockColor = s.status === 'green' ? 'text-success'
+            : s.status === 'yellow' ? 'text-warning' : 'text-danger';
+        const walkMin = Math.round((s.walking_duration_s || 0) / 60);
+        const fc = forecastData[s.station_id];
+
+        let forecastHtml = '';
+        if (fc) {
+            const fcColor = fc.predicted_status === 'green' ? 'success'
+                : fc.predicted_status === 'yellow' ? 'warning' : 'danger';
+            const predicted = Math.round(fc.predicted_empty_docks);
+            forecastHtml = `<div class="small text-${fcColor} fw-bold">&rarr; ~${predicted} in ${horizonLabel}</div>`;
+        }
+
+        return `
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="card h-100 priority-station-card status-border-${s.status}"
+                 onclick="focusStation('${s.station_id}')"
+                 onmouseenter="highlightMarker('${s.station_id}')"
+                 onmouseleave="unhighlightMarker('${s.station_id}')">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="small fw-bold">${s.station_name.split(',')[0]}</div>
+                        <span class="badge status-${s.status}" style="font-size:0.65rem">${s.status.toUpperCase()}</span>
+                    </div>
+                    <div class="d-flex align-items-end gap-2">
+                        <div class="${dockColor}">
+                            <span class="fs-2 fw-bold">${s.empty_docks}</span>
+                            <span class="small">free</span>
+                        </div>
+                        <div class="flex-grow-1 text-end">
+                            ${forecastHtml}
+                            <div class="small text-body-secondary">${walkMin} min walk</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ------------------------------------------------------------------
+// Station Cards (all stations list)
+// ------------------------------------------------------------------
+
+function formatWalkingTime(seconds) {
+    if (!seconds) return '?';
+    return `${Math.round(seconds / 60)} min walk`;
+}
 
 function sortStations(stations) {
     const sorted = [...stations];
@@ -217,15 +281,11 @@ function sortStations(stations) {
         case 'docks-asc':
             sorted.sort((a, b) => (a.empty_docks || 0) - (b.empty_docks || 0));
             break;
-        case 'name':
-            sorted.sort((a, b) => a.station_name.localeCompare(b.station_name));
-            break;
     }
     return sorted;
 }
 
 function getVisibleStations() {
-    // Always sort by walking distance first to determine the "nearest"
     const byWalking = [...currentStations].sort((a, b) =>
         (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999));
     if (showCount > 0) {
@@ -234,25 +294,13 @@ function getVisibleStations() {
     return new Set(byWalking.map(s => s.station_id));
 }
 
-// ------------------------------------------------------------------
-// Station Cards
-// ------------------------------------------------------------------
-
-function formatWalkingTime(seconds) {
-    if (!seconds) return '?';
-    const mins = Math.round(seconds / 60);
-    return `${mins} min walk`;
-}
-
 function renderStationCards() {
     const container = document.getElementById('station-list');
     const visible = getVisibleStations();
     const sorted = sortStations(currentStations).filter(s => visible.has(s.station_id));
-    const favs = getDashFavorites();
 
     const horizonLabel = forecastHorizon >= 60
-        ? `${Math.round(forecastHorizon / 60)}h`
-        : `${forecastHorizon}min`;
+        ? `${Math.round(forecastHorizon / 60)}h` : `${forecastHorizon}min`;
 
     container.innerHTML = sorted.map(s => {
         const pct = s.total_docks > 0
@@ -263,10 +311,8 @@ function renderStationCards() {
             : s.status === 'yellow' ? 'text-warning' : 'text-danger';
         const walkTime = formatWalkingTime(s.walking_duration_s);
         const walkDist = Math.round(s.walking_distance_m || 0);
-        const isFav = favs.has(s.station_id);
-        const starIcon = isFav ? 'bi-star-fill text-warning' : 'bi-star';
+        const isPriority = isPriorityStation(s.station_name);
 
-        // Forecast hint
         let forecastHint = '';
         if (forecastData[s.station_id]) {
             const fc = forecastData[s.station_id];
@@ -290,11 +336,10 @@ function renderStationCards() {
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="station-name">
-                                <i class="bi ${starIcon} fav-star ${isFav ? 'active' : ''}" onclick="toggleDashFavorite(event, '${s.station_id}')"></i>
-                                ${s.station_name}
+                                ${isPriority ? '<i class="bi bi-star-fill text-warning" style="font-size:0.7rem"></i> ' : ''}${s.station_name}
                             </div>
                             <div class="station-meta">
-                                <i class="bi bi-person-walking"></i> ${walkDist}m · ${walkTime} · ${s.total_docks} total docks
+                                <i class="bi bi-person-walking"></i> ${walkDist}m · ${walkTime} · ${s.total_docks} total
                             </div>
                         </div>
                         <span class="badge status-${s.status}">${s.status.toUpperCase()}</span>
@@ -303,7 +348,7 @@ function renderStationCards() {
                         <div class="dock-bar-fill ${fillClass}" style="width: ${pct}%"></div>
                     </div>
                     <div class="bike-detail">
-                        ${s.standard_bikes} standard · ${s.ebikes} e-bikes available${forecastHint}
+                        ${s.standard_bikes} standard · ${s.ebikes} e-bikes${forecastHint}
                     </div>
                 </div>
             </div>
@@ -316,11 +361,7 @@ function renderStationCards() {
 // ------------------------------------------------------------------
 
 function updateMapMarkers(stations) {
-    const statusColors = {
-        green: '#198754',
-        yellow: '#ffc107',
-        red: '#dc3545',
-    };
+    const statusColors = { green: '#198754', yellow: '#ffc107', red: '#dc3545' };
 
     stations.forEach(s => {
         const color = statusColors[s.status] || '#6c757d';
@@ -343,13 +384,7 @@ function updateMapMarkers(stations) {
         } else {
             const marker = L.circleMarker(
                 [s.latitude, s.longitude],
-                {
-                    radius: radius,
-                    fillColor: color,
-                    color: '#fff',
-                    weight: 2,
-                    fillOpacity: 0.9,
-                }
+                { radius, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.9 }
             ).addTo(map).bindPopup(popupHtml);
             marker._baseRadius = radius;
             marker._baseColor = color;
@@ -370,18 +405,15 @@ function updateMapVisibility() {
 }
 
 // ------------------------------------------------------------------
-// Hover Highlight
+// Hover & Focus
 // ------------------------------------------------------------------
 
 function highlightMarker(stationId) {
     const marker = markers[stationId];
     if (!marker) return;
-
     marker.setStyle({
         radius: (marker._baseRadius || 10) + 6,
-        weight: 4,
-        color: '#fff',
-        fillOpacity: 1,
+        weight: 4, color: '#fff', fillOpacity: 1,
     });
     marker.bringToFront();
     marker.openPopup();
@@ -390,62 +422,27 @@ function highlightMarker(stationId) {
 function unhighlightMarker(stationId) {
     const marker = markers[stationId];
     if (!marker) return;
-
     const visible = getVisibleStations();
     const isVisible = visible.has(stationId);
-
     marker.setStyle({
         radius: marker._baseRadius || 10,
-        weight: 2,
-        color: '#fff',
+        weight: 2, color: '#fff',
         fillOpacity: isVisible ? 0.9 : 0.1,
         opacity: isVisible ? 1 : 0.15,
     });
-
     marker.closePopup();
 }
 
-// ------------------------------------------------------------------
-// Counts & Timestamp
-// ------------------------------------------------------------------
-
-function updateStats() {
-    const visible = getVisibleStations();
-    let totalFreeDocks = 0;
-    let visibleCount = 0;
-
-    // Sort by walking distance to find nearest
-    const byWalking = [...currentStations].sort((a, b) =>
-        (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999));
-
-    byWalking.forEach(s => {
-        if (visible.has(s.station_id)) {
-            totalFreeDocks += s.empty_docks || 0;
-            visibleCount++;
-        }
-    });
-
-    // Free docks
-    document.getElementById('stat-free-docks').textContent = totalFreeDocks;
-    document.getElementById('stat-visible-count').textContent = visibleCount;
-    document.getElementById('stat-total-count').textContent = currentStations.length;
-
-    // Nearest station with free docks
-    const nearest = byWalking.find(s => visible.has(s.station_id) && s.empty_docks > 0);
-    if (nearest) {
-        const dockColor = nearest.status === 'green' ? 'text-success'
-            : nearest.status === 'yellow' ? 'text-warning' : 'text-danger';
-        const el = document.getElementById('stat-nearest-docks');
-        el.textContent = nearest.empty_docks + ' docks';
-        el.className = `fs-2 fw-bold ${dockColor}`;
-        document.getElementById('stat-nearest-name').textContent =
-            `${nearest.station_name.split(',')[0]} · ${formatWalkingTime(nearest.walking_duration_s)}`;
-    } else {
-        document.getElementById('stat-nearest-docks').textContent = '0';
-        document.getElementById('stat-nearest-docks').className = 'fs-2 fw-bold text-danger';
-        document.getElementById('stat-nearest-name').textContent = 'No docks available';
-    }
+function focusStation(stationId) {
+    const marker = markers[stationId];
+    if (!marker) return;
+    map.flyTo(marker.getLatLng(), 17, { duration: 0.5 });
+    setTimeout(() => marker.openPopup(), 500);
 }
+
+// ------------------------------------------------------------------
+// Timestamp
+// ------------------------------------------------------------------
 
 function updateTimestamp(stations) {
     if (stations.length > 0 && stations[0].timestamp) {
@@ -456,18 +453,4 @@ function updateTimestamp(stations) {
         const agoStr = diffMin <= 1 ? 'just now' : `${diffMin} min ago`;
         document.getElementById('update-time').textContent = `${timeStr} (${agoStr})`;
     }
-}
-
-// ------------------------------------------------------------------
-// Click-to-Focus: Pan map to station and open popup
-// ------------------------------------------------------------------
-
-function focusStation(stationId) {
-    const marker = markers[stationId];
-    if (!marker) return;
-    const latlng = marker.getLatLng();
-    map.flyTo(latlng, 17, { duration: 0.5 });
-    setTimeout(() => {
-        marker.openPopup();
-    }, 500);
 }

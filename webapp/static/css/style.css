@@ -356,6 +356,60 @@ h5.fw-bold {
     border-bottom: none;
 }
 
+/* ------------------------------------------------------------------
+   Now page – Quick Recommendation Banner
+   ------------------------------------------------------------------ */
+
+.rec-signal {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.rec-signal-green { background-color: #198754; box-shadow: 0 0 8px rgba(25, 135, 84, 0.5); }
+.rec-signal-yellow { background-color: #ffc107; box-shadow: 0 0 8px rgba(255, 193, 7, 0.5); }
+.rec-signal-red { background-color: #dc3545; box-shadow: 0 0 8px rgba(220, 53, 69, 0.5); }
+
+#quick-rec-card.rec-green {
+    border-color: #198754 !important;
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.12), transparent) !important;
+}
+#quick-rec-card.rec-yellow {
+    border-color: #ffc107 !important;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.12), transparent) !important;
+}
+#quick-rec-card.rec-red {
+    border-color: #dc3545 !important;
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.12), transparent) !important;
+}
+
+/* Priority Station Cards */
+.priority-station-card {
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.15s ease;
+}
+.priority-station-card:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.priority-station-card.status-border-green {
+    border-left: 4px solid #198754;
+}
+.priority-station-card.status-border-yellow {
+    border-left: 4px solid #ffc107;
+}
+.priority-station-card.status-border-red {
+    border-left: 4px solid #dc3545;
+}
+
+/* ------------------------------------------------------------------
+   Plan page – Mode description
+   ------------------------------------------------------------------ */
+#mode-desc {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
 /* Better mobile layout for station cards */
 @media (max-width: 767.98px) {
     .dock-hero-num {

@@ -286,6 +286,7 @@ def commute_scan():
     target_date = request.args.get("date", tomorrow)
     start = request.args.get("start", 8.0, type=float)
     end = request.args.get("end", 10.0, type=float)
+    mode = request.args.get("mode", "morning")  # "morning" or "evening"
     fav_ids = request.args.get("stations", "")
     fav_set = set(fav_ids.split(",")) if fav_ids else set()
 
@@ -327,12 +328,13 @@ def commute_scan():
     fav_scan = svc.scan_time_range(favorites, weather_by_hour, weekday, start, end)
     alt_scan = svc.scan_time_range(alternatives, weather_by_hour, weekday, start, end) if alternatives else {"slots": fav_scan["slots"], "stations": {}}
 
-    # Compute recommendation: last slot where at least one favorite has >= 5 docks
-    recommendation = _compute_recommendation(fav_scan)
+    # Compute recommendation
+    recommendation = _compute_recommendation(fav_scan, mode)
 
     return jsonify({
         "available": True,
         "date": target_date,
+        "mode": mode,
         "prediction_horizon_min": svc.prediction_horizon_min,
         "weather_forecast": {str(h): w for h, w in weather_by_hour.items()
                              if int(start) <= h <= int(end) + 1},
@@ -342,8 +344,14 @@ def commute_scan():
     })
 
 
-def _compute_recommendation(scan):
-    """Find the last safe arrival time (>= 5 docks at any favorite station)."""
+def _compute_recommendation(scan, mode="morning"):
+    """Find the last safe arrival/departure time.
+
+    Morning mode: looks for >= 5 predicted free docks (can you park?).
+    Evening mode: looks for >= 5 predicted available bikes (can you ride home?).
+    Since the model predicts empty_docks, evening availability is estimated as
+    total_docks - predicted_empty_docks.
+    """
     slots = scan["slots"]
     stations = scan["stations"]
     if not slots or not stations:
@@ -355,26 +363,39 @@ def _compute_recommendation(scan):
     for i, slot in enumerate(slots):
         for sid, sdata in stations.items():
             preds = sdata["predictions"]
-            if i < len(preds) and preds[i] is not None and preds[i] >= 5:
+            if i >= len(preds) or preds[i] is None:
+                continue
+
+            if mode == "evening":
+                # Bikes available ≈ total_docks - empty_docks
+                total = sdata.get("total_docks", 20)
+                available = total - preds[i]
+                safe = available >= 5
+            else:
+                safe = preds[i] >= 5
+
+            if safe:
                 last_safe_idx = i
                 last_safe_station = (sid, sdata["name"])
-                break  # at least one station is safe at this time
+                break
+
+    action = "Arrive by" if mode == "morning" else "Leave by"
+    resource = "docks" if mode == "morning" else "bikes"
 
     if last_safe_idx is not None:
-        arrive_by = slots[last_safe_idx]
+        time_str = slots[last_safe_idx]
         station_id, station_name = last_safe_station
         short_name = station_name.split(",")[0]
         return {
-            "arrive_by": arrive_by,
-            "reason": f"Arrive by {arrive_by} for docks at {short_name}.",
+            "arrive_by": time_str,
+            "reason": f"{action} {time_str} for {resource} at {short_name}.",
             "station_id": station_id,
             "urgency": "green" if last_safe_idx > len(slots) * 0.6 else "yellow",
         }
 
-    # No safe slot found
     return {
         "arrive_by": slots[0],
-        "reason": "All stations predicted full – arrive as early as possible.",
+        "reason": f"All stations predicted full – {action.lower()} as early as possible.",
         "station_id": None,
         "urgency": "red",
     }

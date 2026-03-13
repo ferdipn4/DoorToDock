@@ -33,27 +33,17 @@
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
-                            <i class="bi bi-speedometer2"></i> Live Status
+                            <i class="bi bi-speedometer2"></i> Now
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/trends' %}active{% endif %}" href="/trends">
-                            <i class="bi bi-graph-up"></i> Trends
+                        <a class="nav-link {% if request.path == '/plan' %}active{% endif %}" href="/plan">
+                            <i class="bi bi-alarm"></i> Plan
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/weather-impact' %}active{% endif %}" href="/weather-impact">
-                            <i class="bi bi-cloud-sun"></i> Weather Impact
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/planner' %}active{% endif %}" href="/planner">
-                            <i class="bi bi-alarm"></i> Planner
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/about' %}active{% endif %}" href="/about">
-                            <i class="bi bi-info-circle"></i> About
+                        <a class="nav-link {% if request.path == '/insights' %}active{% endif %}" href="/insights">
+                            <i class="bi bi-lightbulb"></i> Insights
                         </a>
                     </li>
                 </ul>
@@ -98,15 +88,12 @@
             }
         } catch (e) { /* silent */ }
     }
-    // Only run the global updater if the page script hasn't already set it
     document.addEventListener('DOMContentLoaded', () => {
-        // Initial fetch after a short delay (let page scripts run first)
         setTimeout(() => {
             if (document.getElementById('update-time').textContent === '--') {
                 _updateNavTime();
             }
         }, 1500);
-        // Refresh every 60s on all pages
         setInterval(_updateNavTime, 60000);
     });
     </script>

@@ -1,13 +1,28 @@
 {% extends "base.html" %}
-{% block title %}Morning Planner{% endblock %}
+{% block title %}Plan{% endblock %}
 
 {% block content %}
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h5 class="mb-0 fw-bold">Morning Commute Planner</h5>
-        <small class="text-body-secondary">Predict dock availability for your morning ride to Imperial College</small>
+        <h5 class="mb-0 fw-bold">Plan Your Commute</h5>
+        <small class="text-body-secondary">Predict dock availability for your ride to or from Imperial College</small>
     </div>
+    <!-- Morning / Evening Toggle -->
+    <div class="btn-group" role="group" id="mode-toggle">
+        <button class="btn btn-outline-primary active" data-mode="morning" onclick="setMode('morning')">
+            <i class="bi bi-sunrise"></i> Morning
+        </button>
+        <button class="btn btn-outline-primary" data-mode="evening" onclick="setMode('evening')">
+            <i class="bi bi-sunset"></i> Evening
+        </button>
+    </div>
+</div>
+
+<!-- Mode Description -->
+<div class="alert alert-body-secondary border small py-2 mb-4" id="mode-desc">
+    <i class="bi bi-info-circle"></i>
+    <span id="mode-desc-text">Morning: predicting free <strong>docks</strong> near Imperial — can you park your bike?</span>
 </div>
 
 <!-- Recommendation Card -->
@@ -15,7 +30,7 @@
     <div class="col-12">
         <div class="card" id="recommendation-card">
             <div class="card-body text-center py-4">
-                <div class="text-body-secondary small mb-1">Recommended Arrival</div>
+                <div class="text-body-secondary small mb-1" id="rec-label">Recommended Arrival</div>
                 <div class="fs-1 fw-bold" id="rec-time">--:--</div>
                 <div class="text-body-secondary" id="rec-reason">Run a scan to get a recommendation</div>
             </div>
@@ -84,11 +99,11 @@
     </div>
 </div>
 
-<!-- Timeline Chart (only selected stations) -->
+<!-- Timeline Chart -->
 <div class="row g-3 mb-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header"><i class="bi bi-graph-up"></i> Selected Stations – Predicted Free Docks</div>
+            <div class="card-header"><i class="bi bi-graph-up"></i> <span id="timeline-title">Predicted Free Docks</span></div>
             <div class="card-body">
                 <canvas id="timeline-chart" height="300"></canvas>
                 <div class="text-center text-body-secondary small mt-2" id="timeline-empty">
@@ -101,5 +116,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/planner.js') }}"></script>
+<script src="{{ url_for('static', filename='js/plan.js') }}"></script>
 {% endblock %}

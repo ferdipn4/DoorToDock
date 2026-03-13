@@ -1,25 +1,84 @@
-/* Door2Dock – Morning Commute Planner */
+/* Door2Dock – Plan Page (Commute Planner with Morning/Evening toggle) */
 
 const SCAN_CACHE_KEY = 'door2dock_planner_cache';
 const SELECTED_KEY = 'door2dock_planner_selected';
+
+// Priority stations in order of importance
+const PRIORITY_STATION_NAMES = [
+    'Exhibition Road Museums 1',
+    'Exhibition Road Museums 2',
+    'Victoria & Albert Museum',
+    'Exhibition Road',
+    'South Kensington Station',
+    'Holy Trinity Brompton',
+    'Natural History Museum',
+];
+
 let allStations = [];
 let selectedStations = new Set();
 let timelineChart = null;
+let currentMode = 'morning'; // 'morning' or 'evening'
 
 // ------------------------------------------------------------------
-// Selected stations (sessionStorage)
+// Priority station matching
+// ------------------------------------------------------------------
+
+function getPriorityIndex(stationName) {
+    const name = stationName.toLowerCase();
+    for (let i = 0; i < PRIORITY_STATION_NAMES.length; i++) {
+        if (name.includes(PRIORITY_STATION_NAMES[i].toLowerCase())) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// ------------------------------------------------------------------
+// Mode toggle (Morning / Evening)
+// ------------------------------------------------------------------
+
+function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('#mode-toggle .btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.mode === mode);
+    });
+
+    const descText = document.getElementById('mode-desc-text');
+    const recLabel = document.getElementById('rec-label');
+    const timelineTitle = document.getElementById('timeline-title');
+
+    if (mode === 'morning') {
+        descText.innerHTML = 'Morning: predicting free <strong>docks</strong> near Imperial — can you park your bike?';
+        recLabel.textContent = 'Recommended Arrival';
+        timelineTitle.textContent = 'Predicted Free Docks';
+        document.getElementById('scan-start').value = '08:00';
+        document.getElementById('scan-end').value = '10:00';
+    } else {
+        descText.innerHTML = 'Evening: predicting available <strong>bikes</strong> near Imperial — can you grab a bike home?';
+        recLabel.textContent = 'Recommended Departure';
+        timelineTitle.textContent = 'Predicted Available Bikes';
+        document.getElementById('scan-start').value = '17:00';
+        document.getElementById('scan-end').value = '19:00';
+    }
+
+    // Reset recommendation
+    showRecommendation(null);
+}
+
+// ------------------------------------------------------------------
+// Selected stations (localStorage for persistence across sessions)
 // ------------------------------------------------------------------
 
 function saveSelected() {
     try {
-        sessionStorage.setItem(SELECTED_KEY, JSON.stringify([...selectedStations]));
+        localStorage.setItem(SELECTED_KEY, JSON.stringify([...selectedStations]));
     } catch { /* ignore */ }
     updateSelectedBadge();
 }
 
 function restoreSelected() {
     try {
-        const raw = sessionStorage.getItem(SELECTED_KEY);
+        const raw = localStorage.getItem(SELECTED_KEY);
         if (raw) selectedStations = new Set(JSON.parse(raw));
     } catch { /* ignore */ }
 }
@@ -46,7 +105,7 @@ function updateScanButton() {
 }
 
 // ------------------------------------------------------------------
-// Station list
+// Station list (sorted by priority, then walking distance)
 // ------------------------------------------------------------------
 
 async function loadStations() {
@@ -54,12 +113,18 @@ async function loadStations() {
         const resp = await fetch('/api/stations');
         allStations = await resp.json();
 
-        // Restore previous selection from sessionStorage
         restoreSelected();
 
-        // If nothing was restored, auto-select nearest 3
+        // If nothing was restored, auto-select priority stations
         if (selectedStations.size === 0 && allStations.length > 0) {
-            allStations.slice(0, 3).forEach(s => selectedStations.add(s.station_id));
+            const prioritySorted = [...allStations]
+                .filter(s => getPriorityIndex(s.station_name) >= 0)
+                .sort((a, b) => getPriorityIndex(a.station_name) - getPriorityIndex(b.station_name));
+            prioritySorted.forEach(s => selectedStations.add(s.station_id));
+            // If no priority matched, fall back to nearest 3
+            if (selectedStations.size === 0) {
+                allStations.slice(0, 3).forEach(s => selectedStations.add(s.station_id));
+            }
             saveSelected();
         }
 
@@ -76,12 +141,20 @@ function renderStationList() {
         const aSel = selectedStations.has(a.station_id) ? 0 : 1;
         const bSel = selectedStations.has(b.station_id) ? 0 : 1;
         if (aSel !== bSel) return aSel - bSel;
+
+        // Within selection group, sort by priority then walking distance
+        const aPri = getPriorityIndex(a.station_name);
+        const bPri = getPriorityIndex(b.station_name);
+        if (aPri >= 0 && bPri >= 0) return aPri - bPri;
+        if (aPri >= 0) return -1;
+        if (bPri >= 0) return 1;
         return (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999);
     });
 
     container.innerHTML = sorted.map(s => {
         const isSelected = selectedStations.has(s.station_id);
         const dist = Math.round(s.walking_distance_m || 0);
+        const isPriority = getPriorityIndex(s.station_name) >= 0;
         return `
         <div class="station-check-item ${isSelected ? 'check-active' : ''}"
              onclick="toggleStation('${s.station_id}')">
@@ -89,7 +162,9 @@ function renderStationList() {
                 <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''}
                        onclick="event.stopPropagation(); toggleStation('${s.station_id}')">
             </div>
-            <span class="flex-grow-1 small">${s.station_name}</span>
+            <span class="flex-grow-1 small">
+                ${isPriority ? '<i class="bi bi-star-fill text-warning" style="font-size:0.6rem"></i> ' : ''}${s.station_name}
+            </span>
             <span class="text-body-secondary small">${dist}m</span>
         </div>`;
     }).join('');
@@ -98,40 +173,35 @@ function renderStationList() {
 }
 
 // ------------------------------------------------------------------
-// SessionStorage Cache
+// Cache
 // ------------------------------------------------------------------
 
 function saveToCache(formValues, scanResult) {
-    const cache = { form: formValues, result: scanResult };
     try {
-        sessionStorage.setItem(SCAN_CACHE_KEY, JSON.stringify(cache));
+        sessionStorage.setItem(SCAN_CACHE_KEY, JSON.stringify({
+            form: formValues, result: scanResult, mode: currentMode
+        }));
     } catch { /* ignore */ }
 }
 
-function loadFromCache() {
+function restoreFromCache() {
     try {
         const raw = sessionStorage.getItem(SCAN_CACHE_KEY);
-        return raw ? JSON.parse(raw) : null;
-    } catch {
-        return null;
-    }
-}
+        if (!raw) return;
+        const cache = JSON.parse(raw);
 
-function restoreFromCache() {
-    const cache = loadFromCache();
-    if (!cache) return;
-
-    if (cache.form) {
-        if (cache.form.date) document.getElementById('scan-date').value = cache.form.date;
-        if (cache.form.start) document.getElementById('scan-start').value = cache.form.start;
-        if (cache.form.end) document.getElementById('scan-end').value = cache.form.end;
-    }
-
-    if (cache.result && cache.result.available) {
-        renderWeatherForecast(cache.result.weather_forecast);
-        renderTimeline(cache.result.favorites, 'timeline-chart', 'timeline-empty');
-        showRecommendation(cache.result.recommendation);
-    }
+        if (cache.mode) setMode(cache.mode);
+        if (cache.form) {
+            if (cache.form.date) document.getElementById('scan-date').value = cache.form.date;
+            if (cache.form.start) document.getElementById('scan-start').value = cache.form.start;
+            if (cache.form.end) document.getElementById('scan-end').value = cache.form.end;
+        }
+        if (cache.result && cache.result.available) {
+            renderWeatherForecast(cache.result.weather_forecast);
+            renderTimeline(cache.result.favorites, 'timeline-chart', 'timeline-empty');
+            showRecommendation(cache.result.recommendation);
+        }
+    } catch { /* ignore */ }
 }
 
 // ------------------------------------------------------------------
@@ -147,16 +217,15 @@ async function runScan() {
         const dateVal = document.getElementById('scan-date').value;
         const startTime = document.getElementById('scan-start').value;
         const endTime = document.getElementById('scan-end').value;
-
         const startHour = timeToFloat(startTime);
         const endHour = timeToFloat(endTime);
-
         const stationIds = [...selectedStations].join(',');
 
         const params = new URLSearchParams({
             date: dateVal,
             start: startHour,
             end: endHour,
+            mode: currentMode,
         });
         if (stationIds) params.set('stations', stationIds);
 
@@ -172,10 +241,7 @@ async function runScan() {
         renderTimeline(data.favorites, 'timeline-chart', 'timeline-empty');
         showRecommendation(data.recommendation);
 
-        saveToCache(
-            { date: dateVal, start: startTime, end: endTime },
-            data
-        );
+        saveToCache({ date: dateVal, start: startTime, end: endTime }, data);
     } catch (e) {
         console.error('Scan error:', e);
         showRecommendation(null);
@@ -203,7 +269,7 @@ function showRecommendation(rec) {
 
     if (!rec) {
         timeEl.textContent = '--:--';
-        reasonEl.textContent = 'No prediction available';
+        reasonEl.textContent = 'Run a scan to get a recommendation';
         return;
     }
 
@@ -242,7 +308,7 @@ function renderWeatherForecast(weatherData) {
 }
 
 // ------------------------------------------------------------------
-// Timeline Charts
+// Timeline Chart
 // ------------------------------------------------------------------
 
 const CHART_COLORS = [
@@ -287,12 +353,11 @@ function renderTimeline(scanData, canvasId, emptyId) {
 
     if (timelineChart) timelineChart.destroy();
 
-    const chart = new Chart(canvas, {
+    const yLabel = currentMode === 'morning' ? 'Predicted Free Docks' : 'Predicted Available Bikes';
+
+    timelineChart = new Chart(canvas, {
         type: 'line',
-        data: {
-            labels: scanData.slots,
-            datasets: datasets,
-        },
+        data: { labels: scanData.slots, datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -303,13 +368,12 @@ function renderTimeline(scanData, canvasId, emptyId) {
                     annotations: {
                         threshold: {
                             type: 'line',
-                            yMin: 5,
-                            yMax: 5,
+                            yMin: 5, yMax: 5,
                             borderColor: 'rgba(25, 135, 84, 0.5)',
                             borderWidth: 1,
                             borderDash: [5, 5],
                             label: {
-                                content: 'Safe (5 docks)',
+                                content: 'Safe (5)',
                                 display: true,
                                 position: 'end',
                                 font: { size: 10 },
@@ -321,20 +385,15 @@ function renderTimeline(scanData, canvasId, emptyId) {
             scales: {
                 x: {
                     title: { display: true, text: 'Time' },
-                    ticks: {
-                        maxTicksLimit: 12,
-                        font: { size: 10 },
-                    },
+                    ticks: { maxTicksLimit: 12, font: { size: 10 } },
                 },
                 y: {
-                    title: { display: true, text: 'Predicted Free Docks' },
+                    title: { display: true, text: yLabel },
                     beginAtZero: true,
                 },
             },
         },
     });
-
-    timelineChart = chart;
 }
 
 // ------------------------------------------------------------------
@@ -345,8 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set default date to tomorrow
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateStr = tomorrow.toISOString().split('T')[0];
-    document.getElementById('scan-date').value = dateStr;
+    document.getElementById('scan-date').value = tomorrow.toISOString().split('T')[0];
 
     loadStations().then(() => restoreFromCache());
 });

@@ -6,25 +6,15 @@ views = Blueprint("views", __name__)
 
 
 @views.route("/")
-def dashboard():
-    return render_template("dashboard.html")
+def now():
+    return render_template("now.html")
 
 
-@views.route("/trends")
-def trends():
-    return render_template("trends.html")
+@views.route("/plan")
+def plan():
+    return render_template("plan.html")
 
 
-@views.route("/weather-impact")
-def weather_impact():
-    return render_template("weather_impact.html")
-
-
-@views.route("/planner")
-def planner():
-    return render_template("planner.html")
-
-
-@views.route("/about")
-def about():
-    return render_template("about.html")
+@views.route("/insights")
+def insights():
+    return render_template("insights.html")
