@@ -1,4 +1,4 @@
-/* Door2Dock – Now Page (Live Status with Priority Stations) */
+/* Door2Dock – Now Page (Clean, focused live status) */
 
 // Priority stations in order of importance
 const PRIORITY_STATION_NAMES = [
@@ -11,11 +11,13 @@ const PRIORITY_STATION_NAMES = [
     'Natural History Museum',
 ];
 
+const PRIORITY_SHOW_COUNT = 3; // only show top 3 on first glance
+
 let map;
+let mapInitialised = false;
 let markers = {};
 let currentStations = [];
 let currentSort = 'walking';
-let showCount = 10;
 let forecastData = {};
 let forecastHorizon = 15;
 
@@ -42,11 +44,19 @@ function isPriorityStation(stationName) {
 // ------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
-    initMap();
     loadWeather();
     loadLiveStatus();
     loadForecast();
 
+    // Lazy-init map when "Show all stations" is expanded
+    const collapseEl = document.getElementById('more-stations');
+    collapseEl.addEventListener('shown.bs.Collapse', initMapIfNeeded);
+    // Also handle the first click
+    collapseEl.addEventListener('show.bs.Collapse', () => {
+        setTimeout(initMapIfNeeded, 100);
+    });
+
+    // Sort buttons (inside collapsed section)
     document.querySelectorAll('.sort-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -56,16 +66,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.querySelectorAll('.show-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.show-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            showCount = parseInt(e.target.dataset.show);
-            renderStationCards();
-            updateMapVisibility();
-        });
+    // Toggle button text
+    collapseEl.addEventListener('show.bs.Collapse', () => {
+        document.getElementById('expand-btn').innerHTML =
+            '<i class="bi bi-chevron-up"></i> Hide stations & map';
+    });
+    collapseEl.addEventListener('hide.bs.Collapse', () => {
+        document.getElementById('expand-btn').innerHTML =
+            '<i class="bi bi-chevron-down"></i> Show all stations & map';
     });
 
+    // Auto-refresh every 60s
     setInterval(() => {
         loadLiveStatus();
         loadWeather();
@@ -73,7 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 60000);
 });
 
-function initMap() {
+// ------------------------------------------------------------------
+// Lazy map init
+// ------------------------------------------------------------------
+
+function initMapIfNeeded() {
+    if (mapInitialised) return;
+    mapInitialised = true;
+
     map = L.map('map', {
         zoomControl: true,
         scrollWheelZoom: true,
@@ -85,22 +103,26 @@ function initMap() {
     }).addTo(map);
 
     L.circleMarker([51.4988, -0.1749], {
-        radius: 8,
-        fillColor: '#0d6efd',
-        color: '#fff',
-        weight: 2,
-        fillOpacity: 0.9,
+        radius: 8, fillColor: '#0d6efd', color: '#fff', weight: 2, fillOpacity: 0.9,
     }).addTo(map).bindPopup('<strong>Imperial College London</strong><br>South Kensington Campus');
 
     L.circle([51.4988, -0.1749], {
-        radius: 800,
-        color: '#0d6efd',
-        fillColor: '#0d6efd',
-        fillOpacity: 0.05,
-        weight: 1,
-        dashArray: '5, 5',
+        radius: 800, color: '#0d6efd', fillColor: '#0d6efd',
+        fillOpacity: 0.05, weight: 1, dashArray: '5, 5',
     }).addTo(map);
+
+    // Render markers for already-loaded stations
+    if (currentStations.length > 0) {
+        updateMapMarkers(currentStations);
+    }
+
+    // Fix Leaflet rendering in collapsed container
+    setTimeout(() => map.invalidateSize(), 200);
 }
+
+// ------------------------------------------------------------------
+// Data loading
+// ------------------------------------------------------------------
 
 async function loadWeather() {
     try {
@@ -120,11 +142,10 @@ async function loadLiveStatus() {
     try {
         const resp = await fetch('/api/live');
         currentStations = await resp.json();
-        updateMapMarkers(currentStations);
+        if (mapInitialised) updateMapMarkers(currentStations);
         renderPriorityStations();
         renderStationCards();
         updateQuickRecommendation();
-        updateMapVisibility();
         updateTimestamp(currentStations);
     } catch (e) {
         console.error('Live status error:', e);
@@ -159,11 +180,11 @@ function updateQuickRecommendation() {
     const detail = document.getElementById('quick-rec-detail');
     const card = document.getElementById('quick-rec-card');
 
-    // Find best priority station (by current docks)
     const priorityStations = currentStations
         .filter(s => isPriorityStation(s.station_name))
         .sort((a, b) => getPriorityIndex(a.station_name) - getPriorityIndex(b.station_name));
 
+    // Best = nearest priority station with 5+ docks
     const best = priorityStations
         .filter(s => s.empty_docks >= 5)
         .sort((a, b) => (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999))[0];
@@ -182,27 +203,27 @@ function updateQuickRecommendation() {
         }
         card.classList.add('rec-green');
         signal.className = 'rec-signal rec-signal-green';
-        text.textContent = `${best.station_name} — ${best.empty_docks} free docks${forecastText}`;
-        detail.textContent = `${walkMin} min walk · Best option right now`;
+        text.textContent = `${best.empty_docks} free docks at ${best.station_name.split(',')[0]}`;
+        detail.textContent = `${walkMin} min walk${forecastText}`;
     } else {
         const anyAvailable = priorityStations.find(s => s.empty_docks >= 1);
         if (anyAvailable) {
             const walkMin = Math.round((anyAvailable.walking_duration_s || 0) / 60);
             card.classList.add('rec-yellow');
             signal.className = 'rec-signal rec-signal-yellow';
-            text.textContent = `${anyAvailable.station_name} — only ${anyAvailable.empty_docks} free dock${anyAvailable.empty_docks > 1 ? 's' : ''}`;
-            detail.textContent = `${walkMin} min walk · Limited availability, consider alternatives`;
+            text.textContent = `Only ${anyAvailable.empty_docks} dock${anyAvailable.empty_docks > 1 ? 's' : ''} at ${anyAvailable.station_name.split(',')[0]}`;
+            detail.textContent = `${walkMin} min walk · Limited availability`;
         } else {
             card.classList.add('rec-red');
             signal.className = 'rec-signal rec-signal-red';
             text.textContent = 'No free docks at your stations';
-            detail.textContent = 'Check the map for alternatives further away';
+            detail.textContent = 'Expand below to check other stations';
         }
     }
 }
 
 // ------------------------------------------------------------------
-// Priority Station Cards (top section)
+// Priority Station Cards (top 3 only)
 // ------------------------------------------------------------------
 
 function renderPriorityStations() {
@@ -212,10 +233,11 @@ function renderPriorityStations() {
 
     const priority = currentStations
         .filter(s => isPriorityStation(s.station_name))
-        .sort((a, b) => getPriorityIndex(a.station_name) - getPriorityIndex(b.station_name));
+        .sort((a, b) => getPriorityIndex(a.station_name) - getPriorityIndex(b.station_name))
+        .slice(0, PRIORITY_SHOW_COUNT);
 
     if (priority.length === 0) {
-        container.innerHTML = '<div class="text-body-secondary text-center py-3">No priority stations found</div>';
+        container.innerHTML = '';
         return;
     }
 
@@ -229,31 +251,20 @@ function renderPriorityStations() {
         if (fc) {
             const fcColor = fc.predicted_status === 'green' ? 'success'
                 : fc.predicted_status === 'yellow' ? 'warning' : 'danger';
-            const predicted = Math.round(fc.predicted_empty_docks);
-            forecastHtml = `<div class="small text-${fcColor} fw-bold">&rarr; ~${predicted} in ${horizonLabel}</div>`;
+            forecastHtml = `<span class="text-${fcColor} fw-bold">&rarr; ~${Math.round(fc.predicted_empty_docks)} in ${horizonLabel}</span>`;
         }
 
         return `
-        <div class="col-sm-6 col-md-4 col-lg-3">
-            <div class="card h-100 priority-station-card status-border-${s.status}"
-                 onclick="focusStation('${s.station_id}')"
-                 onmouseenter="highlightMarker('${s.station_id}')"
-                 onmouseleave="unhighlightMarker('${s.station_id}')">
-                <div class="card-body py-3">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="small fw-bold">${s.station_name.split(',')[0]}</div>
-                        <span class="badge status-${s.status}" style="font-size:0.65rem">${s.status.toUpperCase()}</span>
+        <div class="col-sm-4">
+            <div class="card h-100 priority-station-card status-border-${s.status}">
+                <div class="card-body py-3 text-center">
+                    <div class="${dockColor} mb-1">
+                        <span class="fs-1 fw-bold">${s.empty_docks}</span>
+                        <span class="small">free</span>
                     </div>
-                    <div class="d-flex align-items-end gap-2">
-                        <div class="${dockColor}">
-                            <span class="fs-2 fw-bold">${s.empty_docks}</span>
-                            <span class="small">free</span>
-                        </div>
-                        <div class="flex-grow-1 text-end">
-                            ${forecastHtml}
-                            <div class="small text-body-secondary">${walkMin} min walk</div>
-                        </div>
-                    </div>
+                    <div class="small fw-bold mb-1">${s.station_name.split(',')[0]}</div>
+                    <div class="small text-body-secondary">${walkMin} min walk</div>
+                    ${forecastHtml ? `<div class="small mt-1">${forecastHtml}</div>` : ''}
                 </div>
             </div>
         </div>`;
@@ -261,7 +272,7 @@ function renderPriorityStations() {
 }
 
 // ------------------------------------------------------------------
-// Station Cards (all stations list)
+// All Station Cards (in collapsed section)
 // ------------------------------------------------------------------
 
 function formatWalkingTime(seconds) {
@@ -285,20 +296,11 @@ function sortStations(stations) {
     return sorted;
 }
 
-function getVisibleStations() {
-    const byWalking = [...currentStations].sort((a, b) =>
-        (a.walking_distance_m || 9999) - (b.walking_distance_m || 9999));
-    if (showCount > 0) {
-        return new Set(byWalking.slice(0, showCount).map(s => s.station_id));
-    }
-    return new Set(byWalking.map(s => s.station_id));
-}
-
 function renderStationCards() {
     const container = document.getElementById('station-list');
-    const visible = getVisibleStations();
-    const sorted = sortStations(currentStations).filter(s => visible.has(s.station_id));
+    if (!container) return;
 
+    const sorted = sortStations(currentStations);
     const horizonLabel = forecastHorizon >= 60
         ? `${Math.round(forecastHorizon / 60)}h` : `${forecastHorizon}min`;
 
@@ -311,7 +313,6 @@ function renderStationCards() {
             : s.status === 'yellow' ? 'text-warning' : 'text-danger';
         const walkTime = formatWalkingTime(s.walking_duration_s);
         const walkDist = Math.round(s.walking_distance_m || 0);
-        const isPriority = isPriorityStation(s.station_name);
 
         let forecastHint = '';
         if (forecastData[s.station_id]) {
@@ -330,16 +331,14 @@ function renderStationCards() {
             <div class="d-flex gap-3 align-items-center">
                 <div class="dock-hero ${dockColor}">
                     <div class="dock-hero-num">${s.empty_docks}</div>
-                    <div class="dock-hero-label">FREE DOCKS</div>
+                    <div class="dock-hero-label">FREE</div>
                 </div>
                 <div class="flex-grow-1">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="station-name">
-                                ${isPriority ? '<i class="bi bi-star-fill text-warning" style="font-size:0.7rem"></i> ' : ''}${s.station_name}
-                            </div>
+                            <div class="station-name">${s.station_name}</div>
                             <div class="station-meta">
-                                <i class="bi bi-person-walking"></i> ${walkDist}m · ${walkTime} · ${s.total_docks} total
+                                <i class="bi bi-person-walking"></i> ${walkDist}m · ${walkTime}
                             </div>
                         </div>
                         <span class="badge status-${s.status}">${s.status.toUpperCase()}</span>
@@ -361,6 +360,7 @@ function renderStationCards() {
 // ------------------------------------------------------------------
 
 function updateMapMarkers(stations) {
+    if (!map) return;
     const statusColors = { green: '#198754', yellow: '#ffc107', red: '#dc3545' };
 
     stations.forEach(s => {
@@ -372,36 +372,23 @@ function updateMapMarkers(stations) {
             <strong>${s.station_name}</strong><br>
             <span style="color:${color}; font-size:1.4em; font-weight:bold;">${s.empty_docks}</span>
             <span style="color:${color};"> free docks</span>
-            <span style="opacity:0.6;"> / ${s.total_docks} total</span><br>
-            <small>${s.standard_bikes} standard + ${s.ebikes} e-bikes · ${walkDist}m · ${walkTime}</small>
+            <span style="opacity:0.6;"> / ${s.total_docks}</span><br>
+            <small>${walkDist}m · ${walkTime}</small>
         `;
 
         if (markers[s.station_id]) {
-            markers[s.station_id].setStyle({ fillColor: color, radius: radius });
+            markers[s.station_id].setStyle({ fillColor: color, radius });
             markers[s.station_id].setPopupContent(popupHtml);
             markers[s.station_id]._baseRadius = radius;
-            markers[s.station_id]._baseColor = color;
         } else {
             const marker = L.circleMarker(
                 [s.latitude, s.longitude],
                 { radius, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.9 }
             ).addTo(map).bindPopup(popupHtml);
             marker._baseRadius = radius;
-            marker._baseColor = color;
             markers[s.station_id] = marker;
         }
     });
-}
-
-function updateMapVisibility() {
-    const visible = getVisibleStations();
-    for (const [stationId, marker] of Object.entries(markers)) {
-        if (visible.has(stationId)) {
-            marker.setStyle({ opacity: 1, fillOpacity: 0.9 });
-        } else {
-            marker.setStyle({ opacity: 0.15, fillOpacity: 0.1 });
-        }
-    }
 }
 
 // ------------------------------------------------------------------
@@ -411,10 +398,7 @@ function updateMapVisibility() {
 function highlightMarker(stationId) {
     const marker = markers[stationId];
     if (!marker) return;
-    marker.setStyle({
-        radius: (marker._baseRadius || 10) + 6,
-        weight: 4, color: '#fff', fillOpacity: 1,
-    });
+    marker.setStyle({ radius: (marker._baseRadius || 10) + 6, weight: 4, fillOpacity: 1 });
     marker.bringToFront();
     marker.openPopup();
 }
@@ -422,22 +406,23 @@ function highlightMarker(stationId) {
 function unhighlightMarker(stationId) {
     const marker = markers[stationId];
     if (!marker) return;
-    const visible = getVisibleStations();
-    const isVisible = visible.has(stationId);
-    marker.setStyle({
-        radius: marker._baseRadius || 10,
-        weight: 2, color: '#fff',
-        fillOpacity: isVisible ? 0.9 : 0.1,
-        opacity: isVisible ? 1 : 0.15,
-    });
+    marker.setStyle({ radius: marker._baseRadius || 10, weight: 2, fillOpacity: 0.9 });
     marker.closePopup();
 }
 
 function focusStation(stationId) {
-    const marker = markers[stationId];
-    if (!marker) return;
-    map.flyTo(marker.getLatLng(), 17, { duration: 0.5 });
-    setTimeout(() => marker.openPopup(), 500);
+    // Expand the section first if collapsed
+    const collapseEl = document.getElementById('more-stations');
+    if (!collapseEl.classList.contains('show')) {
+        const bsCollapse = new bootstrap.Collapse(collapseEl, { show: true });
+    }
+    setTimeout(() => {
+        initMapIfNeeded();
+        const marker = markers[stationId];
+        if (!marker) return;
+        map.flyTo(marker.getLatLng(), 17, { duration: 0.5 });
+        setTimeout(() => marker.openPopup(), 500);
+    }, 400);
 }
 
 // ------------------------------------------------------------------
