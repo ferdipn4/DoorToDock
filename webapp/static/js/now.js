@@ -48,12 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadLiveStatus();
     loadForecast();
 
-    // Lazy-init map when "Show all stations" is expanded
+    // Init map when "Show all stations" is expanded
     const collapseEl = document.getElementById('more-stations');
-    collapseEl.addEventListener('shown.bs.Collapse', initMapIfNeeded);
-    // Also handle the first click
-    collapseEl.addEventListener('show.bs.Collapse', () => {
-        setTimeout(initMapIfNeeded, 100);
+    collapseEl.addEventListener('shown.bs.collapse', () => {
+        initMapIfNeeded();
+        if (map) setTimeout(() => map.invalidateSize(), 50);
     });
 
     // Sort buttons (inside collapsed section)
@@ -66,12 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Toggle button text
-    collapseEl.addEventListener('show.bs.Collapse', () => {
+    // Toggle button text + icon
+    collapseEl.addEventListener('show.bs.collapse', () => {
         document.getElementById('expand-btn').innerHTML =
             '<i class="bi bi-chevron-up"></i> Hide stations & map';
     });
-    collapseEl.addEventListener('hide.bs.Collapse', () => {
+    collapseEl.addEventListener('hide.bs.collapse', () => {
         document.getElementById('expand-btn').innerHTML =
             '<i class="bi bi-chevron-down"></i> Show all stations & map';
     });
@@ -418,6 +417,7 @@ function focusStation(stationId) {
     }
     setTimeout(() => {
         initMapIfNeeded();
+        if (map) map.invalidateSize();
         const marker = markers[stationId];
         if (!marker) return;
         map.flyTo(marker.getLatLng(), 17, { duration: 0.5 });
