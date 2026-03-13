@@ -2,14 +2,10 @@
 {% block title %}Plan{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <h5 class="mb-0 fw-bold">Plan Your Commute</h5>
-        <small class="text-body-secondary">Predict dock availability for your ride to or from Imperial College</small>
-    </div>
-    <!-- Morning / Evening Toggle -->
-    <div class="btn-group" role="group" id="mode-toggle">
+<!-- Header + Mode Toggle -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0 fw-bold">Plan Your Commute</h5>
+    <div class="btn-group btn-group-sm" role="group" id="mode-toggle">
         <button class="btn btn-outline-primary active" data-mode="morning" onclick="setMode('morning')">
             <i class="bi bi-sunrise"></i> Morning
         </button>
@@ -19,61 +15,56 @@
     </div>
 </div>
 
-<!-- Mode Description -->
-<div class="alert alert-body-secondary border small py-2 mb-4" id="mode-desc">
+<div class="text-muted small mb-3" id="mode-desc">
     <i class="bi bi-info-circle"></i>
-    <span id="mode-desc-text">Morning: predicting free <strong>docks</strong> near Imperial — can you park your bike?</span>
+    <span id="mode-desc-text">Predicting free <strong>docks</strong> near Imperial — can you park your bike?</span>
 </div>
 
 <!-- Recommendation Card -->
-<div class="row g-3 mb-4">
-    <div class="col-12">
-        <div class="card" id="recommendation-card">
-            <div class="card-body text-center py-4">
-                <div class="text-body-secondary small mb-1" id="rec-label">Recommended Arrival</div>
-                <div class="fs-1 fw-bold" id="rec-time">--:--</div>
-                <div class="text-body-secondary" id="rec-reason">Run a scan to get a recommendation</div>
-            </div>
-        </div>
+<div class="card mb-3" id="recommendation-card">
+    <div class="card-body text-center py-3">
+        <div class="text-muted small mb-1" id="rec-label">Recommended Arrival</div>
+        <div class="fs-1 fw-bold" id="rec-time">--:--</div>
+        <div class="text-muted small" id="rec-reason">Run a scan to get a recommendation</div>
     </div>
 </div>
 
-<!-- Controls Row -->
-<div class="row g-3 mb-4">
-    <!-- Select Stations (left) -->
+<!-- Controls: Stations + Settings + Weather -->
+<div class="row g-3 mb-3">
+    <!-- Select Stations -->
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-check2-square"></i> Select Stations</span>
-                <span class="badge bg-primary" id="selected-count-badge">0 selected</span>
+                <span><i class="bi bi-check2-square"></i> Stations</span>
+                <span class="badge bg-primary" id="selected-count-badge">0</span>
             </div>
             <div class="card-body p-2">
                 <div id="station-check-list" class="station-check-list">
-                    <div class="text-center text-body-secondary py-3">
+                    <div class="text-center text-muted py-3">
                         <div class="spinner-border spinner-border-sm" role="status"></div>
-                        Loading stations...
+                        Loading...
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Date + Time Window (middle) -->
+    <!-- Date + Time -->
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header"><i class="bi bi-calendar3"></i> Scan Settings</div>
+            <div class="card-header"><i class="bi bi-calendar3"></i> When</div>
             <div class="card-body">
                 <div class="mb-3">
-                    <label class="form-label small">Date</label>
+                    <label class="form-label small text-muted">Date</label>
                     <input type="date" class="form-control form-control-sm" id="scan-date">
                 </div>
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <label class="form-label small">From</label>
+                        <label class="form-label small text-muted">From</label>
                         <input type="time" class="form-control form-control-sm" id="scan-start" value="08:00">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small">To</label>
+                        <label class="form-label small text-muted">To</label>
                         <input type="time" class="form-control form-control-sm" id="scan-end" value="10:00">
                     </div>
                 </div>
@@ -84,14 +75,14 @@
         </div>
     </div>
 
-    <!-- Weather Forecast (right) -->
+    <!-- Weather Forecast -->
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header"><i class="bi bi-cloud-sun"></i> Weather Forecast</div>
+            <div class="card-header"><i class="bi bi-cloud-sun"></i> Weather</div>
             <div class="card-body">
                 <div id="weather-forecast">
-                    <div class="text-center text-body-secondary py-3">
-                        Run a scan to see forecast weather
+                    <div class="text-center text-muted py-3 small">
+                        Run a scan to see forecast
                     </div>
                 </div>
             </div>
@@ -100,16 +91,12 @@
 </div>
 
 <!-- Timeline Chart -->
-<div class="row g-3 mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header"><i class="bi bi-graph-up"></i> <span id="timeline-title">Predicted Free Docks</span></div>
-            <div class="card-body">
-                <canvas id="timeline-chart" height="300"></canvas>
-                <div class="text-center text-body-secondary small mt-2" id="timeline-empty">
-                    Select stations and run a scan to see predictions
-                </div>
-            </div>
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-graph-up"></i> <span id="timeline-title">Predicted Free Docks</span></div>
+    <div class="card-body">
+        <canvas id="timeline-chart" height="250"></canvas>
+        <div class="text-center text-muted small mt-2" id="timeline-empty">
+            Select stations and run a scan to see predictions
         </div>
     </div>
 </div>

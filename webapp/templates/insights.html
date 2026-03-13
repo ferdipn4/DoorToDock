@@ -2,78 +2,64 @@
 {% block title %}Insights{% endblock %}
 
 {% block content %}
-<div class="mb-3">
-    <h5 class="mb-0 fw-bold">Insights</h5>
-    <small class="text-body-secondary">What the data reveals about dock availability, weather effects, and weekly patterns</small>
-</div>
+<h5 class="fw-bold mb-1">Insights</h5>
+<p class="text-muted small mb-3">Dock availability patterns, weather effects, and model performance</p>
 
-<!-- ================================================================== -->
-<!-- MODEL PERFORMANCE (placeholder)                                     -->
-<!-- ================================================================== -->
+<!-- Model Performance -->
 <div class="card mb-4">
     <div class="card-header"><i class="bi bi-cpu"></i> Model Performance</div>
     <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-3">
-                <div class="card bg-body-secondary h-100">
-                    <div class="card-body text-center">
-                        <div class="text-body-secondary small">Model</div>
-                        <div class="fs-4 fw-bold" id="model-name">--</div>
-                    </div>
+        <div class="row g-2">
+            <div class="col-6 col-md-3">
+                <div class="text-center py-2">
+                    <div class="text-muted small">Model</div>
+                    <div class="fs-5 fw-bold" id="model-name">--</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-body-secondary h-100">
-                    <div class="card-body text-center">
-                        <div class="text-body-secondary small">MAE</div>
-                        <div class="fs-4 fw-bold" id="model-mae">--</div>
-                        <div class="small text-body-secondary">docks avg error</div>
-                    </div>
+            <div class="col-6 col-md-3">
+                <div class="text-center py-2">
+                    <div class="text-muted small">MAE</div>
+                    <div class="fs-5 fw-bold" id="model-mae">--</div>
+                    <div class="small text-muted">avg error (docks)</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-body-secondary h-100">
-                    <div class="card-body text-center">
-                        <div class="text-body-secondary small">R² Score</div>
-                        <div class="fs-4 fw-bold" id="model-r2">--</div>
-                        <div class="small text-body-secondary">variance explained</div>
-                    </div>
+            <div class="col-6 col-md-3">
+                <div class="text-center py-2">
+                    <div class="text-muted small">R²</div>
+                    <div class="fs-5 fw-bold" id="model-r2">--</div>
+                    <div class="small text-muted">variance explained</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-body-secondary h-100">
-                    <div class="card-body text-center">
-                        <div class="text-body-secondary small">Prediction Horizon</div>
-                        <div class="fs-4 fw-bold" id="model-horizon">--</div>
-                        <div class="small text-body-secondary">minutes ahead</div>
-                    </div>
+            <div class="col-6 col-md-3">
+                <div class="text-center py-2">
+                    <div class="text-muted small">Horizon</div>
+                    <div class="fs-5 fw-bold" id="model-horizon">--</div>
+                    <div class="small text-muted">minutes ahead</div>
                 </div>
             </div>
         </div>
-        <div class="mt-3">
-            <div class="text-body-secondary small" id="model-features-section" style="display:none;">
+        <div class="mt-2">
+            <div class="text-muted small" id="model-features-section" style="display:none;">
                 <strong>Top Features:</strong> <span id="model-features">--</span>
             </div>
-            <div class="text-center text-body-secondary small py-2" id="model-placeholder">
-                Model metrics will appear here once the model is trained and deployed.
+            <div class="text-center text-muted small py-1" id="model-placeholder">
+                Model metrics appear once the model is deployed.
             </div>
         </div>
     </div>
 </div>
 
-<!-- ================================================================== -->
-<!-- TIME SERIES                                                         -->
-<!-- ================================================================== -->
-<div class="row g-3 mb-3">
+<!-- Time Series -->
+<div class="row g-2 mb-3">
     <div class="col-md-6">
-        <label class="form-label text-body-secondary small">Station</label>
-        <select class="form-select" id="station-select">
+        <label class="form-label text-muted small mb-1">Station</label>
+        <select class="form-select form-select-sm" id="station-select">
             <option value="">Loading stations...</option>
         </select>
     </div>
     <div class="col-md-6">
-        <label class="form-label text-body-secondary small">Time Range</label>
-        <div class="btn-group w-100" role="group">
+        <label class="form-label text-muted small mb-1">Time Range</label>
+        <div class="btn-group btn-group-sm w-100" role="group">
             <button class="btn btn-outline-secondary" data-hours="6">6h</button>
             <button class="btn btn-outline-secondary" data-hours="12">12h</button>
             <button class="btn btn-outline-secondary active" data-hours="24">24h</button>
@@ -84,36 +70,36 @@
 </div>
 
 <!-- Summary Stats -->
-<div class="row g-3 mb-3" id="ts-summary" style="display: none;">
-    <div class="col-6 col-md-3">
+<div class="row g-2 mb-3" id="ts-summary" style="display: none;">
+    <div class="col-3">
         <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-body-secondary small">Current Docks</div>
-                <div class="fs-3 fw-bold" id="ts-current">--</div>
+            <div class="card-body text-center py-2 px-1">
+                <div class="text-muted small">Now</div>
+                <div class="fs-4 fw-bold" id="ts-current">--</div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-3">
         <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-body-secondary small">Average</div>
-                <div class="fs-3 fw-bold text-info" id="ts-avg">--</div>
+            <div class="card-body text-center py-2 px-1">
+                <div class="text-muted small">Avg</div>
+                <div class="fs-4 fw-bold text-primary" id="ts-avg">--</div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-3">
         <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-body-secondary small">Minimum</div>
-                <div class="fs-3 fw-bold text-danger" id="ts-min">--</div>
+            <div class="card-body text-center py-2 px-1">
+                <div class="text-muted small">Min</div>
+                <div class="fs-4 fw-bold text-danger" id="ts-min">--</div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-3">
         <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-body-secondary small">Maximum</div>
-                <div class="fs-3 fw-bold text-success" id="ts-max">--</div>
+            <div class="card-body text-center py-2 px-1">
+                <div class="text-muted small">Max</div>
+                <div class="fs-4 fw-bold text-success" id="ts-max">--</div>
             </div>
         </div>
     </div>
@@ -121,22 +107,18 @@
 
 <!-- Docks Chart -->
 <div class="card mb-4">
-    <div class="card-header">
-        <i class="bi bi-graph-up"></i> Free Docks Over Time
-    </div>
+    <div class="card-header"><i class="bi bi-graph-up"></i> Free Docks Over Time</div>
     <div class="card-body">
         <canvas id="chart-docks" height="100"></canvas>
     </div>
 </div>
 
-<hr class="my-4">
+<hr class="my-3">
 
-<!-- ================================================================== -->
-<!-- WEEKLY PATTERNS (Heatmap)                                           -->
-<!-- ================================================================== -->
-<div class="d-flex justify-content-between align-items-center mb-3">
+<!-- Weekly Patterns -->
+<div class="d-flex justify-content-between align-items-center mb-2">
     <h6 class="mb-0 fw-bold">Weekly Patterns</h6>
-    <div class="btn-group btn-group-sm" role="group">
+    <div class="btn-group btn-group-sm">
         <button class="btn btn-outline-secondary active" data-count="3">Top 3</button>
         <button class="btn btn-outline-secondary" data-count="5">Top 5</button>
     </div>
@@ -144,16 +126,16 @@
 
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-grid-3x3"></i> Average Free Docks by Hour &amp; Day</span>
+        <span><i class="bi bi-grid-3x3"></i> Avg Free Docks (Hour &times; Day)</span>
         <div class="d-flex align-items-center gap-2 small">
-            <span class="text-body-secondary">Low</span>
+            <span class="text-muted">Low</span>
             <div class="heatmap-legend"></div>
-            <span class="text-body-secondary">High</span>
+            <span class="text-muted">High</span>
         </div>
     </div>
     <div class="card-body">
         <div class="heatmap-container" id="heatmap-grid">
-            <div class="text-center text-body-secondary py-5">
+            <div class="text-center text-muted py-4">
                 <div class="spinner-border spinner-border-sm" role="status"></div>
                 Loading heatmap...
             </div>
@@ -162,278 +144,189 @@
 </div>
 
 <!-- Heatmap Insights -->
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
+<div class="row g-2 mb-4">
+    <div class="col-4">
         <div class="card h-100">
-            <div class="card-body text-center">
-                <div class="text-body-secondary small">Best Slots (Most Docks)</div>
-                <div class="fs-4 fw-bold text-success" id="insight-peak">--</div>
+            <div class="card-body text-center py-2">
+                <div class="text-muted small">Best Slots</div>
+                <div class="fs-6 fw-bold text-success" id="insight-peak">--</div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-4">
         <div class="card h-100">
-            <div class="card-body text-center">
-                <div class="text-body-secondary small">Worst Slots (Fewest Docks)</div>
-                <div class="fs-4 fw-bold text-danger" id="insight-low">--</div>
+            <div class="card-body text-center py-2">
+                <div class="text-muted small">Worst Slots</div>
+                <div class="fs-6 fw-bold text-danger" id="insight-low">--</div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-4">
         <div class="card h-100">
-            <div class="card-body text-center">
-                <div class="text-body-secondary small">Hardest Day to Dock</div>
-                <div class="fs-4 fw-bold text-warning" id="insight-busiest">--</div>
+            <div class="card-body text-center py-2">
+                <div class="text-muted small">Hardest Day</div>
+                <div class="fs-6 fw-bold text-warning" id="insight-busiest">--</div>
             </div>
         </div>
     </div>
 </div>
 
-<hr class="my-4">
+<hr class="my-3">
 
-<!-- ================================================================== -->
-<!-- WEATHER IMPACT                                                      -->
-<!-- ================================================================== -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h6 class="mb-0 fw-bold">Weather Impact on Dock Availability</h6>
-    <span class="badge bg-body-secondary text-body-secondary border" id="sample-badge">-- samples</span>
+<!-- Weather Impact -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="mb-0 fw-bold">Weather Impact</h6>
+    <span class="badge bg-light text-dark border" id="sample-badge">-- samples</span>
 </div>
 
-<!-- Correlation Stats Cards -->
-<div class="row g-3 mb-4" id="corr-cards">
+<!-- Correlation Cards -->
+<div class="row g-2 mb-3" id="corr-cards">
     <div class="col-6 col-md-3">
         <div class="card h-100">
-            <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-thermometer-half"></i> Temperature</div>
-                <div class="fs-2 fw-bold" id="corr-temp">--</div>
-                <div class="small text-body-secondary" id="corr-temp-desc">Pearson r</div>
+            <div class="card-body text-center py-2">
+                <div class="text-muted small"><i class="bi bi-thermometer-half"></i> Temp</div>
+                <div class="fs-3 fw-bold" id="corr-temp">--</div>
+                <div class="small text-muted" id="corr-temp-desc">Pearson r</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card h-100">
-            <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-cloud-rain"></i> Precipitation</div>
-                <div class="fs-2 fw-bold" id="corr-rain">--</div>
-                <div class="small text-body-secondary" id="corr-rain-desc">Pearson r</div>
+            <div class="card-body text-center py-2">
+                <div class="text-muted small"><i class="bi bi-cloud-rain"></i> Rain</div>
+                <div class="fs-3 fw-bold" id="corr-rain">--</div>
+                <div class="small text-muted" id="corr-rain-desc">Pearson r</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card h-100">
-            <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-wind"></i> Wind Speed</div>
-                <div class="fs-2 fw-bold" id="corr-wind">--</div>
-                <div class="small text-body-secondary" id="corr-wind-desc">Pearson r</div>
+            <div class="card-body text-center py-2">
+                <div class="text-muted small"><i class="bi bi-wind"></i> Wind</div>
+                <div class="fs-3 fw-bold" id="corr-wind">--</div>
+                <div class="small text-muted" id="corr-wind-desc">Pearson r</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card h-100">
-            <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-droplet"></i> Humidity</div>
-                <div class="fs-2 fw-bold" id="corr-humidity">--</div>
-                <div class="small text-body-secondary" id="corr-humidity-desc">Pearson r</div>
+            <div class="card-body text-center py-2">
+                <div class="text-muted small"><i class="bi bi-droplet"></i> Humidity</div>
+                <div class="fs-3 fw-bold" id="corr-humidity">--</div>
+                <div class="small text-muted" id="corr-humidity-desc">Pearson r</div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Binned Bar Charts -->
-<div class="row g-3 mb-3">
+<div class="row g-2 mb-2">
     <div class="col-lg-6">
         <div class="card h-100">
-            <div class="card-header"><i class="bi bi-thermometer-half"></i> Avg Free Docks by Temperature</div>
-            <div class="card-body"><canvas id="chart-temp" height="130"></canvas></div>
+            <div class="card-header"><i class="bi bi-thermometer-half"></i> By Temperature</div>
+            <div class="card-body"><canvas id="chart-temp" height="120"></canvas></div>
         </div>
     </div>
     <div class="col-lg-6">
         <div class="card h-100">
-            <div class="card-header"><i class="bi bi-cloud-rain"></i> Avg Free Docks by Precipitation</div>
-            <div class="card-body"><canvas id="chart-rain" height="130"></canvas></div>
+            <div class="card-header"><i class="bi bi-cloud-rain"></i> By Precipitation</div>
+            <div class="card-body"><canvas id="chart-rain" height="120"></canvas></div>
         </div>
     </div>
 </div>
-<div class="row g-3 mb-4">
+<div class="row g-2 mb-3">
     <div class="col-lg-6">
         <div class="card h-100">
-            <div class="card-header"><i class="bi bi-wind"></i> Avg Free Docks by Wind Speed</div>
-            <div class="card-body"><canvas id="chart-wind" height="130"></canvas></div>
+            <div class="card-header"><i class="bi bi-wind"></i> By Wind Speed</div>
+            <div class="card-body"><canvas id="chart-wind" height="120"></canvas></div>
         </div>
     </div>
     <div class="col-lg-6">
         <div class="card h-100">
-            <div class="card-header"><i class="bi bi-droplet"></i> Avg Free Docks by Humidity</div>
-            <div class="card-body"><canvas id="chart-humidity" height="130"></canvas></div>
+            <div class="card-header"><i class="bi bi-droplet"></i> By Humidity</div>
+            <div class="card-body"><canvas id="chart-humidity" height="120"></canvas></div>
         </div>
     </div>
 </div>
 
 <!-- Weather Insights -->
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
+<div class="row g-2 mb-4">
+    <div class="col-6">
         <div class="card h-100 corr-card-positive">
-            <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-hand-thumbs-up"></i> Best Conditions for Finding Docks</div>
-                <div class="fs-5 fw-bold text-success" id="insight-best">--</div>
-                <div class="small text-body-secondary" id="insight-best-detail"></div>
+            <div class="card-body text-center py-2">
+                <div class="text-muted small"><i class="bi bi-hand-thumbs-up"></i> Best Conditions</div>
+                <div class="fs-6 fw-bold text-success" id="insight-best">--</div>
+                <div class="small text-muted" id="insight-best-detail"></div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-6">
         <div class="card h-100 corr-card-negative">
-            <div class="card-body text-center">
-                <div class="text-body-secondary small"><i class="bi bi-hand-thumbs-down"></i> Worst Conditions for Finding Docks</div>
-                <div class="fs-5 fw-bold text-danger" id="insight-worst">--</div>
-                <div class="small text-body-secondary" id="insight-worst-detail"></div>
+            <div class="card-body text-center py-2">
+                <div class="text-muted small"><i class="bi bi-hand-thumbs-down"></i> Worst Conditions</div>
+                <div class="fs-6 fw-bold text-danger" id="insight-worst">--</div>
+                <div class="small text-muted" id="insight-worst-detail"></div>
             </div>
         </div>
     </div>
 </div>
 
-<hr class="my-4">
+<hr class="my-3">
 
-<!-- ================================================================== -->
-<!-- ABOUT / SYSTEM INFO                                                 -->
-<!-- ================================================================== -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h6 class="mb-0 fw-bold">System</h6>
-</div>
+<!-- System Info -->
+<h6 class="fw-bold mb-2">System</h6>
 
 <!-- Architecture -->
-<div class="card mb-4">
+<div class="card mb-3">
     <div class="card-header"><i class="bi bi-diagram-3"></i> Architecture</div>
     <div class="card-body">
-<pre class="mb-0 text-body-secondary" style="font-size: 0.8rem; line-height: 1.4;">
- +------------------+                +-------------------------------+
- |  TfL BikePoint   |  REST (1/min)  |                               |
- |  API (800 stations) +------------>|     Heroku Worker Dyno        |
- +------------------+                |                               |
-                                     |  +-------------------------+  |
- +------------------+                |  | bike_collector.py       |  |
- |  Open-Meteo      |  REST (1/min)  |  |   21 stations, 1/min   |  |
- |  Weather API     +--------------->|  +------------+------------+  |
- +------------------+                |               |               |
-                                     |  +------------v------------+  |
- +------------------+                |  | weather_collector.py    |  |
- |  ESP32 + PIR     |  HTTPS         |  |   temp, rain, wind      |  |
- |  Motion Sensor   +------+------->|  +------------+------------+  |
- +------------------+      |        |               |               |
-                           |        |  +------------v------------+  |
-                           |        |  |  Supabase PostgreSQL    |  |
-                           |        |  |  (Cloud Database)       |  |
-                           |        |  +------------+------------+  |
-                           |        |               |               |
-                           |        |  +------------v------------+  |
-                           |        |  |  Flask Web Dashboard    |  |
-                           |        |  |  (This Application)     |  |
-                           |        |  +-------------------------+  |
-                           |        +-------------------------------+
-                           |
-                           v
-                  +--------------------+
-                  |  Telegram Bot API  |
-                  |  (push alerts)     |
-                  +--------------------+
+<pre class="mb-0 text-muted small" style="line-height: 1.3; overflow-x: auto;">
+ TfL BikePoint API ──(1/min)──┐
+                               │
+ Open-Meteo Weather ─(1/min)──┼── Heroku Worker ── Supabase DB
+                               │        │
+ ESP32 + PIR Sensor ──(HTTPS)─┤   Flask Dashboard
+                               │
+                          Telegram Bot
 </pre>
     </div>
 </div>
 
 <!-- Data Sources -->
-<div class="row g-3 mb-4">
+<div class="row g-2 mb-3">
     <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header"><i class="bi bi-bicycle"></i> TfL Bike API</div>
-            <div class="card-body">
-                <ul class="list-unstyled mb-0 small">
-                    <li><strong>Source:</strong> Transport for London</li>
-                    <li><strong>Monitored:</strong> 21 stations within 800m</li>
-                    <li><strong>Interval:</strong> Every 60 seconds</li>
-                    <li><strong>Auth:</strong> No API key needed</li>
-                </ul>
+            <div class="card-body small">
+                21 stations, 800m radius, every 60s. No API key.
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header"><i class="bi bi-cloud-sun"></i> Open-Meteo Weather</div>
-            <div class="card-body">
-                <ul class="list-unstyled mb-0 small">
-                    <li><strong>Source:</strong> Open-Meteo API</li>
-                    <li><strong>Location:</strong> 51.4988, -0.1749</li>
-                    <li><strong>Interval:</strong> Every 60 seconds</li>
-                    <li><strong>Auth:</strong> No API key needed</li>
-                </ul>
+            <div class="card-header"><i class="bi bi-cloud-sun"></i> Open-Meteo</div>
+            <div class="card-body small">
+                Temp, humidity, rain, wind. Every 60s. No API key.
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header"><i class="bi bi-cpu"></i> ESP32 + PIR Sensor</div>
-            <div class="card-body">
-                <ul class="list-unstyled mb-0 small">
-                    <li><strong>Hardware:</strong> ESP32 + HC-SR501</li>
-                    <li><strong>Function:</strong> Departure detection</li>
-                    <li><strong>Protocol:</strong> HTTPS → Telegram</li>
-                    <li><strong>Purpose:</strong> Triggers recommendation</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Tech Stack -->
-<div class="card mb-4">
-    <div class="card-header"><i class="bi bi-stack"></i> Technology Stack</div>
-    <div class="card-body">
-        <div class="row g-2">
-            <div class="col-sm-6 col-md-4">
-                <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
-                    <i class="bi bi-filetype-py fs-5 text-info"></i>
-                    <div><strong>Python 3.12</strong><br><small class="text-body-secondary">Data collection &amp; API</small></div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-4">
-                <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
-                    <i class="bi bi-globe fs-5 text-info"></i>
-                    <div><strong>Flask</strong><br><small class="text-body-secondary">Web framework</small></div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-4">
-                <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
-                    <i class="bi bi-database fs-5 text-info"></i>
-                    <div><strong>Supabase PostgreSQL</strong><br><small class="text-body-secondary">Cloud database</small></div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-4">
-                <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
-                    <i class="bi bi-bar-chart fs-5 text-info"></i>
-                    <div><strong>Chart.js</strong><br><small class="text-body-secondary">Data visualisation</small></div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-4">
-                <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
-                    <i class="bi bi-map fs-5 text-info"></i>
-                    <div><strong>Leaflet.js</strong><br><small class="text-body-secondary">Interactive maps</small></div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-4">
-                <div class="d-flex align-items-center gap-2 p-2 rounded bg-body-secondary">
-                    <i class="bi bi-cloud fs-5 text-info"></i>
-                    <div><strong>Heroku</strong><br><small class="text-body-secondary">Cloud hosting</small></div>
-                </div>
+            <div class="card-header"><i class="bi bi-cpu"></i> ESP32 + PIR</div>
+            <div class="card-body small">
+                Departure detection via motion sensor. Push alerts via Telegram.
             </div>
         </div>
     </div>
 </div>
 
 <!-- Collection Stats -->
-<div class="card mb-4">
-    <div class="card-header"><i class="bi bi-clipboard-data"></i> Collection Statistics</div>
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-clipboard-data"></i> Collection Stats</div>
     <div class="card-body" id="about-stats">
-        <div class="text-center text-body-secondary py-3">
+        <div class="text-center text-muted py-2">
             <div class="spinner-border spinner-border-sm" role="status"></div>
-            Loading statistics...
+            Loading...
         </div>
     </div>
 </div>

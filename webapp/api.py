@@ -3,7 +3,7 @@
 from functools import wraps
 from flask import Blueprint, jsonify, request
 from webapp.db import query, query_one, ensure_walking_distances
-from webapp.forecast import get_forecast_service, fetch_weather_forecast
+from webapp.forecast import get_forecast_service, get_nowcast_service, fetch_weather_forecast
 from datetime import datetime, date, timedelta, timezone
 from zoneinfo import ZoneInfo
 
@@ -226,8 +226,12 @@ def correlation_stats():
 @api.route("/forecast")
 @db_error_handler
 def forecast():
-    """Predicted dock availability using the trained model."""
-    svc = get_forecast_service()
+    """Predicted dock availability using the nowcast model (with live data).
+
+    Falls back to forecast model if nowcast is unavailable.
+    """
+    # Prefer nowcast (uses current empty_docks), fall back to forecast
+    svc = get_nowcast_service() or get_forecast_service()
     if svc is None:
         return jsonify({"available": False, "reason": "no model loaded"})
 
@@ -248,19 +252,25 @@ def forecast():
     """)
     weather = weather_row or {}
 
-    # Station list with total_docks
+    # Station list with total_docks + current empty_docks (for nowcast)
     stations = query("""
         SELECT DISTINCT ON (ba.station_id)
-            ba.station_id, ba.station_name, ba.total_docks
+            ba.station_id, ba.station_name, ba.total_docks, ba.empty_docks
         FROM bike_availability ba
         JOIN monitored_stations ms ON ba.station_id = ms.station_id
         ORDER BY ba.station_id, ba.timestamp DESC
     """)
 
-    predictions = svc.predict_all_stations(stations, weather, hour, weekday)
+    # Build current docks map for nowcast model
+    current_docks = {s["station_id"]: s["empty_docks"] for s in stations}
+
+    predictions = svc.predict_all_stations(
+        stations, weather, hour, weekday, current_docks=current_docks,
+    )
     return jsonify({
         "available": True,
         "model_name": svc.model_name,
+        "model_type": svc.model_type,
         "prediction_horizon_min": horizon,
         "hour": round(hour, 2),
         "weekday": weekday,

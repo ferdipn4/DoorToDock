@@ -74,7 +74,7 @@ const crosshairPlugin = {
             ctx.moveTo(x, yAxis.top);
             ctx.lineTo(x, yAxis.bottom);
             ctx.lineWidth = 1;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
             ctx.setLineDash([4, 3]);
             ctx.stroke();
             ctx.restore();
@@ -112,11 +112,11 @@ function initChart() {
             x: {
                 type: 'time',
                 time: { tooltipFormat: 'dd MMM HH:mm' },
-                grid: { color: 'rgba(255,255,255,0.05)' },
+                grid: { color: 'rgba(0,0,0,0.06)' },
             },
             y: {
                 beginAtZero: true,
-                grid: { color: 'rgba(255,255,255,0.05)' },
+                grid: { color: 'rgba(0,0,0,0.06)' },
                 title: { display: true, text: 'Free Docks' },
             }
         }
@@ -495,8 +495,8 @@ function createBinnedBar(canvasId, data, xKey, yKey, edges, labels, yLabel) {
                 }
             },
             scales: {
-                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { font: { size: 10 } } },
-                y: { title: { display: true, text: yLabel }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+                x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 } } },
+                y: { title: { display: true, text: yLabel }, grid: { color: 'rgba(0,0,0,0.06)' }, beginAtZero: true }
             }
         }
     });

@@ -1,4 +1,9 @@
-"""Forecast service – loads the trained model and predicts dock availability."""
+"""Forecast service – loads trained models and predicts dock availability.
+
+Two models:
+  - FORECAST: temporal + weather + station (for Plan page, predicting hours ahead)
+  - NOWCAST:  same + current empty_docks  (for Now page, predicting 15 min ahead)
+"""
 
 import logging
 import math
@@ -10,29 +15,92 @@ import numpy as np
 import pandas as pd
 import requests
 
-MODEL_PATH = Path(__file__).resolve().parent.parent / "training" / "model.pkl"
 
-_service = None
+# ---------------------------------------------------------------------------
+# HistoricalAverageModel -- must match the class in train_model.py so that
+# pickled Baseline models can be deserialised.
+# ---------------------------------------------------------------------------
+
+TARGET = "target"
+
+
+class HistoricalAverageModel:
+    """Predicts empty_docks as the mean for each (station, hour, weekday)."""
+
+    def __init__(self):
+        self.lookup = {}
+        self.global_mean = 0
+
+    def fit(self, X, y, df=None):
+        if df is None:
+            raise ValueError("HistoricalAverageModel.fit() needs df= parameter")
+        self.global_mean = y.mean()
+        tmp = df.copy()
+        tmp["_hour_int"] = tmp["hour"].round().astype(int) % 24
+        grouped = tmp.groupby(["station_enc", "_hour_int", "weekday"])[TARGET].mean()
+        self.lookup = grouped.to_dict()
+        return self
+
+    def predict(self, X):
+        preds = []
+        for _, row in X.iterrows():
+            key = (row["station_enc"], round(row["hour"]) % 24, row["weekday"])
+            preds.append(self.lookup.get(key, self.global_mean))
+        return np.array(preds)
+
+    @property
+    def feature_importances_(self):
+        return None
+
+
+def _load_model(path):
+    """Load a joblib model, handling __main__ pickle references."""
+    import sys
+    # Temporarily inject HistoricalAverageModel into __main__ so pickle can
+    # find it (the training script ran as __main__).
+    main_mod = sys.modules.get("__main__")
+    had_attr = hasattr(main_mod, "HistoricalAverageModel")
+    if not had_attr:
+        setattr(main_mod, "HistoricalAverageModel", HistoricalAverageModel)
+    try:
+        return joblib.load(path)
+    finally:
+        if not had_attr and main_mod is not None:
+            try:
+                delattr(main_mod, "HistoricalAverageModel")
+            except AttributeError:
+                pass
+
+TRAINING_DIR = Path(__file__).resolve().parent.parent / "training"
+FORECAST_PATH = TRAINING_DIR / "model_forecast.pkl"
+NOWCAST_PATH = TRAINING_DIR / "model_nowcast.pkl"
+LEGACY_PATH = TRAINING_DIR / "model.pkl"
+
+_forecast_service = None
+_nowcast_service = None
 log = logging.getLogger(__name__)
 
 
 class ForecastService:
-    """Wraps the trained model for dock predictions."""
+    """Wraps a trained model for dock predictions."""
 
-    def __init__(self):
-        if not MODEL_PATH.exists():
-            raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
+    def __init__(self, model_path):
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model not found: {model_path}")
 
-        bundle = joblib.load(MODEL_PATH)
+        bundle = _load_model(model_path)
         self.model = bundle["model"]
         self.features = bundle["features"]
         self.label_encoder = bundle["label_encoder"]
         self.model_name = bundle.get("model_name", "unknown")
+        self.model_type = bundle.get("model_type", "forecast")
         self.prediction_horizon_min = bundle.get("prediction_horizon_min", 60)
-        # Set of station_ids the encoder was trained on
+        self.metrics = bundle.get("metrics", [])
         self._known_stations = set(self.label_encoder.classes_)
+        self._needs_lag = "empty_docks_lag1" in self.features
 
-    def predict(self, station_id, total_docks, hour, weekday, weather):
+    def predict(self, station_id, total_docks, hour, weekday, weather,
+                current_empty_docks=None):
         """Predict empty_docks for a single station.
 
         Args:
@@ -41,6 +109,7 @@ class ForecastService:
             hour: fractional hour (e.g. 8.25 = 08:15)
             weekday: 0=Mon .. 6=Sun
             weather: dict with temperature, humidity, precipitation, wind_speed
+            current_empty_docks: current empty docks (required for nowcast model)
 
         Returns:
             Predicted empty_docks (float), or None if station is unknown.
@@ -64,28 +133,35 @@ class ForecastService:
             "total_docks": total_docks,
         }
 
+        if self._needs_lag:
+            row["empty_docks_lag1"] = current_empty_docks if current_empty_docks is not None else 0
+
         X = pd.DataFrame([row])[self.features]
         pred = self.model.predict(X)[0]
-        # Clamp to [0, total_docks]
         return float(np.clip(pred, 0, total_docks))
 
-    def predict_all_stations(self, stations, weather, hour, weekday):
+    def predict_all_stations(self, stations, weather, hour, weekday,
+                             current_docks=None):
         """Predict for a list of stations.
 
         Args:
             stations: list of dicts with station_id, total_docks, station_name
             weather: dict with temperature, humidity, precipitation, wind_speed
-            hour: fractional hour (e.g. 8.25)
+            hour: fractional hour
             weekday: 0=Mon .. 6=Sun
+            current_docks: dict mapping station_id -> current empty_docks
+                           (only used by nowcast model)
 
         Returns:
-            list of dicts with station_id, station_name, predicted_empty_docks,
-            predicted_status.
+            list of prediction dicts.
         """
+        current_docks = current_docks or {}
         results = []
         for s in stations:
+            sid = s["station_id"]
             pred = self.predict(
-                s["station_id"], s["total_docks"], hour, weekday, weather,
+                sid, s["total_docks"], hour, weekday, weather,
+                current_empty_docks=current_docks.get(sid),
             )
             if pred is None:
                 continue
@@ -99,7 +175,7 @@ class ForecastService:
                 status = "red"
 
             results.append({
-                "station_id": s["station_id"],
+                "station_id": sid,
                 "station_name": s["station_name"],
                 "predicted_empty_docks": predicted,
                 "predicted_status": status,
@@ -120,15 +196,13 @@ class ForecastService:
             step_min: step size in minutes (default 5)
 
         Returns:
-            dict with "slots" (list of "HH:MM" strings) and
-            "stations" (dict station_id -> {name, predictions: [floats]})
+            dict with "slots" and "stations".
         """
         horizon = self.prediction_horizon_min
         step = step_min / 60.0
         slots = []
         station_preds = {}
 
-        # Initialise per-station result structure
         for s in stations:
             if s["station_id"] in self._known_stations:
                 station_preds[s["station_id"]] = {
@@ -139,17 +213,14 @@ class ForecastService:
 
         t = start_hour
         while t <= end_hour + 0.001:
-            # The model predicts for T+horizon, so input time = display_time - horizon
             input_hour = t - horizon / 60.0
             if input_hour < 0:
                 input_hour += 24
 
-            # Display time label
             display_h = int(t) % 24
             display_m = int(round((t - int(t)) * 60))
             slots.append(f"{display_h:02d}:{display_m:02d}")
 
-            # Pick weather for the nearest whole hour
             weather_hour = round(t) % 24
             weather = weather_by_hour.get(weather_hour,
                                           weather_by_hour.get(
@@ -172,14 +243,7 @@ class ForecastService:
 
 
 def fetch_weather_forecast(date_str):
-    """Fetch hourly weather forecast from Open-Meteo for a given date.
-
-    Args:
-        date_str: ISO date string, e.g. "2026-02-27"
-
-    Returns:
-        dict mapping int hour (0-23) to weather dict, or {} on error.
-    """
+    """Fetch hourly weather forecast from Open-Meteo for a given date."""
     try:
         resp = requests.get(
             "https://api.open-meteo.com/v1/forecast",
@@ -212,11 +276,26 @@ def fetch_weather_forecast(date_str):
 
 
 def get_forecast_service():
-    """Lazy singleton – loads model on first call."""
-    global _service
-    if _service is None:
+    """Lazy singleton for the FORECAST model (Plan page)."""
+    global _forecast_service
+    if _forecast_service is None:
         try:
-            _service = ForecastService()
+            if FORECAST_PATH.exists():
+                _forecast_service = ForecastService(FORECAST_PATH)
+            elif LEGACY_PATH.exists():
+                _forecast_service = ForecastService(LEGACY_PATH)
         except FileNotFoundError:
             return None
-    return _service
+    return _forecast_service
+
+
+def get_nowcast_service():
+    """Lazy singleton for the NOWCAST model (Now page)."""
+    global _nowcast_service
+    if _nowcast_service is None:
+        try:
+            if NOWCAST_PATH.exists():
+                _nowcast_service = ForecastService(NOWCAST_PATH)
+        except FileNotFoundError:
+            return None
+    return _nowcast_service

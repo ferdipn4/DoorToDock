@@ -1,0 +1,32 @@
+Door2Dock -- Model Comparison
+============================================================
+
+FORECAST models (temporal + weather + station, NO current state):
+                       model      MAE     RMSE       R2
+         Forecast / Baseline 3.411234 5.047853 0.746789
+    Forecast / Random Forest 3.482061 4.841360 0.767082
+Forecast / Gradient Boosting 3.564148 4.856180 0.765653
+
+Best: Baseline
+  -> Used for: Plan page (predicting hours/days ahead)
+
+
+NOWCAST models (same + current empty_docks):
+                      model      MAE     RMSE       R2
+         Nowcast / Baseline 3.411234 5.047853 0.746789
+    Nowcast / Random Forest 1.087559 1.769330 0.968891
+Nowcast / Gradient Boosting 1.112478 1.779763 0.968523
+
+Best: Random Forest
+  -> Used for: Now page (predicting 15 min ahead with live data)
+
+============================================================
+Data rows : 315,437
+Train     : 252,349
+Test      : 63,088
+Prediction horizon: T+15 min
+
+Note: Nowcast models achieve lower MAE because knowing the
+current dock count is highly predictive of the near future.
+The FORECAST models show how well we can predict from
+time + weather alone (needed for planning ahead).

@@ -3,21 +3,24 @@ Door2Dock -- Dock Availability Prediction Model Training
 
 Trains two model families:
   A) FORECAST models (temporal + weather + station -- no lag)
-     -> Useful for predicting 15-60 min ahead when current state is unknown
-  B) NOWCAST models  (adds 1-min lag feature)
-     -> Near-real-time correction when recent data is available
+     -> Used for planning: predicting hours/days ahead
+  B) NOWCAST models  (adds current empty_docks as input)
+     -> Used for "Now" page: predicting 15 min ahead with live data
 
 For each family: Baseline, Random Forest, Gradient Boosting are compared.
-The best FORECAST model is saved as the production model.
+Both best models are saved for deployment.
 
 Usage:
     python training/train_model.py
     python training/train_model.py --data path/to/merged.csv
 
 Outputs:
-    training/model.pkl                    -- Best forecast model (joblib)
+    training/model_forecast.pkl           -- Best forecast model (for Plan)
+    training/model_nowcast.pkl            -- Best nowcast model (for Now)
     training/feature_importance.png       -- Feature importance (forecast)
+    training/feature_importance_nowcast.png
     training/predictions.png              -- Predicted vs actual (forecast)
+    training/predictions_nowcast.png
     training/model_comparison.png         -- All 6 models side by side
     training/metrics.txt                  -- Full comparison table
 """
@@ -91,7 +94,7 @@ def engineer_features(df: pd.DataFrame):
     df = df.sort_values(["station_id", "timestamp"])
     df["target"] = df.groupby("station_id")["empty_docks"].shift(-PREDICTION_HORIZON_MIN)
 
-    # Lag feature: previous empty_docks per station (1-minute lag)
+    # Lag feature: current empty_docks (used by nowcast model)
     df["empty_docks_lag1"] = df.groupby("station_id")["empty_docks"].shift(1)
 
     # Drop rows without weather data, lag, or target
@@ -255,7 +258,7 @@ def plot_feature_importance(model, feature_names, title, out_path):
         Patch(color="#ab47bc", label="Station"),
     ]
     if "empty_docks_lag1" in feature_names:
-        legend_items.append(Patch(color="#ef5350", label="Lag"))
+        legend_items.append(Patch(color="#ef5350", label="Current state"))
     ax.legend(handles=legend_items, loc="lower right", fontsize=9)
 
     fig.tight_layout()
@@ -317,8 +320,8 @@ def plot_comparison(all_results, out_path):
 
     from matplotlib.patches import Patch
     ax.legend(handles=[
-        Patch(color="#42a5f5", label="Forecast (no lag)"),
-        Patch(color="#ab47bc", label="Nowcast (with lag)"),
+        Patch(color="#42a5f5", label="Forecast (no current state)"),
+        Patch(color="#ab47bc", label="Nowcast (with current state)"),
     ], loc="lower right")
 
     fig.tight_layout()
@@ -346,47 +349,90 @@ def main():
     train, test = chrono_split(df)
 
     # ================================================================
-    # A) FORECAST models (no lag -- the real prediction task)
+    # A) FORECAST models (no lag -- for planning ahead)
     # ================================================================
     fc_results, fc_models, fc_preds = train_family(
         "Forecast", FEATURES_FORECAST, train, test,
     )
 
     # ================================================================
-    # B) NOWCAST models (with lag -- near-real-time)
+    # B) NOWCAST models (with current state -- for "Now" page)
     # ================================================================
     nc_results, nc_models, nc_preds = train_family(
         "Nowcast", FEATURES_NOWCAST, train, test,
     )
 
     # ================================================================
-    # Pick best FORECAST model (this is the one we deploy)
+    # Pick best of each family
     # ================================================================
     all_results = fc_results + nc_results
+
+    # Best forecast
     fc_df = pd.DataFrame(fc_results)
-    best_idx = fc_df["MAE"].idxmin()
-    best_name = fc_df.loc[best_idx, "model"].replace("Forecast / ", "")
-    best_model = fc_models[best_name]
-    best_preds = fc_preds[best_name]
+    fc_best_idx = fc_df["MAE"].idxmin()
+    fc_best_name = fc_df.loc[fc_best_idx, "model"].replace("Forecast / ", "")
+    fc_best_model = fc_models[fc_best_name]
+    fc_best_preds = fc_preds[fc_best_name]
 
-    print(f"\n>>> Best FORECAST model: {best_name}")
-    print(f"    (This model uses temporal + weather + station features, NO lag)")
+    # Best nowcast
+    nc_df = pd.DataFrame(nc_results)
+    nc_best_idx = nc_df["MAE"].idxmin()
+    nc_best_name = nc_df.loc[nc_best_idx, "model"].replace("Nowcast / ", "")
+    nc_best_model = nc_models[nc_best_name]
+    nc_best_preds = nc_preds[nc_best_name]
 
-    # ---- Save model ----
-    model_path = OUT_DIR / "model.pkl"
+    print(f"\n>>> Best FORECAST model: {fc_best_name}")
+    print(f"    (temporal + weather + station, NO current state)")
+    print(f">>> Best NOWCAST model:  {nc_best_name}")
+    print(f"    (same + current empty_docks)")
+
+    # ---- Save forecast model ----
+    fc_path = OUT_DIR / "model_forecast.pkl"
     joblib.dump(
         {
-            "model": best_model,
+            "model": fc_best_model,
             "features": FEATURES_FORECAST,
             "label_encoder": label_encoder,
-            "model_name": best_name,
+            "model_name": fc_best_name,
+            "model_type": "forecast",
+            "prediction_horizon_min": PREDICTION_HORIZON_MIN,
+            "metrics": fc_results,
+        },
+        fc_path,
+    )
+    print(f"  Saved forecast model -> {fc_path}")
+
+    # ---- Save nowcast model ----
+    nc_path = OUT_DIR / "model_nowcast.pkl"
+    joblib.dump(
+        {
+            "model": nc_best_model,
+            "features": FEATURES_NOWCAST,
+            "label_encoder": label_encoder,
+            "model_name": nc_best_name,
+            "model_type": "nowcast",
+            "prediction_horizon_min": PREDICTION_HORIZON_MIN,
+            "metrics": nc_results,
+        },
+        nc_path,
+    )
+    print(f"  Saved nowcast model  -> {nc_path}")
+
+    # ---- Also save as model.pkl for backward compatibility ----
+    # (forecast model is the default)
+    compat_path = OUT_DIR / "model.pkl"
+    joblib.dump(
+        {
+            "model": fc_best_model,
+            "features": FEATURES_FORECAST,
+            "label_encoder": label_encoder,
+            "model_name": fc_best_name,
             "model_type": "forecast",
             "prediction_horizon_min": PREDICTION_HORIZON_MIN,
             "metrics": all_results,
         },
-        model_path,
+        compat_path,
     )
-    print(f"  Saved model -> {model_path}")
 
     # ---- Save metrics ----
     all_df = pd.DataFrame(all_results)
@@ -394,47 +440,63 @@ def main():
     with open(metrics_path, "w") as f:
         f.write("Door2Dock -- Model Comparison\n")
         f.write("=" * 60 + "\n\n")
-        f.write("FORECAST models (temporal + weather + station, NO lag):\n")
+        f.write("FORECAST models (temporal + weather + station, NO current state):\n")
         f.write(fc_df.to_string(index=False))
-        f.write("\n\nNOWCAST models (same + 1-min lag):\n")
+        f.write(f"\n\nBest: {fc_best_name}\n")
+        f.write(f"  -> Used for: Plan page (predicting hours/days ahead)\n")
+        f.write("\n\nNOWCAST models (same + current empty_docks):\n")
         f.write(pd.DataFrame(nc_results).to_string(index=False))
-        f.write(f"\n\nBest forecast model: {best_name}\n")
+        f.write(f"\n\nBest: {nc_best_name}\n")
+        f.write(f"  -> Used for: Now page (predicting 15 min ahead with live data)\n")
+        f.write(f"\n{'='*60}\n")
         f.write(f"Data rows : {len(df):,}\n")
         f.write(f"Train     : {len(train):,}\n")
         f.write(f"Test      : {len(test):,}\n")
         f.write(f"Prediction horizon: T+{PREDICTION_HORIZON_MIN} min\n")
-        f.write(f"\nNote: Nowcast models achieve very low MAE because the 1-min\n")
-        f.write(f"lag feature dominates. The FORECAST models are the honest\n")
-        f.write(f"evaluation of how well we can predict from time + weather.\n")
+        f.write(f"\nNote: Nowcast models achieve lower MAE because knowing the\n")
+        f.write(f"current dock count is highly predictive of the near future.\n")
+        f.write(f"The FORECAST models show how well we can predict from\n")
+        f.write(f"time + weather alone (needed for planning ahead).\n")
     print(f"  Saved metrics -> {metrics_path}")
 
     # ---- Plots ----
-    # Feature importance for best forecast model
-    if hasattr(best_model, "feature_importances_"):
+    # Feature importance: forecast
+    if getattr(fc_best_model, "feature_importances_", None) is not None:
         plot_feature_importance(
-            best_model, FEATURES_FORECAST,
-            f"Feature Importance -- Forecast ({best_name})",
+            fc_best_model, FEATURES_FORECAST,
+            f"Feature Importance -- Forecast ({fc_best_name})",
             OUT_DIR / "feature_importance.png",
         )
+    else:
+        print(f"  Skipping feature importance plot for Forecast ({fc_best_name} has no feature_importances_)")
 
-    # Also show nowcast importance for comparison
-    nc_best = "Random Forest" if "Random Forest" in nc_models else list(nc_models.keys())[-1]
-    nc_best_model = nc_models[nc_best]
-    if hasattr(nc_best_model, "feature_importances_"):
+    # Feature importance: nowcast
+    if getattr(nc_best_model, "feature_importances_", None) is not None:
         plot_feature_importance(
             nc_best_model, FEATURES_NOWCAST,
-            f"Feature Importance -- Nowcast ({nc_best})",
+            f"Feature Importance -- Nowcast ({nc_best_name})",
             OUT_DIR / "feature_importance_nowcast.png",
         )
+    else:
+        print(f"  Skipping feature importance plot for Nowcast ({nc_best_name} has no feature_importances_)")
 
-    # Predictions plot (forecast model)
+    # Predictions: forecast
     y_test = test[TARGET]
     plot_predictions(
         y_test.reset_index(drop=True),
-        best_preds,
+        fc_best_preds,
         test["timestamp"].reset_index(drop=True),
-        f"Forecast ({best_name})",
+        f"Forecast ({fc_best_name})",
         OUT_DIR / "predictions.png",
+    )
+
+    # Predictions: nowcast
+    plot_predictions(
+        y_test.reset_index(drop=True),
+        nc_best_preds,
+        test["timestamp"].reset_index(drop=True),
+        f"Nowcast ({nc_best_name})",
+        OUT_DIR / "predictions_nowcast.png",
     )
 
     # Comparison bar chart
@@ -445,7 +507,8 @@ def main():
     print("SUMMARY")
     print("=" * 60)
     print(all_df.to_string(index=False))
-    print(f"\nBest forecast model saved: {best_name}")
+    print(f"\nForecast model: {fc_best_name} (for Plan page)")
+    print(f"Nowcast model:  {nc_best_name} (for Now page)")
     print("=" * 60)
 
 

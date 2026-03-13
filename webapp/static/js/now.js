@@ -323,7 +323,7 @@ function renderStationCards() {
         }
 
         return `
-        <div class="station-card bg-body-secondary status-border-${s.status}"
+        <div class="station-card status-border-${s.status}"
              data-station-id="${s.station_id}"
              onclick="focusStation('${s.station_id}')"
              onmouseenter="highlightMarker('${s.station_id}')"

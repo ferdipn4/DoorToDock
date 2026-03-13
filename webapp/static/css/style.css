@@ -1,77 +1,134 @@
-/* Door2Dock – Custom Dashboard Styles */
+/* Door2Dock – Light Mode, Mobile-First Styles */
 
-/* Status badges */
-.status-green {
-    background-color: #198754 !important;
-    color: #fff;
-}
-.status-yellow {
-    background-color: #ffc107 !important;
-    color: #000;
-}
-.status-red {
-    background-color: #dc3545 !important;
-    color: #fff;
+/* ---- Base ---- */
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Station list */
+/* ---- Mobile bottom nav ---- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-around;
+    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+    z-index: 1050;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #6c757d;
+    text-decoration: none;
+    padding: 4px 16px;
+    border-radius: 8px;
+    transition: color 0.15s;
+}
+.bottom-nav-item i {
+    font-size: 1.25rem;
+}
+.bottom-nav-item.active {
+    color: #0d6efd;
+}
+
+/* Space for bottom nav on mobile */
+.pb-mobile {
+    padding-bottom: 80px !important;
+}
+@media (min-width: 768px) {
+    .pb-mobile { padding-bottom: 1rem !important; }
+}
+
+/* ---- Cards ---- */
+.card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.2s;
+}
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* ---- Status badges ---- */
+.status-green { background-color: #198754 !important; color: #fff; }
+.status-yellow { background-color: #ffc107 !important; color: #000; }
+.status-red { background-color: #dc3545 !important; color: #fff; }
+
+/* ---- Status border accents ---- */
+.status-border-green { border-left: 4px solid #198754; }
+.status-border-yellow { border-left: 4px solid #ffc107; }
+.status-border-red { border-left: 4px solid #dc3545; }
+
+/* ---- Station cards ---- */
 .station-list {
     max-height: 480px;
     overflow-y: auto;
 }
 
 .station-card {
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    transition: background-color 0.3s ease;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: background-color 0.15s, transform 0.1s;
 }
 .station-card:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: #f0f4ff;
 }
-.station-card.status-border-green {
-    border-left: 4px solid #198754;
-}
-.station-card.status-border-yellow {
-    border-left: 4px solid #ffc107;
-}
-.station-card.status-border-red {
-    border-left: 4px solid #dc3545;
+.station-card:active {
+    transform: scale(0.98);
 }
 
 .station-card .station-name {
     font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
+    font-size: 0.88rem;
+    margin-bottom: 2px;
+    color: #212529;
 }
 .station-card .station-meta {
     font-size: 0.75rem;
-    color: var(--bs-secondary-color);
+    color: #6c757d;
 }
-/* Dock hero – prominent free dock count */
+
+/* Dock hero */
 .dock-hero {
     text-align: center;
-    min-width: 60px;
+    min-width: 56px;
     flex-shrink: 0;
 }
 .dock-hero-num {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 800;
     line-height: 1;
 }
 .dock-hero-label {
-    font-size: 0.55rem;
+    font-size: 0.5rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    opacity: 0.85;
+    opacity: 0.7;
 }
 
-/* Bike detail line */
+/* Bike detail */
 .bike-detail {
     font-size: 0.72rem;
-    color: var(--bs-secondary-color);
-    margin-top: 0.3rem;
+    color: #6c757d;
+    margin-top: 4px;
 }
 .forecast-hint {
     font-weight: 600;
@@ -79,10 +136,10 @@
 
 /* Dock bar */
 .dock-bar {
-    height: 6px;
+    height: 5px;
     border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.1);
-    margin-top: 0.5rem;
+    background-color: #e9ecef;
+    margin-top: 6px;
     overflow: hidden;
 }
 .dock-bar-fill {
@@ -94,114 +151,61 @@
 .dock-bar-fill.fill-yellow { background-color: #ffc107; }
 .dock-bar-fill.fill-red { background-color: #dc3545; }
 
-/* Heatmap */
-.heatmap-container {
-    overflow-x: auto;
+/* ---- Now page: Quick Recommendation ---- */
+.rec-signal {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.rec-signal-green { background-color: #198754; box-shadow: 0 0 6px rgba(25, 135, 84, 0.4); }
+.rec-signal-yellow { background-color: #ffc107; box-shadow: 0 0 6px rgba(255, 193, 7, 0.4); }
+.rec-signal-red { background-color: #dc3545; box-shadow: 0 0 6px rgba(220, 53, 69, 0.4); }
+
+#quick-rec-card {
+    border-radius: 16px;
+    border: 2px solid #e9ecef;
+}
+#quick-rec-card.rec-green {
+    border-color: #198754 !important;
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.06), #fff) !important;
+}
+#quick-rec-card.rec-yellow {
+    border-color: #ffc107 !important;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), #fff) !important;
+}
+#quick-rec-card.rec-red {
+    border-color: #dc3545 !important;
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.06), #fff) !important;
 }
 
-.heatmap-grid {
-    display: grid;
-    grid-template-columns: 80px repeat(28, 1fr);
-    gap: 2px;
-    min-width: 800px;
+/* Priority station cards */
+.priority-station-card {
+    cursor: pointer;
+    border-radius: 12px;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.priority-station-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.heatmap-cell {
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.6rem;
-    font-weight: 600;
-    cursor: default;
-    transition: transform 0.15s ease;
-    min-height: 32px;
+/* ---- Live dot ---- */
+.live-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #198754;
+    margin-right: 3px;
+    animation: live-pulse 2s ease-in-out infinite;
 }
-.heatmap-cell:hover {
-    transform: scale(1.15);
-    z-index: 1;
-}
-
-.heatmap-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--bs-secondary-color);
-    min-height: 36px;
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
-.heatmap-row-label {
-    display: flex;
-    align-items: center;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--bs-secondary-color);
-    min-height: 36px;
-}
-
-.heatmap-legend {
-    width: 120px;
-    height: 12px;
-    border-radius: 6px;
-    background: linear-gradient(to right, #dc3545, #ffc107, #198754);
-}
-
-/* Leaflet dark mode fix */
-.leaflet-container {
-    background-color: #1a1a2e;
-}
-.leaflet-tile-pane {
-    filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
-}
-.leaflet-control-zoom a {
-    background-color: #2b2b3d !important;
-    color: #fff !important;
-    border-color: #444 !important;
-}
-.leaflet-control-attribution {
-    background-color: rgba(0, 0, 0, 0.6) !important;
-    color: #999 !important;
-}
-.leaflet-control-attribution a {
-    color: #aaa !important;
-}
-
-/* Map popup dark */
-.leaflet-popup-content-wrapper {
-    background-color: #2b2b3d;
-    color: #e0e0e0;
-    border-radius: 0.5rem;
-}
-.leaflet-popup-tip {
-    background-color: #2b2b3d;
-}
-.leaflet-popup-content {
-    margin: 0.75rem;
-    font-size: 0.85rem;
-    line-height: 1.5;
-}
-
-/* Correlation card coloring */
-.corr-positive { color: #198754; }
-.corr-negative { color: #dc3545; }
-.corr-neutral { color: #6c757d; }
-
-/* Correlation card backgrounds (set via JS) */
-.corr-card-positive {
-    background: linear-gradient(135deg, rgba(25, 135, 84, 0.12), transparent) !important;
-    border-color: rgba(25, 135, 84, 0.3) !important;
-}
-.corr-card-negative {
-    background: linear-gradient(135deg, rgba(220, 53, 69, 0.12), transparent) !important;
-    border-color: rgba(220, 53, 69, 0.3) !important;
-}
-.corr-card-neutral {
-    opacity: 0.7;
-}
-
-/* Status legend dots */
+/* ---- Status legend dots ---- */
 .legend-dot {
     display: inline-block;
     width: 10px;
@@ -211,136 +215,147 @@
     vertical-align: middle;
 }
 
-/* Chart canvas padding */
-canvas {
-    max-height: 400px;
-}
-
-/* Station card hover – subtle lift */
-.station-card {
-    cursor: pointer;
-}
-.station-card:hover {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
-}
-
-/* Sort buttons */
+/* ---- Sort buttons ---- */
 .sort-btn {
     font-size: 0.7rem;
     padding: 0.15rem 0.5rem;
 }
 
-/* Smooth transitions */
-.card {
-    transition: border-color 0.3s ease;
+/* ---- Map (light mode) ---- */
+.leaflet-container {
+    background-color: #f0f0f0;
+}
+.leaflet-popup-content-wrapper {
+    border-radius: 10px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.12);
+}
+.leaflet-popup-content {
+    margin: 10px 14px;
+    font-size: 0.85rem;
+    line-height: 1.5;
 }
 
-/* Scrollbar styling */
-.station-list::-webkit-scrollbar {
-    width: 6px;
+/* ---- Scrollbar (subtle) ---- */
+.station-list::-webkit-scrollbar,
+.station-check-list::-webkit-scrollbar {
+    width: 5px;
 }
-.station-list::-webkit-scrollbar-track {
+.station-list::-webkit-scrollbar-track,
+.station-check-list::-webkit-scrollbar-track {
     background: transparent;
 }
-.station-list::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.15);
+.station-list::-webkit-scrollbar-thumb,
+.station-check-list::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.12);
     border-radius: 3px;
 }
 
-/* Live dot indicator */
-.live-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #198754;
-    margin-right: 4px;
-    animation: live-pulse 2s ease-in-out infinite;
-}
-@keyframes live-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+/* ---- Chart canvas ---- */
+canvas {
+    max-height: 400px;
 }
 
-/* Page headers */
-h5.fw-bold {
-    letter-spacing: -0.01em;
+/* ---- Heatmap ---- */
+.heatmap-container {
+    overflow-x: auto;
+}
+.heatmap-grid {
+    display: grid;
+    grid-template-columns: 50px repeat(28, 1fr);
+    gap: 2px;
+    min-width: 700px;
+}
+.heatmap-cell {
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 600;
+    cursor: default;
+    transition: transform 0.15s;
+    min-height: 30px;
+}
+.heatmap-cell:hover {
+    transform: scale(1.12);
+    z-index: 1;
+}
+.heatmap-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #6c757d;
+    min-height: 28px;
+}
+.heatmap-row-label {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    min-height: 30px;
+}
+.heatmap-legend {
+    width: 100px;
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #dc3545, #ffc107, #198754);
 }
 
-/* Station card active/focus state */
-.station-card:active {
-    transform: scale(0.98);
+/* ---- Correlation cards ---- */
+.corr-positive { color: #198754; }
+.corr-negative { color: #dc3545; }
+.corr-neutral { color: #6c757d; }
+.corr-card-positive {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.05), #fff) !important;
+    border-color: rgba(25, 135, 84, 0.2) !important;
 }
-
-/* Summary stat cards */
-#ts-summary .card {
-    border-left: 3px solid transparent;
+.corr-card-negative {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.05), #fff) !important;
+    border-color: rgba(220, 53, 69, 0.2) !important;
 }
+.corr-card-neutral { opacity: 0.7; }
+[id^="corr-"][id$="-desc"] { font-size: 0.72rem; }
 
-/* Weather correlation interpretation */
-[id^="corr-"][id$="-desc"] {
-    font-size: 0.72rem;
+/* ---- Planner page ---- */
+#recommendation-card {
+    border-radius: 14px;
+    border: 2px solid #e9ecef;
 }
-
-/* ------------------------------------------------------------------
-   Planner page
-   ------------------------------------------------------------------ */
-
-/* Recommendation card urgency colors */
 #recommendation-card.rec-green {
     border-color: #198754 !important;
-    background: linear-gradient(135deg, rgba(25, 135, 84, 0.15), transparent) !important;
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.06), #fff) !important;
 }
 #recommendation-card.rec-yellow {
     border-color: #ffc107 !important;
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), transparent) !important;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), #fff) !important;
 }
 #recommendation-card.rec-red {
     border-color: #dc3545 !important;
-    background: linear-gradient(135deg, rgba(220, 53, 69, 0.15), transparent) !important;
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.06), #fff) !important;
 }
 
-/* Station check list (Planner) */
 .station-check-list {
     max-height: 280px;
     overflow-y: auto;
 }
-.station-check-list::-webkit-scrollbar {
-    width: 5px;
-}
-.station-check-list::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
-}
-
 .station-check-item {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.4rem 0.6rem;
-    border-radius: 0.375rem;
+    padding: 8px 10px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.15s;
 }
 .station-check-item:hover {
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: #f0f4ff;
 }
 .station-check-item.check-active {
-    background-color: rgba(13, 110, 253, 0.08);
+    background-color: rgba(13, 110, 253, 0.06);
     border-left: 3px solid #0d6efd;
-}
-
-/* Dashboard star toggle */
-.fav-star {
-    cursor: pointer;
-    font-size: 0.85rem;
-    opacity: 0.5;
-    transition: opacity 0.2s;
-}
-.fav-star:hover,
-.fav-star.active {
-    opacity: 1;
 }
 
 /* Weather forecast hours */
@@ -348,87 +363,84 @@ h5.fw-bold {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.35rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
     font-size: 0.85rem;
 }
 .weather-hour-item:last-child {
     border-bottom: none;
 }
 
-/* ------------------------------------------------------------------
-   Now page – Quick Recommendation Banner
-   ------------------------------------------------------------------ */
-
-.rec-signal {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-.rec-signal-green { background-color: #198754; box-shadow: 0 0 8px rgba(25, 135, 84, 0.5); }
-.rec-signal-yellow { background-color: #ffc107; box-shadow: 0 0 8px rgba(255, 193, 7, 0.5); }
-.rec-signal-red { background-color: #dc3545; box-shadow: 0 0 8px rgba(220, 53, 69, 0.5); }
-
-#quick-rec-card.rec-green {
-    border-color: #198754 !important;
-    background: linear-gradient(135deg, rgba(25, 135, 84, 0.12), transparent) !important;
-}
-#quick-rec-card.rec-yellow {
-    border-color: #ffc107 !important;
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.12), transparent) !important;
-}
-#quick-rec-card.rec-red {
-    border-color: #dc3545 !important;
-    background: linear-gradient(135deg, rgba(220, 53, 69, 0.12), transparent) !important;
-}
-
-/* Priority Station Cards */
-.priority-station-card {
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.15s ease;
-}
-.priority-station-card:hover {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-.priority-station-card.status-border-green {
-    border-left: 4px solid #198754;
-}
-.priority-station-card.status-border-yellow {
-    border-left: 4px solid #ffc107;
-}
-.priority-station-card.status-border-red {
-    border-left: 4px solid #dc3545;
-}
-
-/* ------------------------------------------------------------------
-   Plan page – Mode description
-   ------------------------------------------------------------------ */
+/* Mode description */
 #mode-desc {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: #f8f9fa;
 }
 
-/* Better mobile layout for station cards */
+/* ---- Summary stat cards ---- */
+#ts-summary .card {
+    border-left: 3px solid transparent;
+}
+
+/* ---- Fav star ---- */
+.fav-star {
+    cursor: pointer;
+    font-size: 0.85rem;
+    opacity: 0.4;
+    transition: opacity 0.15s;
+}
+.fav-star:hover, .fav-star.active {
+    opacity: 1;
+}
+
+/* ---- Mobile tweaks ---- */
 @media (max-width: 767.98px) {
+    .container {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
     .dock-hero-num {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
     }
     .dock-hero {
-        min-width: 48px;
+        min-width: 46px;
+    }
+    .station-card {
+        padding: 10px;
     }
     .station-card .station-name {
-        font-size: 0.8rem;
+        font-size: 0.82rem;
     }
     .station-card .station-meta {
         font-size: 0.7rem;
     }
     #stats-row .fs-2 {
-        font-size: 1.4rem !important;
+        font-size: 1.3rem !important;
     }
     .heatmap-cell {
         font-size: 0.45rem;
         min-height: 24px;
+    }
+    .heatmap-grid {
+        grid-template-columns: 40px repeat(28, 1fr);
+    }
+    .heatmap-row-label {
+        font-size: 0.65rem;
+    }
+
+    /* Priority cards: stack 1 per row on small screens */
+    #priority-stations .col-sm-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    /* Recommendation card compact */
+    #quick-rec-card .fs-4 {
+        font-size: 1.1rem !important;
+    }
+
+    /* Charts: shorter on mobile */
+    canvas {
+        max-height: 260px;
     }
 }
