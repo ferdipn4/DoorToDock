@@ -442,16 +442,22 @@
 
 #mobile-map-container .map-legend {
     position: absolute;
-    bottom: 8px;
+    bottom: 12px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 800;
+    z-index: 1001;
     border-radius: var(--radius-lg);
+    padding: 8px 14px;
     background-color: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 0.5px solid var(--border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--text-secondary);
 }
 
 [data-bs-theme="dark"] #mobile-map-container .map-legend {
