@@ -304,11 +304,15 @@ function renderFromNowStations(stations, bestId) {
 // ====================================================
 
 function setupPlanForms() {
-    setupPlanFormFor('to-plan', () => loadToPlan());
-    setupPlanFormFor('from-plan', () => loadFromPlan());
+    setupPlanFormFor('to-plan');
+    setupPlanFormFor('from-plan');
+
+    // Wire scan buttons
+    document.getElementById('to-plan-scan-btn').addEventListener('click', () => loadToPlan());
+    document.getElementById('from-plan-scan-btn').addEventListener('click', () => loadFromPlan());
 }
 
-function setupPlanFormFor(prefix, onChangeCallback) {
+function setupPlanFormFor(prefix) {
     const hourSel = document.getElementById(`${prefix}-hour`);
     const minSel = document.getElementById(`${prefix}-minute`);
     const ampmSel = document.getElementById(`${prefix}-ampm`);
@@ -347,15 +351,9 @@ function setupPlanFormFor(prefix, onChangeCallback) {
         btn.addEventListener('click', () => {
             daysContainer.querySelectorAll('.plan-day-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            onChangeCallback();
         });
         daysContainer.appendChild(btn);
     }
-
-    // Auto-load on time change
-    [hourSel, minSel, ampmSel].forEach(el => {
-        el.addEventListener('change', () => onChangeCallback());
-    });
 }
 
 function getSelectedTime(prefix) {
@@ -383,6 +381,9 @@ function getSelectedTimeDisplay(prefix) {
 // ====================================================
 
 async function loadToPlan() {
+    const btn = document.getElementById('to-plan-scan-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Calculating...';
     try {
         const data = await getPredictionPlan({
             arriveBy: getSelectedTime('to-plan'),
@@ -394,6 +395,9 @@ async function loadToPlan() {
         if (isDesktop()) renderPlanChart();
     } catch (e) {
         console.error('Failed to load plan:', e);
+    } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="bi bi-search"></i> Get recommendation';
     }
 }
 
@@ -461,6 +465,9 @@ function renderToPlanResult(data) {
 // ====================================================
 
 async function loadFromPlan() {
+    const btn = document.getElementById('from-plan-scan-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Calculating...';
     try {
         const data = await getPredictionPlan({
             arriveBy: getSelectedTime('from-plan'),
@@ -472,6 +479,9 @@ async function loadFromPlan() {
         if (isDesktop()) renderPlanChart();
     } catch (e) {
         console.error('Failed to load from-plan:', e);
+    } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="bi bi-search"></i> Get recommendation';
     }
 }
 

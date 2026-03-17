@@ -10,12 +10,12 @@
         <!-- Toggle row -->
         <div class="go-toggles">
             <div class="ds-segmented">
-                <button class="ds-segmented-btn active" id="btn-to">To Imperial</button>
-                <button class="ds-segmented-btn" id="btn-from">From Imperial</button>
-            </div>
-            <div class="ds-segmented">
                 <button class="ds-segmented-btn active" id="btn-now">Now</button>
                 <button class="ds-segmented-btn" id="btn-plan">Plan trip</button>
+            </div>
+            <div class="ds-segmented">
+                <button class="ds-segmented-btn active" id="btn-to">To Imperial</button>
+                <button class="ds-segmented-btn" id="btn-from">From Imperial</button>
             </div>
         </div>
 
@@ -172,12 +172,15 @@
                         <span id="to-plan-weather-text">Select a time to see forecast</span>
                     </div>
                 </div>
+                <button class="plan-scan-btn" id="to-plan-scan-btn">
+                    <i class="bi bi-search"></i> Get recommendation
+                </button>
             </div>
 
             <!-- Empty state -->
             <div class="ds-empty-state" id="to-plan-empty">
                 <i class="bi bi-clock-history"></i>
-                <p class="ds-empty-title">Choose a time to get your recommendation</p>
+                <p class="ds-empty-title">Set your arrival time and tap the button</p>
                 <p class="ds-empty-desc">Select when you need to arrive at Imperial</p>
             </div>
 
@@ -239,12 +242,15 @@
                         <span id="from-plan-weather-text">Select a time to see forecast</span>
                     </div>
                 </div>
+                <button class="plan-scan-btn" id="from-plan-scan-btn">
+                    <i class="bi bi-search"></i> Get recommendation
+                </button>
             </div>
 
             <!-- Empty state -->
             <div class="ds-empty-state" id="from-plan-empty">
                 <i class="bi bi-clock-history"></i>
-                <p class="ds-empty-title">Choose a time to get your recommendation</p>
+                <p class="ds-empty-title">Set your departure time and tap the button</p>
                 <p class="ds-empty-desc">Select when you want to leave Imperial</p>
             </div>
 
@@ -627,6 +633,37 @@
     flex-direction: column;
     gap: 12px;
     margin-bottom: 16px;
+}
+
+.plan-scan-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--radius-md);
+    background-color: var(--info);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.12s, background-color 0.12s;
+}
+
+.plan-scan-btn:hover {
+    opacity: 0.9;
+}
+
+.plan-scan-btn:active {
+    opacity: 0.8;
+}
+
+.plan-scan-btn.loading {
+    opacity: 0.6;
+    pointer-events: none;
 }
 
 .plan-field {
