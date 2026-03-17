@@ -1,0 +1,829 @@
+{% extends "base.html" %}
+{% block title %}Go{% endblock %}
+
+{% block content %}
+<div class="go-layout">
+
+    <!-- Left panel (controls + stations) -->
+    <div class="go-panel">
+
+        <!-- Mode indicator -->
+        <div class="mode-indicator" id="mode-indicator">
+            <span class="mode-dot"></span>
+            <span id="mode-indicator-text">Morning mode — finding empty docks near Imperial</span>
+        </div>
+
+        <!-- Now / Plan toggle -->
+        <div class="go-toggles">
+            <div class="ds-segmented">
+                <button class="ds-segmented-btn active" id="btn-now">Now</button>
+                <button class="ds-segmented-btn" id="btn-plan">Plan</button>
+            </div>
+            <div class="ds-segmented">
+                <button class="ds-segmented-btn active" id="btn-arrive">Arrive</button>
+                <button class="ds-segmented-btn" id="btn-depart">Depart</button>
+            </div>
+        </div>
+
+        <!-- Now mode content -->
+        <div id="now-content">
+
+            <!-- Skeleton hero (shown while loading) -->
+            <div class="hero-card" id="hero-skeleton">
+                <div class="skeleton skeleton-text" style="width: 120px;"></div>
+                <div class="skeleton skeleton-text-xl" style="width: 200px;"></div>
+                <div class="hero-metrics">
+                    <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
+                    <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
+                    <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
+                </div>
+                <div class="skeleton" style="height: 28px; border-radius: var(--radius-sm);"></div>
+            </div>
+
+            <!-- Recommendation hero card (hidden until loaded) -->
+            <div class="hero-card" id="hero-card" style="display: none;">
+                <div class="hero-label">RECOMMENDED STATION</div>
+                <div class="hero-station-name" id="hero-name">--</div>
+                <div class="hero-metrics">
+                    <div class="hero-metric">
+                        <span class="hero-metric-value text-ds-info" id="hero-docks">--</span>
+                        <span class="hero-metric-label">predicted docks</span>
+                    </div>
+                    <div class="hero-metric">
+                        <span class="hero-metric-value text-ds-success" id="hero-confidence">--</span>
+                        <span class="hero-metric-label">confidence</span>
+                    </div>
+                    <div class="hero-metric">
+                        <span class="hero-metric-value" id="hero-walk">--</span>
+                        <span class="hero-metric-label">walk to uni</span>
+                    </div>
+                </div>
+                <div class="hero-trip" id="hero-trip">--</div>
+            </div>
+
+            <!-- Error state (hidden) -->
+            <div id="now-error" style="display: none;">
+                <div class="ds-error-state">
+                    <i class="bi bi-cloud-slash"></i>
+                    <p class="ds-error-title">Couldn't load predictions</p>
+                    <p class="ds-error-desc">Check your connection and try again</p>
+                    <button class="ds-retry-btn" id="now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
+                </div>
+            </div>
+
+            <!-- All-full warning (hidden) -->
+            <div id="now-all-full" class="ds-empty-state" style="display: none;">
+                <i class="bi bi-exclamation-triangle"></i>
+                <p class="ds-empty-title">All nearby stations are predicted full</p>
+                <p class="ds-empty-desc">Consider leaving 10 minutes earlier or trying an alternative route</p>
+            </div>
+
+            <!-- Weather strip -->
+            <div class="weather-strip" id="weather-strip">
+                <i class="bi bi-cloud-rain"></i>
+                <span id="weather-text">--</span>
+            </div>
+
+            <!-- Fallback stations -->
+            <div class="station-list-header">FALLBACK STATIONS</div>
+            <div class="station-list" id="station-list">
+                <!-- Skeleton station rows -->
+                <div class="station-row" id="station-skeleton-1"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+                <div class="station-row" id="station-skeleton-2"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+                <div class="station-row" id="station-skeleton-3"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+                <div class="station-row" id="station-skeleton-4"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+            </div>
+
+        </div>
+
+        <!-- Plan mode content -->
+        <div id="plan-content" style="display: none;">
+
+            <!-- Plan form -->
+            <div class="plan-form">
+                <div class="plan-field">
+                    <label class="plan-field-label" id="plan-direction-label">I NEED TO BE AT</label>
+                    <span class="plan-location" id="plan-destination">Imperial College London</span>
+                </div>
+                <div class="plan-field">
+                    <label class="plan-field-label">BY</label>
+                    <div class="plan-time-row">
+                        <div class="plan-time-picker">
+                            <select class="plan-select" id="plan-hour"></select>
+                            <span class="plan-time-sep">:</span>
+                            <select class="plan-select" id="plan-minute"></select>
+                            <select class="plan-select plan-select-narrow" id="plan-ampm">
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="plan-day-selector" id="plan-days">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+                <div class="plan-field">
+                    <label class="plan-field-label">WEATHER FORECAST</label>
+                    <div class="weather-strip" id="plan-weather-strip">
+                        <i class="bi bi-cloud"></i>
+                        <span id="plan-weather-text">Select a time to see forecast</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan empty state (shown before result) -->
+            <div class="ds-empty-state" id="plan-empty-state">
+                <i class="bi bi-clock-history"></i>
+                <p class="ds-empty-title">Set your arrival time above</p>
+                <p class="ds-empty-desc">Choose when you need to arrive to get a personalised recommendation</p>
+            </div>
+
+            <!-- Plan result (shown after "plan" is computed) -->
+            <div id="plan-result" style="display: none;">
+
+                <!-- Plan hero card -->
+                <div class="hero-card" id="plan-hero">
+                    <div class="hero-label">RECOMMENDED PLAN</div>
+                    <div class="plan-hero-leave" id="plan-leave-by">--</div>
+                    <div class="plan-hero-subtitle" id="plan-subtitle">--</div>
+
+                    <!-- Timeline bar -->
+                    <div class="plan-timeline">
+                        <div class="plan-timeline-bar">
+                            <div class="plan-tl-seg plan-tl-cycle" id="plan-tl-cycle"></div>
+                            <div class="plan-tl-seg plan-tl-dock" id="plan-tl-dock"></div>
+                            <div class="plan-tl-seg plan-tl-walk" id="plan-tl-walk"></div>
+                        </div>
+                        <div class="plan-timeline-labels" id="plan-tl-labels"></div>
+                    </div>
+
+                    <div class="hero-trip" id="plan-arrival-strip">--</div>
+                </div>
+
+                <!-- Why not closer -->
+                <div class="plan-why-card" id="plan-why" style="display: none;">
+                    <div class="plan-why-label">WHY NOT CLOSER?</div>
+                    <div class="plan-why-text" id="plan-why-text"></div>
+                </div>
+
+                <!-- Alternatives list -->
+                <div class="station-list-header">STATION COMPARISON</div>
+                <div class="station-list" id="plan-alternatives">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Right panel: map or chart (desktop only) -->
+    <div class="go-map-panel" id="go-map-panel">
+        <!-- Now mode: map -->
+        <div id="go-right-map" class="go-right-view">
+            <div id="go-map" class="go-map"></div>
+            <div class="map-legend" id="map-legend">
+                <div class="map-legend-item">
+                    <span class="map-legend-dot" style="background: var(--danger);"></span>Full
+                </div>
+                <div class="map-legend-item">
+                    <span class="map-legend-dot" style="background: var(--warning);"></span>Low
+                </div>
+                <div class="map-legend-item">
+                    <span class="map-legend-dot" style="background: var(--success);"></span>Available
+                </div>
+                <div class="map-legend-item">
+                    <span class="map-legend-dot map-legend-dot-rec"></span>Recommended
+                </div>
+            </div>
+        </div>
+        <!-- Plan mode: timeline chart -->
+        <div id="go-right-chart" class="go-right-view" style="display: none;">
+            <div class="plan-chart-container">
+                <div class="plan-chart-header">
+                    <span class="plan-chart-title">Predicted dock availability</span>
+                </div>
+                <div class="plan-chart-wrap">
+                    <canvas id="plan-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+/* ── Go layout: mobile = single column, desktop = split panel ── */
+.go-layout {
+    display: flex;
+    height: 100%;
+}
+
+/* Left panel */
+.go-panel {
+    padding: 12px 16px;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+    overflow-y: auto;
+}
+
+/* Right map panel: hidden on mobile */
+.go-map-panel {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .go-layout {
+        height: 100vh;
+    }
+
+    .go-panel {
+        width: 340px;
+        min-width: 340px;
+        max-width: 340px;
+        margin: 0;
+        padding: 16px 20px;
+        border-right: 0.5px solid var(--border);
+        overflow-y: auto;
+    }
+
+    .go-map-panel {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        position: relative;
+    }
+
+    .go-map {
+        flex: 1;
+        width: 100%;
+        min-height: 0;
+    }
+}
+
+/* ── Mode indicator ── */
+.mode-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.mode-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--warning);
+    flex-shrink: 0;
+}
+
+.mode-indicator.evening .mode-dot {
+    background-color: #6366F1;
+}
+
+/* ── Toggles row ── */
+.go-toggles {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+/* ── Hero recommendation card ── */
+.hero-card {
+    background-color: var(--info-bg);
+    border: 0.5px solid var(--info);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+}
+
+.hero-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.hero-station-name {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    line-height: 1.2;
+}
+
+.hero-metrics {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.hero-metric {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 2px;
+}
+
+.hero-metric-value {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.hero-metric-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    line-height: 1.2;
+}
+
+.hero-trip {
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+/* ── Weather strip ── */
+.weather-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.weather-strip i {
+    font-size: 16px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+}
+
+/* ── Station list ── */
+.station-list-header {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.station-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* ── Station row ── */
+.station-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    gap: 10px;
+    border-left: 3px solid transparent;
+    transition: background-color 0.12s;
+    cursor: pointer;
+}
+
+.station-row:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.station-row.recommended {
+    background-color: var(--info-bg);
+    border-left-color: var(--info);
+}
+
+.station-row.recommended:hover {
+    background-color: var(--info-bg);
+    filter: brightness(0.95);
+}
+
+.station-row-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+}
+
+.station-row-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.station-row-meta {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.station-row-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.station-row-docks {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+}
+
+.dock-number {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.dock-number.dock-red { color: var(--danger); }
+.dock-number.dock-amber { color: var(--warning); }
+.dock-number.dock-green { color: var(--success); }
+
+.dock-sublabel {
+    font-size: 9px;
+    color: var(--danger);
+    font-weight: 500;
+}
+
+.station-row-confidence {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    min-width: 32px;
+    text-align: right;
+}
+
+/* ── Rank badge ── */
+.rank-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+}
+
+.station-row.recommended .rank-badge {
+    background-color: var(--info);
+    color: #fff;
+}
+
+/* ── Map legend ── */
+.map-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 8px 16px;
+    background-color: var(--bg-primary);
+    border-top: 0.5px solid var(--border);
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.map-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.map-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.map-legend-dot-rec {
+    background: var(--info);
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 3.5px var(--info);
+}
+
+/* ── Right panel view switching ── */
+.go-right-view {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ── Plan form ── */
+.plan-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.plan-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.plan-field-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.plan-location {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.plan-time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.plan-time-picker {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.plan-select {
+    background-color: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: center;
+    min-width: 52px;
+}
+
+.plan-select-narrow {
+    min-width: 46px;
+}
+
+.plan-time-sep {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+}
+
+.plan-day-selector {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    overflow-x: auto;
+}
+
+.plan-day-btn {
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: none;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    transition: all 0.12s;
+    flex-shrink: 0;
+}
+
+.plan-day-btn.active {
+    background-color: var(--info-bg);
+    color: var(--info);
+}
+
+.plan-day-btn:hover:not(.active) {
+    background-color: var(--bg-tertiary);
+}
+
+/* ── Plan hero card ── */
+.plan-hero-leave {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.plan-hero-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+/* ── Timeline bar ── */
+.plan-timeline {
+    margin-bottom: 10px;
+}
+
+.plan-timeline-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    gap: 2px;
+    margin-bottom: 4px;
+}
+
+.plan-tl-seg {
+    border-radius: 3px;
+    min-width: 8px;
+}
+
+.plan-tl-cycle {
+    background-color: var(--info);
+}
+
+.plan-tl-dock {
+    background-color: var(--warning);
+}
+
+.plan-tl-walk {
+    background-color: var(--success);
+}
+
+.plan-timeline-labels {
+    display: flex;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.plan-tl-label {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.plan-tl-label-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Why not closer card ── */
+.plan-why-card {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    margin-bottom: 16px;
+}
+
+.plan-why-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.plan-why-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+/* ── Plan alternatives list ── */
+.alt-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    gap: 8px;
+    border-left: 3px solid transparent;
+}
+
+.alt-row.alt-recommended {
+    background-color: var(--info-bg);
+    border-left-color: var(--info);
+}
+
+.alt-row-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+}
+
+.alt-row-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.alt-row-reason {
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.alt-row-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.alt-row-confidence {
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+/* ── Desktop plan chart ── */
+.plan-chart-container {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.plan-chart-header {
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.plan-chart-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.plan-chart-wrap {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+.plan-chart-wrap canvas {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ── Mode transitions ── */
+#now-content,
+#plan-content {
+    transition: opacity 0.2s ease;
+}
+
+#now-content.fading,
+#plan-content.fading {
+    opacity: 0;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/go.js') }}"></script>
+{% endblock %}

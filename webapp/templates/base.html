@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#ffffff">
-    <title>{% block title %}Door2Dock{% endblock %} – Smart Commute</title>
+    <meta name="theme-color" content="#F5F5F0">
+    <title>{% block title %}DockSense{% endblock %}</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚲</text></svg>">
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Leaflet -->
@@ -18,99 +16,65 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Apply saved theme immediately to prevent flash -->
+    <script>
+    (function() {
+        var t = localStorage.getItem('ds_appearance');
+        if (t === 'dark') document.documentElement.setAttribute('data-bs-theme', 'dark');
+        else if (t === 'light') document.documentElement.setAttribute('data-bs-theme', 'light');
+    })();
+    </script>
     {% block head %}{% endblock %}
 </head>
 <body>
-    <!-- Top bar (minimal on mobile) -->
-    <nav class="navbar sticky-top bg-white border-bottom shadow-sm d-none d-md-flex">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                <i class="bi bi-bicycle fs-4 text-primary"></i>
-                <span class="fw-bold">Door2Dock</span>
-            </a>
-            <ul class="navbar-nav flex-row gap-3">
-                <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/' %}active fw-semibold{% endif %}" href="/">Now</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/plan' %}active fw-semibold{% endif %}" href="/plan">Plan</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/insights' %}active fw-semibold{% endif %}" href="/insights">Insights</a>
-                </li>
-            </ul>
-            <span class="text-muted small" id="last-update">
-                <i class="bi bi-clock"></i> <span id="update-time">--</span>
-            </span>
-        </div>
-    </nav>
+    <div class="app-shell">
+        <!-- Desktop Sidebar -->
+        <nav class="sidebar" aria-label="Main navigation">
+            <div class="sidebar-nav">
+                <a href="/go" class="sidebar-item {% if active_tab == 'go' %}active{% endif %}" data-tooltip="Go">
+                    <i class="bi bi-cursor-fill"></i>
+                </a>
+                <a href="/map" class="sidebar-item {% if active_tab == 'map' %}active{% endif %}" data-tooltip="Map">
+                    <i class="bi bi-geo-alt"></i>
+                </a>
+                <a href="/insights" class="sidebar-item {% if active_tab == 'insights' %}active{% endif %}" data-tooltip="Insights">
+                    <i class="bi bi-bar-chart"></i>
+                </a>
+                <div class="sidebar-spacer"></div>
+                <a href="/settings" class="sidebar-item {% if active_tab == 'settings' %}active{% endif %}" data-tooltip="Settings">
+                    <i class="bi bi-gear"></i>
+                </a>
+            </div>
+        </nav>
 
-    <!-- Mobile header -->
-    <div class="d-md-none bg-white border-bottom px-3 py-2 sticky-top shadow-sm">
-        <div class="d-flex align-items-center justify-content-between">
-            <a class="text-decoration-none text-dark d-flex align-items-center gap-2" href="/">
-                <i class="bi bi-bicycle fs-5 text-primary"></i>
-                <span class="fw-bold">Door2Dock</span>
-            </a>
-            <span class="text-muted small" id="last-update-mobile">
-                <span class="live-dot"></span> <span id="update-time-mobile">--</span>
-            </span>
-        </div>
+        <!-- Main Content -->
+        <main class="app-content">
+            {% block content %}{% endblock %}
+        </main>
     </div>
 
-    <!-- Main Content -->
-    <main class="container py-3 pb-mobile">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Mobile bottom nav -->
-    <nav class="bottom-nav d-md-none">
-        <a href="/" class="bottom-nav-item {% if request.path == '/' %}active{% endif %}">
-            <i class="bi bi-speedometer2"></i>
-            <span>Now</span>
+    <!-- Mobile Bottom Nav -->
+    <nav class="bottom-nav" aria-label="Main navigation">
+        <a href="/go" class="bottom-nav-item {% if active_tab == 'go' %}active{% endif %}">
+            <i class="bi bi-cursor-fill"></i>
+            <span>Go</span>
         </a>
-        <a href="/plan" class="bottom-nav-item {% if request.path == '/plan' %}active{% endif %}">
-            <i class="bi bi-alarm"></i>
-            <span>Plan</span>
+        <a href="/map" class="bottom-nav-item {% if active_tab == 'map' %}active{% endif %}">
+            <i class="bi bi-geo-alt"></i>
+            <span>Map</span>
         </a>
-        <a href="/insights" class="bottom-nav-item {% if request.path == '/insights' %}active{% endif %}">
-            <i class="bi bi-lightbulb"></i>
+        <a href="/insights" class="bottom-nav-item {% if active_tab == 'insights' %}active{% endif %}">
+            <i class="bi bi-bar-chart"></i>
             <span>Insights</span>
+        </a>
+        <a href="/settings" class="bottom-nav-item {% if active_tab == 'settings' %}active{% endif %}">
+            <i class="bi bi-gear"></i>
+            <span>Settings</span>
         </a>
     </nav>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Global: update navbar timestamp on all pages -->
-    <script>
-    async function _updateNavTime() {
-        try {
-            const resp = await fetch('/api/weather-now');
-            const w = await resp.json();
-            if (w.timestamp) {
-                const t = new Date(w.timestamp);
-                const now = new Date();
-                const diffMin = Math.round((now - t) / 60000);
-                const timeStr = t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-                const agoStr = diffMin <= 1 ? 'just now' : diffMin + ' min ago';
-                const text = timeStr + ' (' + agoStr + ')';
-                const el = document.getElementById('update-time');
-                if (el) el.textContent = text;
-                const elM = document.getElementById('update-time-mobile');
-                if (elM) elM.textContent = text;
-            }
-        } catch (e) { /* silent */ }
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            const el = document.getElementById('update-time');
-            if (el && el.textContent === '--') _updateNavTime();
-        }, 1500);
-        setInterval(_updateNavTime, 60000);
-    });
-    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

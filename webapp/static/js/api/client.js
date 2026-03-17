@@ -19,7 +19,7 @@ import {
 } from './mockData.js';
 
 // ── Toggle: true = mock data, false = live API ──
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 // Simulate network latency (ms) in mock mode
 const MOCK_DELAY = 200;

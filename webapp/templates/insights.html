@@ -2,336 +2,629 @@
 {% block title %}Insights{% endblock %}
 
 {% block content %}
-<h5 class="fw-bold mb-1">Insights</h5>
-<p class="text-muted small mb-3">Dock availability patterns, weather effects, and model performance</p>
+<div class="insights-page">
 
-<!-- Model Performance -->
-<div class="card mb-4">
-    <div class="card-header"><i class="bi bi-cpu"></i> Model Performance</div>
-    <div class="card-body">
-        <div class="row g-2">
-            <div class="col-6 col-md-3">
-                <div class="text-center py-2">
-                    <div class="text-muted small">Model</div>
-                    <div class="fs-5 fw-bold" id="model-name">--</div>
+    <!-- Header -->
+    <div class="insights-header">
+        <h1 class="insights-title">Insights</h1>
+        <p class="insights-subtitle" id="insights-subtitle">--</p>
+    </div>
+
+    <!-- Sub-navigation pills -->
+    <div class="ds-pills insights-pills" id="insights-nav">
+        <button class="ds-pill active" data-page="overview">Overview</button>
+        <button class="ds-pill" data-page="correlations">Correlations</button>
+        <button class="ds-pill" data-page="patterns">Time patterns</button>
+        <button class="ds-pill" data-page="model">Model</button>
+    </div>
+
+    <!-- ═══ Overview sub-page ═══ -->
+    <div class="insights-subpage" id="page-overview">
+
+        <!-- Skeleton metric cards (shown while loading) -->
+        <div class="metric-grid" id="metric-skeleton">
+            <div class="ds-metric-card"><div class="skeleton skeleton-text" style="width:80px;"></div><div class="skeleton skeleton-text-xl" style="width:50px;"></div><div class="skeleton skeleton-text" style="width:100px;margin-top:8px;"></div></div>
+            <div class="ds-metric-card"><div class="skeleton skeleton-text" style="width:80px;"></div><div class="skeleton skeleton-text-xl" style="width:50px;"></div><div class="skeleton skeleton-text" style="width:100px;margin-top:8px;"></div></div>
+            <div class="ds-metric-card"><div class="skeleton skeleton-text" style="width:80px;"></div><div class="skeleton skeleton-text-xl" style="width:50px;"></div><div class="skeleton skeleton-text" style="width:100px;margin-top:8px;"></div></div>
+            <div class="ds-metric-card"><div class="skeleton skeleton-text" style="width:80px;"></div><div class="skeleton skeleton-text-xl" style="width:50px;"></div><div class="skeleton" style="height:4px;width:100%;margin-top:8px;border-radius:2px;"></div></div>
+        </div>
+
+        <!-- Error state (hidden) -->
+        <div id="insights-error" style="display: none;">
+            <div class="ds-error-state">
+                <i class="bi bi-cloud-slash"></i>
+                <p class="ds-error-title">Couldn't load insights</p>
+                <p class="ds-error-desc">Collecting data — insights will appear after a few days of data collection</p>
+                <button class="ds-retry-btn" id="insights-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
+            </div>
+        </div>
+
+        <!-- Data source metric cards -->
+        <div class="metric-grid" id="metric-cards" style="display: none;">
+            <div class="ds-metric-card">
+                <div class="metric-label">Dock readings</div>
+                <div class="metric-value" id="mc-docks">--</div>
+                <div class="metric-badge"><span class="ds-badge ds-badge-info">TfL Santander API</span></div>
+            </div>
+            <div class="ds-metric-card">
+                <div class="metric-label">Weather observations</div>
+                <div class="metric-value" id="mc-weather">--</div>
+                <div class="metric-badge"><span class="ds-badge ds-badge-success">Open-Meteo API</span></div>
+            </div>
+            <div class="ds-metric-card">
+                <div class="metric-label">Temp. sensor readings</div>
+                <div class="metric-value" id="mc-sensor">--</div>
+                <div class="metric-badge"><span class="ds-badge ds-badge-warning">KY-028 sensor</span></div>
+            </div>
+            <div class="ds-metric-card">
+                <div class="metric-label">Model accuracy (7d)</div>
+                <div class="metric-value" id="mc-accuracy">--</div>
+                <div class="metric-progress">
+                    <div class="metric-progress-bar" id="mc-accuracy-bar"></div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="text-center py-2">
-                    <div class="text-muted small">MAE</div>
-                    <div class="fs-5 fw-bold" id="model-mae">--</div>
-                    <div class="small text-muted">avg error (docks)</div>
+        </div>
+
+        <!-- Chart + Findings (2-col on desktop) -->
+        <div class="overview-grid" id="overview-grid" style="display: none;">
+
+            <!-- Dock availability chart -->
+            <div class="ds-card overview-chart-card">
+                <div class="overview-chart-title">Dock availability — Imperial College station</div>
+                <canvas id="overview-chart" height="200"></canvas>
+                <div class="overview-chart-caption">Average weekday empty docks (lower = worse)</div>
+            </div>
+
+            <!-- Key findings -->
+            <div class="ds-card overview-findings-card">
+                <div class="overview-findings-label">KEY FINDINGS</div>
+                <div class="overview-findings-list" id="findings-list">
+                    <!-- Rendered by JS -->
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="text-center py-2">
-                    <div class="text-muted small">R²</div>
-                    <div class="fs-5 fw-bold" id="model-r2">--</div>
-                    <div class="small text-muted">variance explained</div>
+
+        </div>
+
+    </div>
+
+    <!-- ═══ Correlations sub-page ═══ -->
+    <div class="insights-subpage" id="page-correlations" style="display: none;">
+
+        <div class="corr-grid">
+
+            <!-- Rain effect chart -->
+            <div class="ds-card corr-chart-card">
+                <div class="corr-chart-header">
+                    <span class="corr-chart-title">Rain effect on dock pressure</span>
+                    <span class="ds-badge ds-badge-info">Open-Meteo API</span>
+                </div>
+                <div class="corr-chart-wrap">
+                    <canvas id="corr-rain-chart"></canvas>
+                </div>
+                <div class="corr-chart-caption">Rain shifts the pressure curve ~23 min later</div>
+            </div>
+
+            <!-- Sensor vs API temperature chart -->
+            <div class="ds-card corr-chart-card">
+                <div class="corr-chart-header">
+                    <span class="corr-chart-title">Temperature: sensor vs. API</span>
+                    <span class="ds-badge ds-badge-warning">KY-028 sensor</span>
+                </div>
+                <div class="corr-chart-wrap">
+                    <canvas id="corr-temp-chart"></canvas>
+                </div>
+                <div class="corr-chart-caption">Sensor tracks API closely (r = 0.94) with slight noise</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ═══ Time patterns sub-page ═══ -->
+    <div class="insights-subpage" id="page-patterns" style="display: none;">
+
+        <!-- Heatmap -->
+        <div class="ds-card patterns-heatmap-card">
+            <div class="patterns-chart-header">
+                <span class="corr-chart-title">Empty docks by hour and day — Imperial College</span>
+            </div>
+            <div class="heatmap-scroll">
+                <div class="heatmap" id="patterns-heatmap">
+                    <!-- Rendered by JS -->
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="text-center py-2">
-                    <div class="text-muted small">Horizon</div>
-                    <div class="fs-5 fw-bold" id="model-horizon">--</div>
-                    <div class="small text-muted">minutes ahead</div>
+            <div class="heatmap-legend-bar">
+                <span class="heatmap-legend-label">0 docks</span>
+                <div class="heatmap-legend-gradient"></div>
+                <span class="heatmap-legend-label">15+ docks</span>
+            </div>
+        </div>
+
+        <!-- Day-of-week + Station fill order (side by side on desktop) -->
+        <div class="patterns-bottom-grid">
+
+            <!-- Day-of-week bar chart -->
+            <div class="ds-card">
+                <div class="patterns-chart-header">
+                    <span class="corr-chart-title">Average 8 AM availability by day</span>
+                </div>
+                <div class="patterns-chart-wrap">
+                    <canvas id="patterns-dow-chart"></canvas>
                 </div>
             </div>
-        </div>
-        <div class="mt-2">
-            <div class="text-muted small" id="model-features-section" style="display:none;">
-                <strong>Top Features:</strong> <span id="model-features">--</span>
-            </div>
-            <div class="text-center text-muted small py-1" id="model-placeholder">
-                Model metrics appear once the model is deployed.
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Time Series -->
-<div class="row g-2 mb-3">
-    <div class="col-md-6">
-        <label class="form-label text-muted small mb-1">Station</label>
-        <select class="form-select form-select-sm" id="station-select">
-            <option value="">Loading stations...</option>
-        </select>
-    </div>
-    <div class="col-md-6">
-        <label class="form-label text-muted small mb-1">Time Range</label>
-        <div class="btn-group btn-group-sm w-100" role="group">
-            <button class="btn btn-outline-secondary" data-hours="6">6h</button>
-            <button class="btn btn-outline-secondary" data-hours="12">12h</button>
-            <button class="btn btn-outline-secondary active" data-hours="24">24h</button>
-            <button class="btn btn-outline-secondary" data-hours="48">48h</button>
-            <button class="btn btn-outline-secondary" data-hours="168">7d</button>
-        </div>
-    </div>
-</div>
+            <!-- Station fill order -->
+            <div class="ds-card">
+                <div class="patterns-chart-header">
+                    <span class="corr-chart-title">Which stations fill first?</span>
+                    <span class="ds-badge ds-badge-info">weekday morning</span>
+                </div>
+                <div class="fill-order-list" id="fill-order-list">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
 
-<!-- Summary Stats -->
-<div class="row g-2 mb-3" id="ts-summary" style="display: none;">
-    <div class="col-3">
-        <div class="card h-100">
-            <div class="card-body text-center py-2 px-1">
-                <div class="text-muted small">Now</div>
-                <div class="fs-4 fw-bold" id="ts-current">--</div>
-            </div>
         </div>
-    </div>
-    <div class="col-3">
-        <div class="card h-100">
-            <div class="card-body text-center py-2 px-1">
-                <div class="text-muted small">Avg</div>
-                <div class="fs-4 fw-bold text-primary" id="ts-avg">--</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-3">
-        <div class="card h-100">
-            <div class="card-body text-center py-2 px-1">
-                <div class="text-muted small">Min</div>
-                <div class="fs-4 fw-bold text-danger" id="ts-min">--</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-3">
-        <div class="card h-100">
-            <div class="card-body text-center py-2 px-1">
-                <div class="text-muted small">Max</div>
-                <div class="fs-4 fw-bold text-success" id="ts-max">--</div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Docks Chart -->
-<div class="card mb-4">
-    <div class="card-header"><i class="bi bi-graph-up"></i> Free Docks Over Time</div>
-    <div class="card-body">
-        <canvas id="chart-docks" height="100"></canvas>
     </div>
-</div>
 
-<hr class="my-3">
+    <!-- ═══ Model sub-page ═══ -->
+    <div class="insights-subpage" id="page-model" style="display: none;">
 
-<!-- Weekly Patterns -->
-<div class="d-flex justify-content-between align-items-center mb-2">
-    <h6 class="mb-0 fw-bold">Weekly Patterns</h6>
-    <div class="btn-group btn-group-sm">
-        <button class="btn btn-outline-secondary active" data-count="3">Top 3</button>
-        <button class="btn btn-outline-secondary" data-count="5">Top 5</button>
-    </div>
-</div>
+        <div class="model-grid">
 
-<div class="card mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-grid-3x3"></i> Avg Free Docks (Hour &times; Day)</span>
-        <div class="d-flex align-items-center gap-2 small">
-            <span class="text-muted">Low</span>
-            <div class="heatmap-legend"></div>
-            <span class="text-muted">High</span>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="heatmap-container" id="heatmap-grid">
-            <div class="text-center text-muted py-4">
-                <div class="spinner-border spinner-border-sm" role="status"></div>
-                Loading heatmap...
+            <!-- Accuracy over time -->
+            <div class="ds-card model-chart-card">
+                <div class="model-chart-header">
+                    <span class="corr-chart-title">Model accuracy (14-day rolling)</span>
+                    <span class="ds-badge ds-badge-success">84% avg</span>
+                </div>
+                <div class="model-chart-wrap">
+                    <canvas id="model-accuracy-chart"></canvas>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Heatmap Insights -->
-<div class="row g-2 mb-4">
-    <div class="col-4">
-        <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-muted small">Best Slots</div>
-                <div class="fs-6 fw-bold text-success" id="insight-peak">--</div>
+            <!-- Prediction vs actual scatter -->
+            <div class="ds-card model-chart-card">
+                <div class="model-chart-header">
+                    <span class="corr-chart-title">Predicted vs. actual empty docks</span>
+                </div>
+                <div class="model-chart-wrap">
+                    <canvas id="model-scatter-chart"></canvas>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-4">
-        <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-muted small">Worst Slots</div>
-                <div class="fs-6 fw-bold text-danger" id="insight-low">--</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-4">
-        <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-muted small">Hardest Day</div>
-                <div class="fs-6 fw-bold text-warning" id="insight-busiest">--</div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<hr class="my-3">
-
-<!-- Weather Impact -->
-<div class="d-flex justify-content-between align-items-center mb-2">
-    <h6 class="mb-0 fw-bold">Weather Impact</h6>
-    <span class="badge bg-light text-dark border" id="sample-badge">-- samples</span>
-</div>
-
-<!-- Correlation Cards -->
-<div class="row g-2 mb-3" id="corr-cards">
-    <div class="col-6 col-md-3">
-        <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-muted small"><i class="bi bi-thermometer-half"></i> Temp</div>
-                <div class="fs-3 fw-bold" id="corr-temp">--</div>
-                <div class="small text-muted" id="corr-temp-desc">Pearson r</div>
+            <!-- Feature importance -->
+            <div class="ds-card model-chart-card">
+                <div class="model-chart-header">
+                    <span class="corr-chart-title">What drives the prediction?</span>
+                </div>
+                <div class="model-chart-wrap">
+                    <canvas id="model-feature-chart"></canvas>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-muted small"><i class="bi bi-cloud-rain"></i> Rain</div>
-                <div class="fs-3 fw-bold" id="corr-rain">--</div>
-                <div class="small text-muted" id="corr-rain-desc">Pearson r</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-muted small"><i class="bi bi-wind"></i> Wind</div>
-                <div class="fs-3 fw-bold" id="corr-wind">--</div>
-                <div class="small text-muted" id="corr-wind-desc">Pearson r</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card h-100">
-            <div class="card-body text-center py-2">
-                <div class="text-muted small"><i class="bi bi-droplet"></i> Humidity</div>
-                <div class="fs-3 fw-bold" id="corr-humidity">--</div>
-                <div class="small text-muted" id="corr-humidity-desc">Pearson r</div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Binned Bar Charts -->
-<div class="row g-2 mb-2">
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header"><i class="bi bi-thermometer-half"></i> By Temperature</div>
-            <div class="card-body"><canvas id="chart-temp" height="120"></canvas></div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header"><i class="bi bi-cloud-rain"></i> By Precipitation</div>
-            <div class="card-body"><canvas id="chart-rain" height="120"></canvas></div>
-        </div>
-    </div>
-</div>
-<div class="row g-2 mb-3">
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header"><i class="bi bi-wind"></i> By Wind Speed</div>
-            <div class="card-body"><canvas id="chart-wind" height="120"></canvas></div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header"><i class="bi bi-droplet"></i> By Humidity</div>
-            <div class="card-body"><canvas id="chart-humidity" height="120"></canvas></div>
-        </div>
-    </div>
-</div>
-
-<!-- Weather Insights -->
-<div class="row g-2 mb-4">
-    <div class="col-6">
-        <div class="card h-100 corr-card-positive">
-            <div class="card-body text-center py-2">
-                <div class="text-muted small"><i class="bi bi-hand-thumbs-up"></i> Best Conditions</div>
-                <div class="fs-6 fw-bold text-success" id="insight-best">--</div>
-                <div class="small text-muted" id="insight-best-detail"></div>
+            <!-- Error distribution -->
+            <div class="ds-card model-chart-card">
+                <div class="model-chart-header">
+                    <span class="corr-chart-title">Prediction error distribution</span>
+                </div>
+                <div class="model-chart-wrap">
+                    <canvas id="model-error-chart"></canvas>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-6">
-        <div class="card h-100 corr-card-negative">
-            <div class="card-body text-center py-2">
-                <div class="text-muted small"><i class="bi bi-hand-thumbs-down"></i> Worst Conditions</div>
-                <div class="fs-6 fw-bold text-danger" id="insight-worst">--</div>
-                <div class="small text-muted" id="insight-worst-detail"></div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<hr class="my-3">
-
-<!-- System Info -->
-<h6 class="fw-bold mb-2">System</h6>
-
-<!-- Architecture -->
-<div class="card mb-3">
-    <div class="card-header"><i class="bi bi-diagram-3"></i> Architecture</div>
-    <div class="card-body">
-<pre class="mb-0 text-muted small" style="line-height: 1.3; overflow-x: auto;">
- TfL BikePoint API ──(1/min)──┐
-                               │
- Open-Meteo Weather ─(1/min)──┼── Heroku Worker ── Supabase DB
-                               │        │
- ESP32 + PIR Sensor ──(HTTPS)─┤   Flask Dashboard
-                               │
-                          Telegram Bot
-</pre>
-    </div>
-</div>
-
-<!-- Data Sources -->
-<div class="row g-2 mb-3">
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-header"><i class="bi bi-bicycle"></i> TfL Bike API</div>
-            <div class="card-body small">
-                21 stations, 800m radius, every 60s. No API key.
-            </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-header"><i class="bi bi-cloud-sun"></i> Open-Meteo</div>
-            <div class="card-body small">
-                Temp, humidity, rain, wind. Every 60s. No API key.
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-header"><i class="bi bi-cpu"></i> ESP32 + PIR</div>
-            <div class="card-body small">
-                Departure detection via motion sensor. Push alerts via Telegram.
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Collection Stats -->
-<div class="card mb-3">
-    <div class="card-header"><i class="bi bi-clipboard-data"></i> Collection Stats</div>
-    <div class="card-body" id="about-stats">
-        <div class="text-center text-muted py-2">
-            <div class="spinner-border spinner-border-sm" role="status"></div>
-            Loading...
-        </div>
     </div>
+
 </div>
 {% endblock %}
 
+{% block head %}
+<style>
+/* ── Insights page ── */
+.insights-page {
+    padding: 16px 16px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+    .insights-page {
+        padding: 24px 32px;
+        max-width: 960px;
+    }
+}
+
+/* ── Header ── */
+.insights-header {
+    margin-bottom: 12px;
+}
+
+.insights-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 0 2px 0;
+}
+
+.insights-subtitle {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+/* ── Sub-nav pills ── */
+.insights-pills {
+    margin-bottom: 20px;
+}
+
+/* ── Metric cards grid ── */
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+    .metric-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.ds-metric-card .metric-badge {
+    margin-top: 8px;
+}
+
+.metric-progress {
+    height: 4px;
+    background-color: var(--bg-tertiary);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.metric-progress-bar {
+    height: 100%;
+    border-radius: 2px;
+    background-color: var(--success);
+    transition: width 0.6s ease;
+    width: 0%;
+}
+
+/* ── Overview grid (chart + findings) ── */
+.overview-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .overview-grid {
+        grid-template-columns: 1.4fr 1fr;
+    }
+}
+
+/* ── Chart card ── */
+.overview-chart-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.overview-chart-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.overview-chart-card canvas {
+    max-height: 220px;
+}
+
+.overview-chart-caption {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 6px;
+    text-align: center;
+}
+
+/* ── Findings card ── */
+.overview-findings-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.overview-findings-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.overview-findings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.finding-item {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.45;
+}
+
+.finding-bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--info);
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.finding-item:nth-child(2) .finding-bullet { background-color: var(--danger); }
+.finding-item:nth-child(3) .finding-bullet { background-color: var(--success); }
+
+/* ── Correlations grid ── */
+.corr-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .corr-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.corr-chart-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.corr-chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 8px;
+}
+
+.corr-chart-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.corr-chart-wrap {
+    position: relative;
+    height: 220px;
+}
+
+.corr-chart-wrap canvas {
+    max-height: 220px;
+}
+
+.corr-chart-caption {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* ── Time patterns ── */
+.patterns-heatmap-card {
+    margin-bottom: 12px;
+}
+
+.patterns-chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 8px;
+}
+
+.patterns-chart-wrap {
+    height: 220px;
+}
+
+.patterns-chart-wrap canvas {
+    max-height: 220px;
+}
+
+/* Heatmap */
+.heatmap-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.heatmap {
+    display: grid;
+    grid-template-columns: 40px repeat(24, 1fr);
+    grid-template-rows: auto repeat(7, 1fr);
+    gap: 2px;
+    min-width: 540px;
+}
+
+.hm-header {
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-align: center;
+    padding: 2px 0;
+    user-select: none;
+}
+
+.hm-row-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    padding-right: 4px;
+}
+
+.hm-cell {
+    border-radius: 3px;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: default;
+    transition: transform 0.1s;
+}
+
+.hm-cell:hover {
+    transform: scale(1.15);
+    z-index: 1;
+}
+
+/* Legend gradient bar */
+.heatmap-legend-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.heatmap-legend-label {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+}
+
+.heatmap-legend-gradient {
+    width: 120px;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(to right, #C62828, #E53935, #EF6C00, #F9A825, #66BB6A, #2E7D32);
+}
+
+/* Bottom grid */
+.patterns-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .patterns-bottom-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Fill order list */
+.fill-order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fill-order-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fill-order-rank {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 500;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.fill-order-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    width: 130px;
+}
+
+.fill-order-bar-wrap {
+    flex: 1;
+    height: 14px;
+    background-color: var(--bg-tertiary);
+    border-radius: 7px;
+    overflow: hidden;
+    position: relative;
+}
+
+.fill-order-bar {
+    height: 100%;
+    border-radius: 7px;
+    transition: width 0.4s ease;
+}
+
+.fill-order-time {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    width: 40px;
+    text-align: right;
+}
+
+/* ── Model grid ── */
+.model-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .model-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.model-chart-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.model-chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 8px;
+}
+
+.model-chart-wrap {
+    position: relative;
+    height: 220px;
+}
+
+.model-chart-wrap canvas {
+    max-height: 220px;
+}
+</style>
+{% endblock %}
+
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/insights.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/insights.js') }}"></script>
 {% endblock %}

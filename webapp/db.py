@@ -48,6 +48,17 @@ def query(sql, params=None):
     return rows
 
 
+def execute(sql, params=None):
+    """Execute a write query (INSERT/UPDATE/DELETE). Returns row count."""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(sql, params or ())
+    rowcount = cur.rowcount
+    cur.close()
+    conn.close()
+    return rowcount
+
+
 def query_one(sql, params=None):
     """Execute a read query and return a single dict or None."""
     conn = get_db()
