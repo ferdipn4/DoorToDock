@@ -373,6 +373,15 @@ body {
 
 .go-toggles .ds-segmented {
   border: 1px solid var(--border);
+  flex: 1;
+}
+
+.go-toggles .ds-segmented-btn {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .ds-segmented-btn {
