@@ -13,6 +13,10 @@ let mapMarkers = {};
 let mapLayers = {};
 let planChart = null;
 let tileLayer = null;
+let mobileMap = null;
+let mobileMapMarkers = {};
+let mobileMapLayers = {};
+let mobileView = 'list'; // 'list' | 'map'
 
 // Track which states have been loaded to avoid redundant fetches
 let loadedStates = {};
@@ -38,10 +42,11 @@ let fromNowSort = 'distance';
 // -- Init --
 document.addEventListener('DOMContentLoaded', () => {
     autoDetectDirection();
+    handleDeepLink();
     setupToggles();
     setupPlanForms();
     setupSortButtons();
-    handleDeepLink();
+    setupMobileViewToggle();
     switchState();
     initDesktopMap();
     window.addEventListener('resize', onResize);
@@ -55,7 +60,10 @@ function handleDeepLink() {
     if (d === 'to' || d === 'from') direction = d;
     if (t === 'now') timing = 'now';
     else if (t === 'plan') timing = 'plan';
-    window.history.replaceState({}, '', window.location.pathname);
+    // On desktop, clear URL params; on mobile, keep timing for nav active state
+    if (isDesktop()) {
+        window.history.replaceState({}, '', window.location.pathname);
+    }
     syncToggleUI();
 }
 
@@ -134,6 +142,142 @@ function setupSortFor(containerId, onChange) {
     });
 }
 
+// -- Mobile view toggle (list / map) --
+function setupMobileViewToggle() {
+    const listBtn = document.getElementById('btn-list-view');
+    const mapBtn = document.getElementById('btn-map-view');
+    if (!listBtn || !mapBtn) return;
+
+    listBtn.addEventListener('click', () => {
+        if (mobileView === 'list') return;
+        mobileView = 'list';
+        syncMobileView();
+    });
+    mapBtn.addEventListener('click', () => {
+        if (mobileView === 'map') return;
+        mobileView = 'map';
+        syncMobileView();
+    });
+}
+
+function syncMobileView() {
+    const listBtn = document.getElementById('btn-list-view');
+    const mapBtn = document.getElementById('btn-map-view');
+    if (listBtn) listBtn.classList.toggle('active', mobileView === 'list');
+    if (mapBtn) mapBtn.classList.toggle('active', mobileView === 'map');
+
+    const activeStateEl = document.getElementById(`state-${direction}-now`);
+    const mobileMapContainer = document.getElementById('mobile-map-container');
+
+    if (mobileView === 'map') {
+        // Hide station list content, show mobile map
+        if (activeStateEl) activeStateEl.style.display = 'none';
+        if (mobileMapContainer) {
+            mobileMapContainer.style.display = '';
+            initMobileMap();
+        }
+    } else {
+        // Show station list, hide mobile map
+        if (activeStateEl) activeStateEl.style.display = '';
+        if (mobileMapContainer) mobileMapContainer.style.display = 'none';
+    }
+}
+
+// -- Mobile map --
+function initMobileMap() {
+    const container = document.getElementById('mobile-map');
+    if (!container) return;
+
+    if (!mobileMap) {
+        mobileMap = L.map(container, {
+            zoomControl: true,
+            scrollWheelZoom: true,
+            attributionControl: false,
+        }).setView(IMPERIAL, 15);
+
+        L.tileLayer(isDarkMode() ? TILES_DARK : TILES_LIGHT, { maxZoom: 19 }).addTo(mobileMap);
+
+        const markerFill = isDarkMode() ? '#E8E8E8' : '#333';
+        L.circleMarker(IMPERIAL, {
+            radius: 7, fillColor: markerFill, color: isDarkMode() ? '#444' : '#fff', weight: 2, fillOpacity: 0.9,
+        }).addTo(mobileMap).bindPopup('<strong>Imperial College London</strong>');
+    }
+
+    setTimeout(() => mobileMap.invalidateSize(), 100);
+    renderMobileMapMarkers();
+}
+
+function renderMobileMapMarkers() {
+    if (!mobileMap) return;
+
+    // Clear existing
+    Object.values(mobileMapMarkers).forEach(m => mobileMap.removeLayer(m));
+    Object.values(mobileMapLayers).forEach(l => mobileMap.removeLayer(l));
+    mobileMapMarkers = {};
+    mobileMapLayers = {};
+
+    if (direction === 'to' && predictionData) {
+        const recId = predictionData.recommended.station_id;
+        const predMap = {};
+        predictionData.stations.forEach(s => { predMap[s.station_id] = s; });
+
+        stationsData.forEach(st => {
+            const pred = predMap[st.station_id];
+            if (!pred) return;
+            const docks = Math.round(pred.predicted_empty_docks);
+            const color = dockColor(docks);
+            const isRec = st.station_id === recId;
+            const radius = isRec ? 8 : 6;
+
+            const marker = L.circleMarker([st.latitude, st.longitude], {
+                radius, fillColor: isRec ? COLORS.info : color, color: '#fff', weight: 1.5, fillOpacity: 0.9,
+            }).addTo(mobileMap);
+
+            marker.bindPopup(
+                `<strong>${shortName(st.station_name)}</strong><br>` +
+                `<span style="color:${color}; font-size:1.3em; font-weight:500;">${docks}</span> predicted docks<br>` +
+                `<small>${pred.walk_to_destination_min} min walk to uni</small>`
+            );
+            mobileMapMarkers[st.station_id] = marker;
+
+            if (isRec) {
+                mobileMapLayers.recRing = L.circleMarker([st.latitude, st.longitude], {
+                    radius: 16, fill: false, color: COLORS.info, weight: 2, dashArray: '4, 4',
+                }).addTo(mobileMap);
+            }
+        });
+    } else if (direction === 'from' && stationsData.length) {
+        const sorted = [...stationsData].sort((a, b) => a.walking_distance_m - b.walking_distance_m);
+        const best = sorted.find(s => s.available_bikes > 0) || sorted[0];
+        const bestId = best ? best.station_id : null;
+
+        sorted.forEach(st => {
+            const bikes = st.available_bikes;
+            const color = bikeColor(bikes);
+            const isBest = st.station_id === bestId;
+            const radius = isBest ? 8 : 6;
+
+            const marker = L.circleMarker([st.latitude, st.longitude], {
+                radius, fillColor: isBest ? COLORS.success : color, color: '#fff', weight: 1.5, fillOpacity: 0.9,
+            }).addTo(mobileMap);
+
+            const walkMin = Math.round(st.walking_duration_s / 60);
+            marker.bindPopup(
+                `<strong>${shortName(st.station_name)}</strong><br>` +
+                `<span style="color:${color}; font-size:1.3em; font-weight:500;">${bikes}</span> bikes available<br>` +
+                `<small>${walkMin} min walk from uni</small>`
+            );
+            mobileMapMarkers[st.station_id] = marker;
+
+            if (isBest) {
+                mobileMapLayers.recRing = L.circleMarker([st.latitude, st.longitude], {
+                    radius: 16, fill: false, color: COLORS.success, weight: 2, dashArray: '4, 4',
+                }).addTo(mobileMap);
+            }
+        });
+    }
+}
+
 // -- State switching --
 function switchState() {
     const activeId = `state-${direction}-${timing}`;
@@ -141,13 +285,35 @@ function switchState() {
     STATE_IDS.forEach(id => {
         const el = document.getElementById(id);
         if (id === activeId) {
-            el.style.display = '';
+            // On mobile map view in Now mode, keep state hidden (map is shown instead)
+            if (!isDesktop() && timing === 'now' && mobileView === 'map') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = '';
+            }
             el.classList.add('fade-in');
             setTimeout(() => el.classList.remove('fade-in'), 250);
         } else {
             el.style.display = 'none';
         }
     });
+
+    // Show/hide mobile view toggle (only in Now mode on mobile)
+    const viewToggle = document.getElementById('view-toggle');
+    if (viewToggle) {
+        viewToggle.style.display = (!isDesktop() && timing === 'now') ? '' : 'none';
+    }
+
+    // Hide mobile map when switching to Plan mode
+    const mobileMapContainer = document.getElementById('mobile-map-container');
+    if (mobileMapContainer && timing === 'plan') {
+        mobileMapContainer.style.display = 'none';
+    }
+
+    // On mobile Now mode with map view, keep map visible
+    if (!isDesktop() && timing === 'now' && mobileView === 'map') {
+        if (mobileMapContainer) mobileMapContainer.style.display = '';
+    }
 
     // Desktop right panel
     if (timing === 'now') {
@@ -196,6 +362,7 @@ async function loadToNow() {
         renderToNowWeather(data.weather);
         renderToNowStations(data.stations, data.recommended.station_id);
         if (map) renderMapMarkers();
+        if (mobileMap) renderMobileMapMarkers();
     } catch (e) {
         console.error('Failed to load prediction:', e);
         skeleton.style.display = 'none';
@@ -301,6 +468,7 @@ async function loadFromNow() {
 
         // Update map for From mode
         if (map) renderMapMarkersFrom(sorted, best.station_id);
+        if (mobileMap) renderMobileMapMarkers();
     } catch (e) {
         console.error('Failed to load stations:', e);
         skeleton.style.display = 'none';

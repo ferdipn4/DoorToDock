@@ -31,11 +31,11 @@
         <!-- Desktop Sidebar -->
         <nav class="sidebar" aria-label="Main navigation">
             <div class="sidebar-nav">
-                <a href="/go" class="sidebar-item {% if active_tab == 'go' %}active{% endif %}" data-tooltip="Go">
+                <a href="/go?timing=now" class="sidebar-item {% if active_tab == 'go' and active_timing|default('now') == 'now' %}active{% endif %}" data-tooltip="Now">
                     <i class="bi bi-cursor-fill"></i>
                 </a>
-                <a href="/map" class="sidebar-item sidebar-map-item {% if active_tab == 'map' %}active{% endif %}" data-tooltip="Map" style="display:none;">
-                    <i class="bi bi-geo-alt"></i>
+                <a href="/go?timing=plan" class="sidebar-item {% if active_tab == 'go' and active_timing|default('now') == 'plan' %}active{% endif %}" data-tooltip="Plan trip">
+                    <i class="bi bi-calendar-check"></i>
                 </a>
                 <a href="/insights" class="sidebar-item {% if active_tab == 'insights' %}active{% endif %}" data-tooltip="Insights">
                     <i class="bi bi-bar-chart"></i>
@@ -55,13 +55,13 @@
 
     <!-- Mobile Bottom Nav -->
     <nav class="bottom-nav" aria-label="Main navigation">
-        <a href="/go" class="bottom-nav-item {% if active_tab == 'go' %}active{% endif %}">
+        <a href="/go?timing=now" class="bottom-nav-item {% if active_tab == 'go' and active_timing|default('now') == 'now' %}active{% endif %}">
             <i class="bi bi-cursor-fill"></i>
-            <span>Go</span>
+            <span>Now</span>
         </a>
-        <a href="/map" class="bottom-nav-item {% if active_tab == 'map' %}active{% endif %}">
-            <i class="bi bi-geo-alt"></i>
-            <span>Map</span>
+        <a href="/go?timing=plan" class="bottom-nav-item {% if active_tab == 'go' and active_timing|default('now') == 'plan' %}active{% endif %}">
+            <i class="bi bi-calendar-check"></i>
+            <span>Plan trip</span>
         </a>
         <a href="/insights" class="bottom-nav-item {% if active_tab == 'insights' %}active{% endif %}">
             <i class="bi bi-bar-chart"></i>

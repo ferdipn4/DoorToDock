@@ -1,6 +1,6 @@
 """HTML page routes for the DockSense app."""
 
-from flask import Blueprint, render_template, redirect
+from flask import Blueprint, render_template, redirect, request
 
 views = Blueprint("views", __name__)
 
@@ -12,12 +12,13 @@ def index():
 
 @views.route("/go")
 def go():
-    return render_template("go.html", active_tab="go")
+    timing = request.args.get("timing", "now")
+    return render_template("go.html", active_tab="go", active_timing=timing)
 
 
 @views.route("/map")
 def map_tab():
-    return render_template("map_tab.html", active_tab="map")
+    return redirect("/go?timing=now")
 
 
 @views.route("/insights")

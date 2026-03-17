@@ -9,13 +9,25 @@
 
         <!-- Toggle row -->
         <div class="go-toggles">
-            <div class="ds-segmented">
+            <div class="ds-segmented desktop-only-toggle">
                 <button class="ds-segmented-btn active" id="btn-now">Now</button>
                 <button class="ds-segmented-btn" id="btn-plan">Plan trip</button>
             </div>
             <div class="ds-segmented">
                 <button class="ds-segmented-btn active" id="btn-to">To Imperial</button>
                 <button class="ds-segmented-btn" id="btn-from">From Imperial</button>
+            </div>
+        </div>
+
+        <!-- Mobile: list/map view toggle (Now mode only) -->
+        <div class="go-view-toggle" id="view-toggle" style="display: none;">
+            <div class="ds-segmented" style="width: 100%;">
+                <button class="ds-segmented-btn active" id="btn-list-view" style="flex:1; text-align:center;">
+                    <i class="bi bi-list-ul"></i> Show list
+                </button>
+                <button class="ds-segmented-btn" id="btn-map-view" style="flex:1; text-align:center;">
+                    <i class="bi bi-geo-alt"></i> Show on map
+                </button>
             </div>
         </div>
 
@@ -285,6 +297,25 @@
             </div>
         </div>
 
+        <!-- Mobile map (Now mode, "Show on map" view) -->
+        <div id="mobile-map-container" style="display: none;">
+            <div id="mobile-map" class="mobile-map-canvas"></div>
+            <div class="map-legend" id="mobile-map-legend">
+                <div class="map-legend-item">
+                    <span class="map-legend-dot" style="background: var(--danger);"></span>Full
+                </div>
+                <div class="map-legend-item">
+                    <span class="map-legend-dot" style="background: var(--warning);"></span>Low
+                </div>
+                <div class="map-legend-item">
+                    <span class="map-legend-dot" style="background: var(--success);"></span>Available
+                </div>
+                <div class="map-legend-item">
+                    <span class="map-legend-dot map-legend-dot-rec"></span>Recommended
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Right panel: map or chart (desktop only) -->
@@ -379,6 +410,56 @@
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
+}
+
+/* Hide Now/Plan toggle on mobile (handled by bottom nav) */
+@media (max-width: 1023px) {
+    .desktop-only-toggle { display: none !important; }
+}
+
+/* Mobile list/map view toggle */
+.go-view-toggle {
+    margin-bottom: 12px;
+}
+
+@media (min-width: 1024px) {
+    .go-view-toggle { display: none !important; }
+}
+
+/* Mobile map container */
+#mobile-map-container {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 160px);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.mobile-map-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+#mobile-map-container .map-legend {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 800;
+    border-radius: var(--radius-lg);
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 0.5px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+[data-bs-theme="dark"] #mobile-map-container .map-legend {
+    background-color: rgba(26, 26, 26, 0.92);
+}
+
+@media (min-width: 1024px) {
+    #mobile-map-container { display: none !important; }
 }
 
 /* -- Hero recommendation card -- */
