@@ -31,11 +31,16 @@ const COLORS = {
 
 const STATE_IDS = ['state-to-now', 'state-from-now', 'state-to-plan', 'state-from-plan'];
 
+// Sort state
+let toNowSort = 'distance';
+let fromNowSort = 'distance';
+
 // -- Init --
 document.addEventListener('DOMContentLoaded', () => {
     autoDetectDirection();
     setupToggles();
     setupPlanForms();
+    setupSortButtons();
     handleDeepLink();
     switchState();
     initDesktopMap();
@@ -98,6 +103,35 @@ function syncToggleUI() {
 
 function setActiveBtn(id, active) {
     document.getElementById(id).classList.toggle('active', active);
+}
+
+// -- Sort button wiring --
+function setupSortButtons() {
+    setupSortFor('to-now-sort', (sort) => {
+        toNowSort = sort;
+        if (predictionData) renderToNowStations(predictionData.stations, predictionData.recommended.station_id);
+    });
+    setupSortFor('from-now-sort', (sort) => {
+        fromNowSort = sort;
+        if (stationsData.length) {
+            const sorted = [...stationsData].sort((a, b) => a.walking_distance_m - b.walking_distance_m);
+            const best = sorted.find(s => s.available_bikes > 0) || sorted[0];
+            const others = stationsData.filter(s => s.station_id !== (best ? best.station_id : null));
+            renderFromNowStations(others, best ? best.station_id : null);
+        }
+    });
+}
+
+function setupSortFor(containerId, onChange) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            container.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            onChange(btn.dataset.sort);
+        });
+    });
 }
 
 // -- State switching --
@@ -174,8 +208,7 @@ async function loadToNow() {
 
 function renderToNowHero(rec) {
     document.getElementById('to-now-name').textContent = shortName(rec.station_name);
-    document.getElementById('to-now-docks').textContent = rec.predicted_empty_docks;
-    document.getElementById('to-now-confidence').textContent = Math.round(rec.confidence * 100) + '%';
+    document.getElementById('to-now-docks').textContent = Math.round(rec.predicted_empty_docks);
     document.getElementById('to-now-walk').textContent = rec.walk_to_destination_min + ' min';
 
     const total = rec.total_trip_min;
@@ -192,16 +225,22 @@ function renderToNowWeather(weather) {
     if (iconEl) iconEl.className = `bi bi-${icon}`;
     const textEl = document.getElementById('to-now-weather-text');
     if (textEl) textEl.textContent =
-        `${weather.temperature}\u00B0C, ${weather.description} \u2014 ${weather.effect}`;
+        `${weather.temperature}\u00B0C, ${weather.description} \u00B7 ${weather.effect}`;
 }
 
 function renderToNowStations(stations, recommendedId) {
     const container = document.getElementById('to-now-stations');
     // Filter out recommended station for alternatives list
-    const alts = stations.filter(s => s.station_id !== recommendedId);
+    let alts = stations.filter(s => s.station_id !== recommendedId);
+    if (toNowSort === 'distance') {
+        alts = [...alts].sort((a, b) => (a.walk_to_destination_min || 99) - (b.walk_to_destination_min || 99));
+    } else {
+        alts = [...alts].sort((a, b) => b.predicted_empty_docks - a.predicted_empty_docks);
+    }
     container.innerHTML = alts.map(s => {
-        const dockCls = dockColorClass(s.predicted_empty_docks);
-        const isFull = s.predicted_empty_docks === 0;
+        const rounded = Math.round(s.predicted_empty_docks);
+        const dockCls = dockColorClass(rounded);
+        const isFull = rounded === 0;
         return `
         <div class="station-row"
              data-station="${s.station_id}"
@@ -215,10 +254,9 @@ function renderToNowStations(stations, recommendedId) {
                 </div>
             </div>
             <div class="station-row-right">
-                <div class="station-row-confidence">${Math.round(s.confidence * 100)}%</div>
                 <div class="station-row-docks">
-                    <span class="dock-number ${dockCls}">${s.predicted_empty_docks}</span>
-                    ${isFull ? '<span class="dock-sublabel">likely full</span>' : ''}
+                    <span class="dock-number ${dockCls}">${Math.round(s.predicted_empty_docks)}</span>
+                    ${isFull ? '<span class="dock-sublabel">likely full</span>' : '<span class="dock-label">empty docks</span>'}
                 </div>
             </div>
         </div>`;
@@ -275,7 +313,13 @@ async function loadFromNow() {
 
 function renderFromNowStations(stations, bestId) {
     const container = document.getElementById('from-now-stations');
-    container.innerHTML = stations.map(s => {
+    let sorted;
+    if (fromNowSort === 'distance') {
+        sorted = [...stations].sort((a, b) => (a.walking_duration_s || 9999) - (b.walking_duration_s || 9999));
+    } else {
+        sorted = [...stations].sort((a, b) => b.available_bikes - a.available_bikes);
+    }
+    container.innerHTML = sorted.map(s => {
         const bikeCls = bikeColorClass(s.available_bikes);
         const walkMin = Math.round(s.walking_duration_s / 60);
         return `
@@ -293,6 +337,7 @@ function renderFromNowStations(stations, bestId) {
             <div class="station-row-right">
                 <div class="station-row-docks">
                     <span class="dock-number ${bikeCls}">${s.available_bikes}</span>
+                    ${s.available_bikes === 0 ? '<span class="dock-sublabel">no bikes</span>' : '<span class="dock-label">bikes</span>'}
                 </div>
             </div>
         </div>`;
@@ -411,7 +456,7 @@ function renderToPlanResult(data) {
     const leaveStr = leaveTime.toLocaleTimeString('en-GB', {
         hour: '2-digit', minute: '2-digit', hour12: true,
     }).toUpperCase();
-    document.getElementById('to-plan-leave-by').textContent = `Leave by ${leaveStr}`;
+    document.getElementById('to-plan-leave-by').textContent = leaveStr;
 
     // Subtitle
     const stn = shortName(data.recommended_station.station_name);
@@ -495,12 +540,11 @@ function renderFromPlanResult(data) {
     // For "from" mode, predicted_empty_docks represents predicted available bikes
     // (the backend will return the appropriate value based on mode)
     const predicted = rec.predicted_empty_docks;
-    document.getElementById('from-plan-bikes').textContent = predicted;
+    document.getElementById('from-plan-bikes').textContent = Math.round(predicted);
 
     const targetStr = getSelectedTimeDisplay('from-plan');
     document.getElementById('from-plan-bikes-label').textContent = `predicted bikes at ${targetStr}`;
 
-    document.getElementById('from-plan-confidence').textContent = Math.round(rec.confidence * 100) + '%';
     document.getElementById('from-plan-walk').textContent = rec.walk_to_destination_min + ' min';
 
     // Alternatives
@@ -514,9 +558,13 @@ function renderFromPlanResult(data) {
 function renderAlternatives(containerId, alts, theme) {
     const container = document.getElementById(containerId);
     const recClass = theme === 'green' ? 'alt-recommended-green' : 'alt-recommended';
+    const isFrom = theme === 'green';
     container.innerHTML = alts.map(a => {
         const isRec = a.reason === 'recommended';
-        const dockCls = dockColorClass(a.predicted);
+        const rp = Math.round(a.predicted);
+        const colorCls = isFrom ? bikeColorClass(rp) : dockColorClass(rp);
+        const zeroLabel = isFrom ? 'no bikes' : 'likely full';
+        const unitLabel = isFrom ? 'bikes' : 'docks';
         return `
         <div class="alt-row${isRec ? ' ' + recClass : ''}">
             <div class="alt-row-left">
@@ -524,10 +572,9 @@ function renderAlternatives(containerId, alts, theme) {
                 <div class="alt-row-reason">${a.reason}</div>
             </div>
             <div class="alt-row-right">
-                <div class="alt-row-confidence">${Math.round(a.confidence * 100)}%</div>
                 <div class="station-row-docks">
-                    <span class="dock-number ${dockCls}">${a.predicted}</span>
-                    ${a.predicted === 0 ? '<span class="dock-sublabel">likely full</span>' : ''}
+                    <span class="dock-number ${colorCls}">${rp}</span>
+                    ${rp === 0 ? `<span class="dock-sublabel">${zeroLabel}</span>` : `<span class="dock-label">${unitLabel}</span>`}
                 </div>
             </div>
         </div>`;
@@ -567,7 +614,7 @@ function switchDesktopRightPanel(view) {
     }
 }
 
-// -- Plan chart (desktop right panel) --
+// -- Plan chart (desktop right panel) — horizontal bar chart of ALL stations --
 function renderPlanChart() {
     if (!planData) return;
     const canvas = document.getElementById('plan-chart');
@@ -575,87 +622,72 @@ function renderPlanChart() {
 
     if (planChart) planChart.destroy();
 
+    const isFrom = direction === 'from';
     const alts = planData.alternatives_at_target_time;
-    const prefix = direction === 'to' ? 'to-plan' : 'from-plan';
-    const targetTime = new Date(getSelectedTime(prefix));
+    const recStation = planData.recommended_station;
 
-    const labels = [];
-    const timePoints = [];
-    for (let i = -6; i <= 6; i++) {
-        const t = new Date(targetTime.getTime() + i * 5 * 60000);
-        timePoints.push(t);
-        labels.push(t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
-    }
+    // Update title
+    const titleEl = document.getElementById('plan-chart-title');
+    if (titleEl) titleEl.textContent = isFrom
+        ? 'Predicted bikes at all stations'
+        : 'Predicted empty docks at all stations';
 
-    const stationColors = [COLORS.danger, COLORS.warning, COLORS.info];
-    const yLabel = direction === 'to' ? 'Predicted empty docks' : 'Predicted available bikes';
+    // Sort by predicted value descending
+    const sorted = [...alts].sort((a, b) => b.predicted - a.predicted);
 
-    const datasets = alts.slice(0, 3).map((a, idx) => {
-        const baseDocks = a.predicted;
-        const data = timePoints.map((_, i) => {
-            const offset = i - 6;
-            const trend = baseDocks <= 1
-                ? Math.max(0, baseDocks + 2 - Math.abs(offset) * 0.5 + (offset < 0 ? 1 : -0.5))
-                : Math.max(0, baseDocks + (offset < 0 ? 1 : -0.3) * Math.abs(offset) * 0.3);
-            return Math.round(Math.max(0, trend) * 10) / 10;
-        });
+    const labels = sorted.map(a => shortName(a.station_name));
+    const values = sorted.map(a => Math.round(a.predicted));
+    const isRec = sorted.map(a => a.reason === 'recommended');
 
-        return {
-            label: shortName(a.station_name),
-            data,
-            borderColor: a.reason === 'recommended' ? (direction === 'to' ? COLORS.info : COLORS.success) : stationColors[idx],
-            backgroundColor: 'transparent',
-            borderWidth: a.reason === 'recommended' ? 2.5 : 1.5,
-            borderDash: a.reason === 'recommended' ? [] : [4, 3],
-            pointRadius: 0,
-            pointHoverRadius: 4,
-            tension: 0.3,
-        };
+    const barColors = sorted.map(a => {
+        const v = Math.round(a.predicted);
+        if (a.reason === 'recommended') return isFrom ? COLORS.success : COLORS.info;
+        if (isFrom) return bikeColor(v);
+        return dockColor(v);
     });
 
-    const targetIdx = 6;
+    const borderColors = sorted.map(a => {
+        if (a.reason === 'recommended') return isFrom ? COLORS.success : COLORS.info;
+        return 'transparent';
+    });
 
     planChart = new Chart(canvas, {
-        type: 'line',
-        data: { labels, datasets },
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: barColors.map(c => c + '33'),
+                borderColor: barColors,
+                borderWidth: isRec.map(r => r ? 2 : 1),
+                borderRadius: 4,
+                barPercentage: 0.7,
+                categoryPercentage: 0.85,
+            }],
+        },
         options: {
+            indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'line',
-                        font: { size: 11 },
-                        color: isDarkMode() ? '#A0A0A0' : '#6B6B6B',
-                        padding: 16,
-                    },
-                },
-                annotation: undefined,
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: true,
-                        color: isDarkMode() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                        drawTicks: false,
-                    },
-                    ticks: {
-                        font: { size: 10 },
-                        color: isDarkMode() ? '#6B6B6B' : '#9B9B9B',
-                        maxRotation: 0,
-                        callback: function(val, idx) {
-                            return idx % 3 === 0 ? this.getLabelForValue(val) : '';
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            const a = sorted[ctx.dataIndex];
+                            const unit = isFrom ? 'bikes' : 'empty docks';
+                            const rec = a.reason === 'recommended' ? ' (recommended)' : '';
+                            return `${Math.round(a.predicted)} ${unit}${rec}`;
                         },
                     },
                 },
-                y: {
+            },
+            scales: {
+                x: {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: yLabel,
+                        text: isFrom ? 'Predicted bikes' : 'Predicted empty docks',
                         font: { size: 10 },
                         color: isDarkMode() ? '#6B6B6B' : '#9B9B9B',
                     },
@@ -669,36 +701,19 @@ function renderPlanChart() {
                         stepSize: 2,
                     },
                 },
+                y: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 11 },
+                        color: (ctx) => {
+                            const idx = ctx.index;
+                            if (idx !== undefined && isRec[idx]) return isFrom ? COLORS.success : COLORS.info;
+                            return isDarkMode() ? '#A0A0A0' : '#6B6B6B';
+                        },
+                    },
+                },
             },
         },
-        plugins: [{
-            id: 'targetLine',
-            afterDraw(chart) {
-                const meta = chart.getDatasetMeta(0);
-                if (!meta.data[targetIdx]) return;
-                const x = meta.data[targetIdx].x;
-                const { top, bottom } = chart.chartArea;
-                const ctx = chart.ctx;
-                ctx.save();
-                ctx.setLineDash([4, 4]);
-                const lineColor = isDarkMode() ? '#E8E8E8' : '#1A1A1A';
-                ctx.strokeStyle = lineColor;
-                ctx.lineWidth = 1;
-                ctx.globalAlpha = 0.4;
-                ctx.beginPath();
-                ctx.moveTo(x, top);
-                ctx.lineTo(x, bottom);
-                ctx.stroke();
-
-                ctx.setLineDash([]);
-                ctx.globalAlpha = 1;
-                ctx.fillStyle = lineColor;
-                ctx.font = '500 10px -apple-system, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Target', x, top - 4);
-                ctx.restore();
-            },
-        }],
     });
 }
 
@@ -762,7 +777,7 @@ function renderMapMarkers() {
         const pred = predMap[st.station_id];
         if (!pred) return;
 
-        const docks = pred.predicted_empty_docks;
+        const docks = Math.round(pred.predicted_empty_docks);
         const color = dockColor(docks);
         const isRec = st.station_id === recId;
         const radius = isRec ? 8 : 6;

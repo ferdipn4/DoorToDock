@@ -31,7 +31,6 @@
                 <div class="hero-metrics">
                     <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
                     <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
-                    <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
                 </div>
                 <div class="skeleton" style="height: 28px; border-radius: var(--radius-sm);"></div>
             </div>
@@ -44,10 +43,6 @@
                     <div class="hero-metric">
                         <span class="hero-metric-value text-ds-info" id="to-now-docks">--</span>
                         <span class="hero-metric-label">empty docks in 15 min</span>
-                    </div>
-                    <div class="hero-metric">
-                        <span class="hero-metric-value text-ds-success" id="to-now-confidence">--</span>
-                        <span class="hero-metric-label">confidence</span>
                     </div>
                     <div class="hero-metric">
                         <span class="hero-metric-value" id="to-now-walk">--</span>
@@ -81,7 +76,13 @@
             </div>
 
             <!-- Alternatives -->
-            <div class="station-list-header">ALTERNATIVES</div>
+            <div class="station-list-sort-row">
+                <span class="station-list-header">ALTERNATIVES</span>
+                <div class="sort-toggle" id="to-now-sort">
+                    <button class="sort-btn" data-sort="availability">By availability</button>
+                    <button class="sort-btn active" data-sort="distance">By distance</button>
+                </div>
+            </div>
             <div class="station-list" id="to-now-stations">
                 <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
                 <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
@@ -120,7 +121,7 @@
                         <span class="hero-metric-label">walk from uni</span>
                     </div>
                 </div>
-                <div class="hero-trip hero-trip-live">Live data &mdash; no prediction needed</div>
+                <div class="hero-trip hero-trip-live">Live data, no prediction needed</div>
             </div>
 
             <!-- Error state -->
@@ -134,7 +135,13 @@
             </div>
 
             <!-- Other stations -->
-            <div class="station-list-header">OTHER STATIONS</div>
+            <div class="station-list-sort-row">
+                <span class="station-list-header">OTHER STATIONS</span>
+                <div class="sort-toggle" id="from-now-sort">
+                    <button class="sort-btn" data-sort="availability">By availability</button>
+                    <button class="sort-btn active" data-sort="distance">By distance</button>
+                </div>
+            </div>
             <div class="station-list" id="from-now-stations">
                 <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
                 <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
@@ -265,15 +272,11 @@
                             <span class="hero-metric-label" id="from-plan-bikes-label">predicted bikes</span>
                         </div>
                         <div class="hero-metric">
-                            <span class="hero-metric-value text-ds-success" id="from-plan-confidence">--</span>
-                            <span class="hero-metric-label">confidence</span>
-                        </div>
-                        <div class="hero-metric">
                             <span class="hero-metric-value" id="from-plan-walk">--</span>
                             <span class="hero-metric-label">walk from uni</span>
                         </div>
                     </div>
-                    <div class="hero-trip hero-trip-live">Walk to station only &mdash; no cycle time</div>
+                    <div class="hero-trip hero-trip-live">Walk to station only, no cycle time</div>
                 </div>
 
                 <!-- Other stations at future time -->
@@ -304,11 +307,11 @@
                 </div>
             </div>
         </div>
-        <!-- Plan mode: timeline chart -->
+        <!-- Plan mode: station ranking chart -->
         <div id="go-right-chart" class="go-right-view" style="display: none;">
             <div class="plan-chart-container">
                 <div class="plan-chart-header">
-                    <span class="plan-chart-title">Predicted dock availability</span>
+                    <span class="plan-chart-title" id="plan-chart-title">All stations at target time</span>
                 </div>
                 <div class="plan-chart-wrap">
                     <canvas id="plan-chart"></canvas>
@@ -472,6 +475,43 @@
 }
 
 /* -- Station list -- */
+.station-list-sort-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.station-list-sort-row .station-list-header {
+    margin-bottom: 0;
+}
+
+.sort-toggle {
+    display: flex;
+    gap: 2px;
+}
+
+.sort-btn {
+    font-size: 10px;
+    padding: 2px 8px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.12s;
+}
+
+.sort-btn.active {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.sort-btn:hover:not(.active) {
+    color: var(--text-secondary);
+}
+
 .station-list-header {
     font-size: 11px;
     font-weight: 500;
@@ -581,12 +621,11 @@
     font-weight: 500;
 }
 
-.station-row-confidence {
-    font-size: 11px;
+.dock-label {
+    font-size: 9px;
     color: var(--text-tertiary);
-    min-width: 32px;
-    text-align: right;
 }
+
 
 /* -- Map legend -- */
 .map-legend {
@@ -889,10 +928,6 @@
     flex-shrink: 0;
 }
 
-.alt-row-confidence {
-    font-size: 11px;
-    color: var(--text-tertiary);
-}
 
 /* -- Desktop plan chart -- */
 .plan-chart-container {

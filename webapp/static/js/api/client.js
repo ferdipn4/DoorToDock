@@ -21,10 +21,11 @@ import {
 // ── Toggle: true = mock data, false = live API ──
 const USE_MOCK = false;
 
-// Simulate network latency (ms) in mock mode
-const MOCK_DELAY = 200;
+// Minimal mock delay (just enough to simulate async, not noticeable)
+const MOCK_DELAY = 0;
 
 function delay(ms) {
+  if (ms <= 0) return Promise.resolve();
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
