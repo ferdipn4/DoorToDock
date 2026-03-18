@@ -10,128 +10,159 @@
         <p class="insights-subtitle" id="insights-subtitle">--</p>
     </div>
 
-    <!-- Sub-navigation pills -->
-    <div class="ds-pills insights-pills" id="insights-nav">
-        <button class="ds-pill active" data-page="overview">Overview</button>
-        <button class="ds-pill" data-page="correlations">Correlations</button>
-        <button class="ds-pill" data-page="patterns">Time patterns</button>
-        <button class="ds-pill" data-page="model">Model</button>
+    <!-- Error state (hidden) -->
+    <div id="insights-error" style="display: none;">
+        <div class="ds-error-state">
+            <i class="bi bi-cloud-slash"></i>
+            <p class="ds-error-title">Couldn't load insights</p>
+            <p class="ds-error-desc">Collecting data — insights will appear after a few days of data collection</p>
+            <button class="ds-retry-btn" id="insights-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
+        </div>
     </div>
 
-    <!-- ═══ Overview sub-page ═══ -->
-    <div class="insights-subpage" id="page-overview">
+    <!-- ═══ Chapter 1: The Problem ═══ -->
+    <section class="chapter" id="ch-problem">
+        <div class="chapter-label">Chapter 1</div>
+        <h2 class="chapter-title">The morning dock crunch</h2>
+        <p class="chapter-intro">Every weekday between 7:30 and 9:00 AM, students and commuters flood the Santander Cycles docking stations around Imperial College. Docks fill up fast — and if you arrive too late, there's nowhere to park.</p>
 
-        <!-- Skeleton metric cards (shown while loading) -->
-        <div class="metric-grid" id="metric-skeleton">
-            <div class="ds-metric-card"><div class="skeleton skeleton-text" style="width:80px;"></div><div class="skeleton skeleton-text-xl" style="width:50px;"></div><div class="skeleton skeleton-text" style="width:100px;margin-top:8px;"></div></div>
-            <div class="ds-metric-card"><div class="skeleton skeleton-text" style="width:80px;"></div><div class="skeleton skeleton-text-xl" style="width:50px;"></div><div class="skeleton skeleton-text" style="width:100px;margin-top:8px;"></div></div>
-            <div class="ds-metric-card"><div class="skeleton skeleton-text" style="width:80px;"></div><div class="skeleton skeleton-text-xl" style="width:50px;"></div><div class="skeleton skeleton-text" style="width:100px;margin-top:8px;"></div></div>
-            <div class="ds-metric-card"><div class="skeleton skeleton-text" style="width:80px;"></div><div class="skeleton skeleton-text-xl" style="width:50px;"></div><div class="skeleton" style="height:4px;width:100%;margin-top:8px;border-radius:2px;"></div></div>
-        </div>
-
-        <!-- Error state (hidden) -->
-        <div id="insights-error" style="display: none;">
-            <div class="ds-error-state">
-                <i class="bi bi-cloud-slash"></i>
-                <p class="ds-error-title">Couldn't load insights</p>
-                <p class="ds-error-desc">Collecting data — insights will appear after a few days of data collection</p>
-                <button class="ds-retry-btn" id="insights-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
+        <!-- Stat cards -->
+        <div class="stat-strip">
+            <div class="stat-card stat-card-danger">
+                <div class="stat-value" id="stat-fill-time">7:48 AM</div>
+                <div class="stat-label">Imperial College station fills</div>
+            </div>
+            <div class="stat-card stat-card-warning">
+                <div class="stat-value" id="stat-crunch-docks">&lt; 2</div>
+                <div class="stat-label">avg empty docks at 8 AM</div>
+            </div>
+            <div class="stat-card stat-card-success">
+                <div class="stat-value" id="stat-weekend-ratio">3.2x</div>
+                <div class="stat-label">more docks free on weekends</div>
+            </div>
+            <div class="stat-card stat-card-info">
+                <div class="stat-value" id="stat-stations">21</div>
+                <div class="stat-label">stations monitored</div>
             </div>
         </div>
 
-        <!-- Data source metric cards -->
-        <div class="metric-grid" id="metric-cards" style="display: none;">
-            <div class="ds-metric-card">
-                <div class="metric-label">Dock readings</div>
-                <div class="metric-value" id="mc-docks">--</div>
-                <div class="metric-badge"><span class="ds-badge ds-badge-info">TfL Santander API</span></div>
+        <!-- Morning crunch chart -->
+        <div class="ds-card chart-card">
+            <div class="chart-title">Dock availability — weekday morning average</div>
+            <div class="chart-wrap"><canvas id="crunch-chart"></canvas></div>
+            <div class="chart-caption">Average empty docks across Imperial College area stations (lower = worse)</div>
+        </div>
+    </section>
+
+    <!-- ═══ Chapter 2: System Architecture ═══ -->
+    <section class="chapter" id="ch-architecture">
+        <div class="chapter-label">Chapter 2</div>
+        <h2 class="chapter-title">How DockSense works</h2>
+        <p class="chapter-intro">Three data sources feed into a cloud pipeline that predicts dock availability 15 minutes ahead.</p>
+
+        <div class="pipeline-strip">
+            <div class="pipeline-node pipeline-source">
+                <div class="pipeline-icon"><i class="bi bi-bicycle"></i></div>
+                <div class="pipeline-label">TfL API</div>
+                <div class="pipeline-detail">800 stations, 1/min</div>
             </div>
-            <div class="ds-metric-card">
-                <div class="metric-label">Weather observations</div>
-                <div class="metric-value" id="mc-weather">--</div>
-                <div class="metric-badge"><span class="ds-badge ds-badge-success">Open-Meteo API</span></div>
+            <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="pipeline-node pipeline-process">
+                <div class="pipeline-icon"><i class="bi bi-cloud"></i></div>
+                <div class="pipeline-label">Heroku Worker</div>
+                <div class="pipeline-detail">Continuous collection</div>
             </div>
-            <div class="ds-metric-card">
-                <div class="metric-label">Temp. sensor readings</div>
-                <div class="metric-value" id="mc-sensor">--</div>
-                <div class="metric-badge"><span class="ds-badge ds-badge-warning">KY-028 sensor</span></div>
+            <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="pipeline-node pipeline-storage">
+                <div class="pipeline-icon"><i class="bi bi-database"></i></div>
+                <div class="pipeline-label">Supabase DB</div>
+                <div class="pipeline-detail" id="pipeline-rows">315k+ rows</div>
             </div>
-            <div class="ds-metric-card">
-                <div class="metric-label">Model accuracy (7d)</div>
-                <div class="metric-value" id="mc-accuracy">--</div>
-                <div class="metric-progress">
-                    <div class="metric-progress-bar" id="mc-accuracy-bar"></div>
-                </div>
+            <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="pipeline-node pipeline-output">
+                <div class="pipeline-icon"><i class="bi bi-cpu"></i></div>
+                <div class="pipeline-label">ML Model</div>
+                <div class="pipeline-detail">T+15 min forecast</div>
+            </div>
+            <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="pipeline-node pipeline-ui">
+                <div class="pipeline-icon"><i class="bi bi-phone"></i></div>
+                <div class="pipeline-label">Dashboard</div>
+                <div class="pipeline-detail">Real-time UI</div>
             </div>
         </div>
 
-        <!-- Chart + Findings (2-col on desktop) -->
-        <div class="overview-grid" id="overview-grid" style="display: none;">
-
-            <!-- Dock availability chart -->
-            <div class="ds-card overview-chart-card">
-                <div class="overview-chart-title">Dock availability — Imperial College station</div>
-                <canvas id="overview-chart" height="200"></canvas>
-                <div class="overview-chart-caption">Average weekday empty docks (lower = worse)</div>
-            </div>
-
-            <!-- Key findings -->
-            <div class="ds-card overview-findings-card">
-                <div class="overview-findings-label">KEY FINDINGS</div>
-                <div class="overview-findings-list" id="findings-list">
-                    <!-- Rendered by JS -->
-                </div>
-            </div>
-
+        <!-- Secondary sources -->
+        <div class="source-row">
+            <div class="source-badge source-badge-weather"><i class="bi bi-cloud-rain"></i> Open-Meteo (weather, 1/min)</div>
+            <div class="source-badge source-badge-sensor"><i class="bi bi-thermometer-half"></i> KY-028 sensor (temperature)</div>
+            <div class="source-badge source-badge-sensor"><i class="bi bi-person-walking"></i> PIR sensor (departure trigger)</div>
         </div>
+    </section>
 
-    </div>
+    <!-- ═══ Chapter 3: Data Sources ═══ -->
+    <section class="chapter" id="ch-data">
+        <div class="chapter-label">Chapter 3</div>
+        <h2 class="chapter-title">Data sources</h2>
+        <p class="chapter-intro">We fuse public API streams with physical sensor data to build a richer picture.</p>
 
-    <!-- ═══ Correlations sub-page ═══ -->
-    <div class="insights-subpage" id="page-correlations" style="display: none;">
-
-        <div class="corr-grid">
-
-            <!-- Rain effect chart -->
-            <div class="ds-card corr-chart-card">
-                <div class="corr-chart-header">
-                    <span class="corr-chart-title">Rain effect on dock pressure</span>
-                    <span class="ds-badge ds-badge-info">Open-Meteo API</span>
+        <div class="data-cards-grid">
+            <!-- Dock readings card -->
+            <div class="ds-card data-source-card">
+                <div class="data-source-header">
+                    <span class="ds-badge ds-badge-info">TfL Santander API</span>
+                    <span class="data-source-freq">every 1 min</span>
                 </div>
-                <div class="corr-chart-wrap">
-                    <canvas id="corr-rain-chart"></canvas>
-                </div>
-                <div class="corr-chart-caption">Rain shifts the pressure curve ~23 min later</div>
+                <div class="data-source-value" id="ds-docks">--</div>
+                <div class="data-source-label">dock readings</div>
+                <div class="data-source-fields">bikes, e-bikes, empty docks, coords per station</div>
             </div>
 
-            <!-- Sensor vs API temperature chart -->
-            <div class="ds-card corr-chart-card">
-                <div class="corr-chart-header">
-                    <span class="corr-chart-title">Temperature: sensor vs. API</span>
+            <!-- Weather card -->
+            <div class="ds-card data-source-card">
+                <div class="data-source-header">
+                    <span class="ds-badge ds-badge-success">Open-Meteo API</span>
+                    <span class="data-source-freq">every 1 min</span>
+                </div>
+                <div class="data-source-value" id="ds-weather">--</div>
+                <div class="data-source-label">weather observations</div>
+                <div class="data-source-fields">temperature, humidity, precipitation, wind, WMO code</div>
+            </div>
+
+            <!-- Sensor card -->
+            <div class="ds-card data-source-card">
+                <div class="data-source-header">
                     <span class="ds-badge ds-badge-warning">KY-028 sensor</span>
+                    <span class="data-source-freq">continuous</span>
                 </div>
-                <div class="corr-chart-wrap">
-                    <canvas id="corr-temp-chart"></canvas>
-                </div>
-                <div class="corr-chart-caption">Sensor tracks API closely (r = 0.94) with slight noise</div>
+                <div class="data-source-value" id="ds-sensor">--</div>
+                <div class="data-source-label">temperature readings</div>
+                <div class="data-source-fields">ambient temperature via ESP32 + HTTPS to Supabase</div>
             </div>
-
         </div>
 
-    </div>
+        <!-- Sensor validation chart -->
+        <div class="ds-card chart-card">
+            <div class="chart-header">
+                <span class="chart-title">Sensor validation: KY-028 vs. Open-Meteo API</span>
+                <span class="ds-badge ds-badge-warning">r = 0.94</span>
+            </div>
+            <div class="chart-wrap"><canvas id="sensor-chart"></canvas></div>
+            <div class="chart-caption">Sensor tracks API closely with ±0.8°C noise — validates sensor for training data</div>
+        </div>
+    </section>
 
-    <!-- ═══ Time patterns sub-page ═══ -->
-    <div class="insights-subpage" id="page-patterns" style="display: none;">
+    <!-- ═══ Chapter 4: What Affects Dock Availability ═══ -->
+    <section class="chapter" id="ch-patterns">
+        <div class="chapter-label">Chapter 4</div>
+        <h2 class="chapter-title">What affects dock availability?</h2>
+        <p class="chapter-intro">Time of day, day of week, and weather all play a role.</p>
 
         <!-- Heatmap -->
-        <div class="ds-card patterns-heatmap-card">
-            <div class="patterns-chart-header">
-                <span class="corr-chart-title">Empty docks by hour and day — Imperial College</span>
-            </div>
+        <div class="ds-card chart-card">
+            <div class="chart-title">Empty docks by hour and day</div>
             <div class="heatmap-scroll">
-                <div class="heatmap" id="patterns-heatmap">
-                    <!-- Rendered by JS -->
-                </div>
+                <div class="heatmap" id="patterns-heatmap"></div>
             </div>
             <div class="heatmap-legend-bar">
                 <span class="heatmap-legend-label">0 docks</span>
@@ -140,107 +171,185 @@
             </div>
         </div>
 
-        <!-- Day-of-week + Station fill order (side by side on desktop) -->
-        <div class="patterns-bottom-grid">
-
-            <!-- Day-of-week bar chart -->
-            <div class="ds-card">
-                <div class="patterns-chart-header">
-                    <span class="corr-chart-title">Average 8 AM availability by day</span>
+        <!-- Rain effect + Day-of-week (side by side) -->
+        <div class="two-col-grid">
+            <div class="ds-card chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">Rain effect on dock pressure</span>
+                    <span class="ds-badge ds-badge-info">Open-Meteo</span>
                 </div>
-                <div class="patterns-chart-wrap">
-                    <canvas id="patterns-dow-chart"></canvas>
-                </div>
+                <div class="chart-wrap"><canvas id="rain-chart"></canvas></div>
+                <div class="chart-caption">Rain shifts the pressure curve ~23 min later</div>
             </div>
 
-            <!-- Station fill order -->
-            <div class="ds-card">
-                <div class="patterns-chart-header">
-                    <span class="corr-chart-title">Which stations fill first?</span>
-                    <span class="ds-badge ds-badge-info">weekday morning</span>
-                </div>
-                <div class="fill-order-list" id="fill-order-list">
-                    <!-- Rendered by JS -->
-                </div>
+            <div class="ds-card chart-card">
+                <div class="chart-title">Average 8 AM availability by day</div>
+                <div class="chart-wrap"><canvas id="dow-chart"></canvas></div>
             </div>
-
         </div>
 
-    </div>
-
-    <!-- ═══ Model sub-page ═══ -->
-    <div class="insights-subpage" id="page-model" style="display: none;">
-
-        <div class="model-grid">
-
-            <!-- Accuracy over time -->
-            <div class="ds-card model-chart-card">
-                <div class="model-chart-header">
-                    <span class="corr-chart-title">Model accuracy (14-day rolling)</span>
-                    <span class="ds-badge ds-badge-success">84% avg</span>
-                </div>
-                <div class="model-chart-wrap">
-                    <canvas id="model-accuracy-chart"></canvas>
-                </div>
+        <!-- Station fill order -->
+        <div class="ds-card chart-card">
+            <div class="chart-header">
+                <span class="chart-title">Which stations fill first?</span>
+                <span class="ds-badge ds-badge-info">weekday morning</span>
             </div>
-
-            <!-- Prediction vs actual scatter -->
-            <div class="ds-card model-chart-card">
-                <div class="model-chart-header">
-                    <span class="corr-chart-title">Predicted vs. actual empty docks</span>
-                </div>
-                <div class="model-chart-wrap">
-                    <canvas id="model-scatter-chart"></canvas>
-                </div>
-            </div>
-
-            <!-- Feature importance -->
-            <div class="ds-card model-chart-card">
-                <div class="model-chart-header">
-                    <span class="corr-chart-title">What drives the prediction?</span>
-                </div>
-                <div class="model-chart-wrap">
-                    <canvas id="model-feature-chart"></canvas>
-                </div>
-            </div>
-
-            <!-- Error distribution -->
-            <div class="ds-card model-chart-card">
-                <div class="model-chart-header">
-                    <span class="corr-chart-title">Prediction error distribution</span>
-                </div>
-                <div class="model-chart-wrap">
-                    <canvas id="model-error-chart"></canvas>
-                </div>
-            </div>
-
+            <div class="fill-order-list" id="fill-order-list"></div>
         </div>
 
-    </div>
+        <!-- Key findings -->
+        <div class="ds-card findings-card">
+            <div class="findings-label">KEY FINDINGS</div>
+            <div class="findings-list" id="findings-list"></div>
+        </div>
+    </section>
+
+    <!-- ═══ Chapter 5: The Models ═══ -->
+    <section class="chapter" id="ch-models">
+        <div class="chapter-label">Chapter 5</div>
+        <h2 class="chapter-title">The prediction models</h2>
+        <p class="chapter-intro">Two models serve different use cases: a Nowcast model for live predictions and a Forecast model for planning ahead.</p>
+
+        <!-- Model comparison cards -->
+        <div class="model-compare">
+            <div class="ds-card model-card model-card-primary">
+                <div class="model-card-badge">NOWCAST</div>
+                <div class="model-card-name" id="model-nowcast-name">Random Forest</div>
+                <div class="model-card-purpose">Live predictions (Now page)</div>
+                <div class="model-card-metrics">
+                    <div class="model-metric">
+                        <div class="model-metric-value" id="model-nowcast-mae">1.09</div>
+                        <div class="model-metric-label">MAE (docks)</div>
+                    </div>
+                    <div class="model-metric">
+                        <div class="model-metric-value" id="model-nowcast-r2">0.97</div>
+                        <div class="model-metric-label">R²</div>
+                    </div>
+                </div>
+                <div class="model-card-detail">12 features incl. current dock count</div>
+            </div>
+
+            <div class="model-compare-arrow">
+                <div class="model-compare-label">3x better</div>
+                <i class="bi bi-arrow-left"></i>
+            </div>
+
+            <div class="ds-card model-card">
+                <div class="model-card-badge model-card-badge-secondary">FORECAST</div>
+                <div class="model-card-name" id="model-forecast-name">Historical Average</div>
+                <div class="model-card-purpose">Future planning (Plan page)</div>
+                <div class="model-card-metrics">
+                    <div class="model-metric">
+                        <div class="model-metric-value" id="model-forecast-mae">3.41</div>
+                        <div class="model-metric-label">MAE (docks)</div>
+                    </div>
+                    <div class="model-metric">
+                        <div class="model-metric-value" id="model-forecast-r2">0.75</div>
+                        <div class="model-metric-label">R²</div>
+                    </div>
+                </div>
+                <div class="model-card-detail">11 features (time + weather + station)</div>
+            </div>
+        </div>
+
+        <div class="model-explain">
+            <i class="bi bi-lightbulb"></i>
+            <span>The Nowcast model includes the current dock count as a feature, which is only available in real-time. This one feature accounts for ~42% of prediction importance and enables 3x better accuracy.</span>
+        </div>
+
+        <!-- Model charts (2x2 grid) -->
+        <div class="two-col-grid">
+            <div class="ds-card chart-card">
+                <div class="chart-title">What drives the prediction?</div>
+                <div class="chart-wrap"><canvas id="feature-chart"></canvas></div>
+            </div>
+
+            <div class="ds-card chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">Model accuracy (14-day rolling)</span>
+                    <span class="ds-badge ds-badge-success" id="accuracy-badge">84% avg</span>
+                </div>
+                <div class="chart-wrap"><canvas id="accuracy-chart"></canvas></div>
+            </div>
+
+            <div class="ds-card chart-card">
+                <div class="chart-title">Predicted vs. actual empty docks</div>
+                <div class="chart-wrap"><canvas id="scatter-chart"></canvas></div>
+            </div>
+
+            <div class="ds-card chart-card">
+                <div class="chart-title">Prediction error distribution</div>
+                <div class="chart-wrap"><canvas id="error-chart"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ Chapter 6: Trade-offs ═══ -->
+    <section class="chapter" id="ch-tradeoffs">
+        <div class="chapter-label">Chapter 6</div>
+        <h2 class="chapter-title">Design trade-offs</h2>
+        <p class="chapter-intro">Every system involves trade-offs. Here are the key decisions we made and why.</p>
+
+        <div class="tradeoff-grid">
+            <div class="ds-card tradeoff-card">
+                <div class="tradeoff-title">Polling: 1/min vs 5/min</div>
+                <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Chose 1/min</div>
+                <div class="tradeoff-reason">TfL updates every ~5 min but exact timing is unknown. Higher frequency catches changes promptly at the cost of 5x more storage.</div>
+            </div>
+
+            <div class="ds-card tradeoff-card">
+                <div class="tradeoff-title">Two models vs one</div>
+                <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Two separate models</div>
+                <div class="tradeoff-reason">Nowcast (with lag feature) gets 3x better accuracy for live use. Forecast (no lag) enables planning but with higher error. Complexity trade-off for accuracy.</div>
+            </div>
+
+            <div class="ds-card tradeoff-card">
+                <div class="tradeoff-title">Baseline vs ML for Forecast</div>
+                <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Historical Average wins</div>
+                <div class="tradeoff-reason">With only 16 days of data and limited weather diversity, per-(station, hour, weekday) averages outperform Random Forest and Gradient Boosting.</div>
+            </div>
+
+            <div class="ds-card tradeoff-card">
+                <div class="tradeoff-title">Open-Meteo vs OpenWeatherMap</div>
+                <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Open-Meteo</div>
+                <div class="tradeoff-reason">No API key, unlimited calls, same data quality. OpenWeatherMap has a 1000 calls/day limit requiring key management.</div>
+            </div>
+
+            <div class="ds-card tradeoff-card">
+                <div class="tradeoff-title">Supabase vs MongoDB</div>
+                <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Supabase PostgreSQL</div>
+                <div class="tradeoff-reason">SQL joins for time-series merging, familiar query language. MongoDB's flexible schema is unnecessary; joins are essential for our pipeline.</div>
+            </div>
+
+            <div class="ds-card tradeoff-card">
+                <div class="tradeoff-title">Heroku vs Raspberry Pi</div>
+                <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Heroku</div>
+                <div class="tradeoff-reason">Reliable uptime, no hardware maintenance, student pack credits. Pi is cheaper long-term but requires physical setup and network configuration.</div>
+            </div>
+        </div>
+    </section>
 
 </div>
 {% endblock %}
 
 {% block head %}
 <style>
-/* ── Insights page ── */
+/* ── Insights page (scrolling narrative) ── */
 .insights-page {
-    padding: 16px 16px;
+    padding: 16px 16px 80px;
     max-width: 900px;
     margin: 0 auto;
 }
 
 @media (min-width: 1024px) {
     .insights-page {
-        padding: 24px 32px;
+        padding: 24px 32px 80px;
         max-width: 960px;
     }
 }
 
 /* ── Header ── */
-.insights-header {
-    margin-bottom: 12px;
-}
+.insights-header { margin-bottom: 8px; }
 
 .insights-title {
     font-size: 18px;
@@ -255,142 +364,91 @@
     margin: 0;
 }
 
-/* ── Sub-nav pills ── */
-.insights-pills {
-    margin-bottom: 20px;
+/* ── Chapters ── */
+.chapter {
+    margin-top: 36px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-primary);
 }
 
-/* ── Metric cards grid ── */
-.metric-grid {
+.chapter:first-of-type {
+    margin-top: 20px;
+    border-top: none;
+    padding-top: 0;
+}
+
+.chapter-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+}
+
+.chapter-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 0 6px 0;
+}
+
+.chapter-intro {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 16px 0;
+    max-width: 640px;
+}
+
+/* ── Stat strip ── */
+.stat-strip {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     margin-bottom: 16px;
 }
 
-@media (min-width: 768px) {
-    .metric-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
+@media (min-width: 640px) {
+    .stat-strip { grid-template-columns: repeat(4, 1fr); }
 }
 
-.ds-metric-card .metric-badge {
-    margin-top: 8px;
+.stat-card {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    border-left: 3px solid transparent;
 }
 
-.metric-progress {
-    height: 4px;
-    background-color: var(--bg-tertiary);
-    border-radius: 2px;
-    margin-top: 8px;
-    overflow: hidden;
+.stat-card-danger { border-left-color: var(--danger); }
+.stat-card-warning { border-left-color: var(--warning); }
+.stat-card-success { border-left-color: var(--success); }
+.stat-card-info { border-left-color: var(--info); }
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
-.metric-progress-bar {
-    height: 100%;
-    border-radius: 2px;
-    background-color: var(--success);
-    transition: width 0.6s ease;
-    width: 0%;
-}
-
-/* ── Overview grid (chart + findings) ── */
-.overview-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-
-@media (min-width: 768px) {
-    .overview-grid {
-        grid-template-columns: 1.4fr 1fr;
-    }
+.stat-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
 }
 
 /* ── Chart card ── */
-.overview-chart-card {
-    display: flex;
-    flex-direction: column;
-}
+.chart-card { margin-bottom: 12px; }
 
-.overview-chart-title {
+.chart-title {
     font-size: 13px;
     font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 12px;
 }
 
-.overview-chart-card canvas {
-    max-height: 220px;
-}
-
-.overview-chart-caption {
-    font-size: 10px;
-    color: var(--text-tertiary);
-    margin-top: 6px;
-    text-align: center;
-}
-
-/* ── Findings card ── */
-.overview-findings-card {
-    display: flex;
-    flex-direction: column;
-}
-
-.overview-findings-label {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-}
-
-.overview-findings-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.finding-item {
-    display: flex;
-    gap: 10px;
-    font-size: 13px;
-    color: var(--text-primary);
-    line-height: 1.45;
-}
-
-.finding-bullet {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--info);
-    flex-shrink: 0;
-    margin-top: 6px;
-}
-
-.finding-item:nth-child(2) .finding-bullet { background-color: var(--danger); }
-.finding-item:nth-child(3) .finding-bullet { background-color: var(--success); }
-
-/* ── Correlations grid ── */
-.corr-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-
-@media (min-width: 768px) {
-    .corr-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-.corr-chart-card {
-    display: flex;
-    flex-direction: column;
-}
-
-.corr-chart-header {
+.chart-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -398,50 +456,157 @@
     gap: 8px;
 }
 
-.corr-chart-title {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.corr-chart-wrap {
+.chart-wrap {
     position: relative;
     height: 220px;
 }
 
-.corr-chart-wrap canvas {
-    max-height: 220px;
-}
+.chart-wrap canvas { max-height: 220px; }
 
-.corr-chart-caption {
+.chart-caption {
     font-size: 10px;
     color: var(--text-tertiary);
-    margin-top: 8px;
+    margin-top: 6px;
     text-align: center;
 }
 
-/* ── Time patterns ── */
-.patterns-heatmap-card {
-    margin-bottom: 12px;
+/* ── Pipeline strip ── */
+.pipeline-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 16px 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-.patterns-chart-header {
+.pipeline-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    min-width: 80px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.pipeline-icon {
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+.pipeline-source .pipeline-icon { color: var(--info); }
+.pipeline-process .pipeline-icon { color: var(--text-secondary); }
+.pipeline-storage .pipeline-icon { color: var(--success); }
+.pipeline-output .pipeline-icon { color: var(--danger); }
+.pipeline-ui .pipeline-icon { color: var(--info); }
+
+.pipeline-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.pipeline-detail {
+    font-size: 9px;
+    color: var(--text-tertiary);
+}
+
+.pipeline-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.source-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.source-badge-weather {
+    background: rgba(29, 158, 117, 0.1);
+    color: var(--success);
+}
+
+.source-badge-sensor {
+    background: rgba(186, 117, 23, 0.1);
+    color: var(--warning);
+}
+
+/* ── Data source cards ── */
+.data-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+    .data-cards-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.data-source-card { text-align: center; }
+
+.data-source-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
-    gap: 8px;
+    margin-bottom: 10px;
 }
 
-.patterns-chart-wrap {
-    height: 220px;
+.data-source-freq {
+    font-size: 10px;
+    color: var(--text-tertiary);
 }
 
-.patterns-chart-wrap canvas {
-    max-height: 220px;
+.data-source-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
-/* Heatmap */
+.data-source-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.data-source-fields {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+}
+
+/* ── Two-column grid ── */
+.two-col-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .two-col-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Heatmap ── */
 .heatmap-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -491,7 +656,6 @@
     z-index: 1;
 }
 
-/* Legend gradient bar */
 .heatmap-legend-bar {
     display: flex;
     align-items: center;
@@ -513,20 +677,7 @@
     background: linear-gradient(to right, #C62828, #E53935, #EF6C00, #F9A825, #66BB6A, #2E7D32);
 }
 
-/* Bottom grid */
-.patterns-bottom-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-
-@media (min-width: 768px) {
-    .patterns-bottom-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-/* Fill order list */
+/* ── Fill order ── */
 .fill-order-list {
     display: flex;
     flex-direction: column;
@@ -570,7 +721,6 @@
     background-color: var(--bg-tertiary);
     border-radius: 7px;
     overflow: hidden;
-    position: relative;
 }
 
 .fill-order-bar {
@@ -588,39 +738,193 @@
     text-align: right;
 }
 
-/* ── Model grid ── */
-.model-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+/* ── Findings ── */
+.findings-card { margin-bottom: 12px; }
+
+.findings-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 10px;
 }
 
-@media (min-width: 768px) {
-    .model-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-.model-chart-card {
+.findings-list {
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
 
-.model-chart-header {
+.finding-item {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.45;
+}
+
+.finding-bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--info);
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.finding-item:nth-child(2) .finding-bullet { background-color: var(--danger); }
+.finding-item:nth-child(3) .finding-bullet { background-color: var(--success); }
+
+/* ── Model comparison ── */
+.model-compare {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+    .model-compare { flex-wrap: nowrap; }
+}
+
+.model-card {
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+    position: relative;
+}
+
+.model-card-primary {
+    border: 2px solid var(--success);
+}
+
+.model-card-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    background: var(--success);
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.model-card-badge-secondary {
+    background: var(--text-tertiary);
+}
+
+.model-card-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.model-card-purpose {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 12px;
+}
+
+.model-card-metrics {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+
+.model-metric-value {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.model-metric-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.model-card-detail {
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.model-compare-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex-shrink: 0;
+    color: var(--success);
+}
+
+.model-compare-label {
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.model-compare-arrow i { font-size: 18px; }
+
+.model-explain {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    background: rgba(29, 158, 117, 0.06);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.model-explain i {
+    color: var(--success);
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ── Trade-offs ── */
+.tradeoff-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+@media (min-width: 640px) {
+    .tradeoff-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.tradeoff-card { }
+
+.tradeoff-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.tradeoff-decision {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-    gap: 8px;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--success);
+    margin-bottom: 6px;
 }
 
-.model-chart-wrap {
-    position: relative;
-    height: 220px;
-}
+.tradeoff-decision i { font-size: 14px; }
 
-.model-chart-wrap canvas {
-    max-height: 220px;
+.tradeoff-reason {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
 }
 </style>
 {% endblock %}

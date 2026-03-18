@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DockSense - Data Sensing Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #fff;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .diagram { max-width: 900px; width: 100%; }
+  h1 { text-align: center; font-size: 22px; font-weight: 600; margin-bottom: 4px; color: #222; }
+  .subtitle { text-align: center; font-size: 13px; color: #666; margin-bottom: 40px; }
+
+  /* Pipeline row */
+  .pipeline-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 0;
+  }
+  .row-label {
+    width: 100px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 20px;
+  }
+  .row-label-text {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #aaa;
+    text-align: right;
+    line-height: 1.4;
+  }
+  .row-content {
+    flex: 1;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  /* Cards */
+  .card {
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border: 1.5px solid #e0e0e0;
+    flex: 1;
+    max-width: 240px;
+    min-width: 180px;
+  }
+  .card-icon { font-size: 22px; margin-bottom: 8px; }
+  .card-title { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+  .card-detail { font-size: 11px; color: #666; line-height: 1.55; }
+  .card-mono { font-family: "SF Mono", "Fira Code", monospace; font-size: 10.5px; color: #555; line-height: 1.6; }
+
+  .card-blue { background: #f0f7ff; border-color: #378ADD; }
+  .card-blue .card-title { color: #378ADD; }
+  .card-orange { background: #fff8ef; border-color: #BA7517; }
+  .card-orange .card-title { color: #BA7517; }
+  .card-green { background: #f0faf5; border-color: #1D9E75; }
+  .card-green .card-title { color: #1D9E75; }
+  .card-gray { background: #f9f9f9; border-color: #ccc; }
+  .card-gray .card-title { color: #555; }
+  .card-red { background: #fef5f5; border-color: #E24B4A; }
+  .card-red .card-title { color: #E24B4A; }
+
+  /* Wide card (spanning full width) */
+  .card-wide {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Vertical arrows between rows */
+  .arrow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 10px 0;
+  }
+  .arrow-row .spacer { width: 100px; flex-shrink: 0; }
+  .arrow-row .arrows {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+  .v-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 180px;
+    min-width: 180px;
+    max-width: 240px;
+    flex: 1;
+  }
+  .v-arrow-single {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .v-line { width: 2px; height: 14px; background: #bbb; }
+  .v-head-down {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid #bbb;
+  }
+  .v-head-up {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid #bbb;
+  }
+
+  /* Single centered arrow */
+  .center-arrow {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+    padding-left: 100px;
+  }
+
+  /* Storage row: special full-width card */
+  .storage-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Table inside storage */
+  .db-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  .db-table th {
+    font-size: 10px;
+    font-weight: 600;
+    color: #888;
+    text-align: left;
+    padding: 4px 10px;
+    border-bottom: 1px solid #ddd;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .db-table td {
+    font-size: 11px;
+    padding: 5px 10px;
+    border-bottom: 1px solid #eee;
+    font-family: "SF Mono", "Fira Code", monospace;
+    color: #555;
+  }
+  .db-table td:last-child { text-align: right; color: #888; }
+
+  /* Processing detail list */
+  .process-list {
+    list-style: none;
+    padding: 0;
+  }
+  .process-list li {
+    font-size: 11px;
+    color: #555;
+    padding: 3px 0;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .process-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ddd;
+  }
+  .process-list li.step-clean::before { background: #E24B4A; }
+  .process-list li.step-merge::before { background: #378ADD; }
+  .process-list li.step-export::before { background: #1D9E75; }
+
+  /* Output split */
+  .output-split {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-top: 6px;
+  }
+  .badge-blue { background: #378ADD; color: #fff; }
+  .badge-green { background: #1D9E75; color: #fff; }
+  .badge-orange { background: #BA7517; color: #fff; }
+
+  @media print {
+    body { padding: 20px; }
+    .card { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="diagram">
+  <h1>Data Sensing Pipeline</h1>
+  <p class="subtitle">DockSense -- From Raw Sources to Trained Model and Live Dashboard</p>
+
+  <!-- ROW 1: Sources -->
+  <div class="pipeline-row">
+    <div class="row-label"><div class="row-label-text">1. Data<br>Sources</div></div>
+    <div class="row-content">
+      <div class="card card-blue">
+        <div class="card-title">TfL BikePoint API</div>
+        <div class="card-detail">800 stations across London<br>Fields: bikes, e-bikes, docks,<br>capacity, lat/lng</div>
+        <div class="badge badge-blue">REST / JSON</div>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">Open-Meteo Weather</div>
+        <div class="card-detail">Imperial College coords<br>Fields: temp, humidity,<br>precipitation, wind, WMO</div>
+        <div class="badge badge-blue">REST / JSON</div>
+      </div>
+      <div class="card card-orange">
+        <div class="card-title">KY-028 + PIR Sensor</div>
+        <div class="card-detail">ESP32 microcontroller<br>Temperature readings +<br>motion departure events</div>
+        <div class="badge badge-orange">HTTPS POST</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrows -->
+  <div class="arrow-row">
+    <div class="spacer"></div>
+    <div class="arrows">
+      <div class="v-arrow"><div class="v-line"></div><div class="v-head-down"></div></div>
+      <div class="v-arrow"><div class="v-line"></div><div class="v-head-down"></div></div>
+      <div class="v-arrow"><div class="v-line"></div><div class="v-head-down"></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Collection -->
+  <div class="pipeline-row">
+    <div class="row-label"><div class="row-label-text">2. Data<br>Collection</div></div>
+    <div class="row-content">
+      <div class="card card-gray">
+        <div class="card-title">bike_collector.py</div>
+        <div class="card-mono">21 stations / 800m radius<br>Poll every 60 seconds<br>Auto-discovery mode<br>Heroku Worker Dyno</div>
+      </div>
+      <div class="card card-gray">
+        <div class="card-title">weather_collector.py</div>
+        <div class="card-mono">Imperial College coords<br>Poll every 60 seconds<br>5 weather features<br>Heroku Worker Dyno</div>
+      </div>
+      <div class="card card-gray">
+        <div class="card-title">ESP32 Firmware</div>
+        <div class="card-mono">smart_commute.ino<br>KY-028: every 60 seconds<br>PIR: event-triggered<br>Direct HTTPS to Supabase</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrows (converging) -->
+  <div class="center-arrow">
+    <div class="v-arrow-single"><div class="v-line"></div><div class="v-line"></div><div class="v-head-down"></div></div>
+  </div>
+
+  <!-- ROW 3: Storage -->
+  <div class="pipeline-row">
+    <div class="row-label"><div class="row-label-text">3. Cloud<br>Storage</div></div>
+    <div class="storage-content">
+      <div class="card card-green card-wide">
+        <div class="card-title">Supabase PostgreSQL</div>
+        <table class="db-table">
+          <thead>
+            <tr><th>Table</th><th>Description</th><th>Rows</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>bike_availability</td><td style="font-family: inherit;">Dock status per station per minute</td><td>~315,000</td></tr>
+            <tr><td>weather_data</td><td style="font-family: inherit;">Weather observations per minute</td><td>~19,000</td></tr>
+            <tr><td>temperature_readings</td><td style="font-family: inherit;">KY-028 sensor readings</td><td>~19,000</td></tr>
+            <tr><td>monitored_stations</td><td style="font-family: inherit;">Station metadata + distances</td><td>21</td></tr>
+            <tr><td>sensor_events</td><td style="font-family: inherit;">PIR departure detections</td><td>~20</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow -->
+  <div class="center-arrow">
+    <div class="v-arrow-single"><div class="v-line"></div><div class="v-line"></div><div class="v-head-down"></div></div>
+  </div>
+
+  <!-- ROW 4: Processing -->
+  <div class="pipeline-row">
+    <div class="row-label"><div class="row-label-text">4. Data<br>Processing</div></div>
+    <div class="storage-content">
+      <div class="card card-gray card-wide">
+        <div class="card-title">export_data.py -- Cleaning and Merge Pipeline</div>
+        <ul class="process-list">
+          <li class="step-clean">Timestamp rounding to nearest minute (pandas <code>dt.round('min')</code>)</li>
+          <li class="step-clean">Deduplication: drop duplicate (station_id, timestamp) pairs</li>
+          <li class="step-merge">Inner join: bike_availability + weather_data on rounded timestamp</li>
+          <li class="step-clean">NaN removal: drop rows with missing values (~0.1% of data dropped)</li>
+          <li class="step-export">Export merged dataset as CSV for model training</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow -->
+  <div class="center-arrow">
+    <div class="v-arrow-single"><div class="v-line"></div><div class="v-line"></div><div class="v-head-down"></div></div>
+  </div>
+
+  <!-- ROW 5: Output -->
+  <div class="pipeline-row">
+    <div class="row-label"><div class="row-label-text">5. Output</div></div>
+    <div class="row-content">
+      <div class="output-split">
+        <div class="card card-green" style="flex:1;">
+          <div class="card-title">Merged CSV</div>
+          <div class="card-detail">
+            Offline model training<br>
+            Gradient Boosting (T+15min)<br>
+            Feature importance analysis<br>
+            Chronological 80/20 split
+          </div>
+          <div class="badge badge-green">train_model.py</div>
+        </div>
+        <div class="card card-green" style="flex:1;">
+          <div class="card-title">Live API + Dashboard</div>
+          <div class="card-detail">
+            10 JSON endpoints<br>
+            Real-time dock predictions<br>
+            5-page web dashboard<br>
+            Auto-refresh every 60s
+          </div>
+          <div class="badge badge-green">Flask + Chart.js</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
