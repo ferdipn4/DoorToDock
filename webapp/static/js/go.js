@@ -60,10 +60,8 @@ function handleDeepLink() {
     if (d === 'to' || d === 'from') direction = d;
     if (t === 'now') timing = 'now';
     else if (t === 'plan') timing = 'plan';
-    // On desktop, clear URL params; on mobile, keep timing for nav active state
-    if (isDesktop()) {
-        window.history.replaceState({}, '', window.location.pathname);
-    }
+    // Keep timing param in URL for sidebar active state
+
     syncToggleUI();
 }
 
@@ -88,29 +86,16 @@ function setupToggles() {
         syncToggleUI();
         switchState();
     });
-    document.getElementById('btn-now').addEventListener('click', () => {
-        if (timing === 'now') return;
-        timing = 'now';
-        syncToggleUI();
-        switchState();
-    });
-    document.getElementById('btn-plan').addEventListener('click', () => {
-        if (timing === 'plan') return;
-        timing = 'plan';
-        syncToggleUI();
-        switchState();
-    });
 }
 
 function syncToggleUI() {
     setActiveBtn('btn-to', direction === 'to');
     setActiveBtn('btn-from', direction === 'from');
-    setActiveBtn('btn-now', timing === 'now');
-    setActiveBtn('btn-plan', timing === 'plan');
 }
 
 function setActiveBtn(id, active) {
-    document.getElementById(id).classList.toggle('active', active);
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', active);
 }
 
 // -- Sort button wiring --

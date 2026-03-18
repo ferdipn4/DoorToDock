@@ -31,7 +31,7 @@
         <!-- Desktop Sidebar -->
         <nav class="sidebar" aria-label="Main navigation">
             <div class="sidebar-nav">
-                <a href="/go?timing=now" class="sidebar-item {% if active_tab == 'go' and active_timing|default('now') == 'now' %}active{% endif %}" data-tooltip="Now">
+                <a href="/go?timing=now" class="sidebar-item {% if active_tab == 'go' and active_timing|default('now') == 'now' %}active{% endif %}" data-tooltip="Leave now">
                     <i class="bi bi-cursor-fill"></i>
                 </a>
                 <a href="/go?timing=plan" class="sidebar-item {% if active_tab == 'go' and active_timing|default('now') == 'plan' %}active{% endif %}" data-tooltip="Plan trip">

@@ -9,10 +9,6 @@
 
         <!-- Toggle row -->
         <div class="go-toggles">
-            <div class="ds-segmented desktop-only-toggle">
-                <button class="ds-segmented-btn active" id="btn-now">Now</button>
-                <button class="ds-segmented-btn" id="btn-plan">Plan trip</button>
-            </div>
             <div class="ds-segmented">
                 <button class="ds-segmented-btn active" id="btn-to">To Imperial</button>
                 <button class="ds-segmented-btn" id="btn-from">From Imperial</button>
@@ -410,11 +406,6 @@
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
-}
-
-/* Hide Now/Plan toggle on mobile (handled by bottom nav) */
-@media (max-width: 1023px) {
-    .desktop-only-toggle { display: none !important; }
 }
 
 /* Mobile list/map view toggle */
