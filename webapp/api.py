@@ -963,50 +963,60 @@ def insights_ch4():
     """, station_ids)
 
     # Rain effect: dry vs rainy, 6am-2pm, weekdays, preferred stations
-    # Join on hour-level truncation (weather sampled every ~15min, hour is sufficient)
+    # Pre-aggregate weather to unique hours first, then join to bike data
     dry_rows = query(f"""
+        WITH hourly_weather AS (
+            SELECT DATE_TRUNC('hour', timestamp) AS hr,
+                   AVG(precipitation) AS avg_precip
+            FROM weather_data
+            GROUP BY hr
+        )
         SELECT
             EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
             ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
         FROM bike_availability b
-        JOIN weather_data w ON DATE_TRUNC('hour', b.timestamp) = DATE_TRUNC('hour', w.timestamp)
+        JOIN hourly_weather w ON DATE_TRUNC('hour', b.timestamp) = w.hr
         WHERE b.station_id IN ({placeholders})
           AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
           AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
-          AND w.precipitation = 0
+          AND w.avg_precip = 0
         GROUP BY hour ORDER BY hour
     """, station_ids)
 
     rainy_rows = query(f"""
+        WITH hourly_weather AS (
+            SELECT DATE_TRUNC('hour', timestamp) AS hr,
+                   AVG(precipitation) AS avg_precip
+            FROM weather_data
+            GROUP BY hr
+        )
         SELECT
             EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
             ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
         FROM bike_availability b
-        JOIN weather_data w ON DATE_TRUNC('hour', b.timestamp) = DATE_TRUNC('hour', w.timestamp)
+        JOIN hourly_weather w ON DATE_TRUNC('hour', b.timestamp) = w.hr
         WHERE b.station_id IN ({placeholders})
           AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
           AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
-          AND w.precipitation > 0
+          AND w.avg_precip > 0
         GROUP BY hour ORDER BY hour
     """, station_ids)
 
-    # Count dry vs rainy days
-    rain_day_counts = query_one(f"""
+    # Count dry vs rainy days (use weather_data only, no expensive join)
+    rain_day_counts = query_one("""
         SELECT
             COUNT(DISTINCT CASE WHEN max_precip = 0 THEN day END) AS dry_days,
             COUNT(DISTINCT CASE WHEN max_precip > 0 THEN day END) AS rainy_days,
             COUNT(DISTINCT CASE WHEN max_precip > 0.5 THEN day END) AS heavy_rain_days
         FROM (
             SELECT
-                (b.timestamp AT TIME ZONE 'Europe/London')::date AS day,
-                MAX(w.precipitation) AS max_precip
-            FROM bike_availability b
-            JOIN weather_data w ON DATE_TRUNC('hour', b.timestamp) = DATE_TRUNC('hour', w.timestamp)
-            WHERE b.station_id IN ({placeholders})
-              AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+                (timestamp AT TIME ZONE 'Europe/London')::date AS day,
+                MAX(precipitation) AS max_precip
+            FROM weather_data
+            WHERE EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
             GROUP BY day
         ) sub
-    """, station_ids)
+    """)
 
     # Station comparison at 9:30 (all 21 stations)
     station_930 = query("""
