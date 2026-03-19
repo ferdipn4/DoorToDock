@@ -963,12 +963,13 @@ def insights_ch4():
     """, station_ids)
 
     # Rain effect: dry vs rainy, 6am-2pm, weekdays, preferred stations
+    # Join on hour-level truncation (weather sampled every ~15min, hour is sufficient)
     dry_rows = query(f"""
         SELECT
             EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
             ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
         FROM bike_availability b
-        JOIN weather_data w ON DATE_TRUNC('minute', b.timestamp) = DATE_TRUNC('minute', w.timestamp)
+        JOIN weather_data w ON DATE_TRUNC('hour', b.timestamp) = DATE_TRUNC('hour', w.timestamp)
         WHERE b.station_id IN ({placeholders})
           AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
           AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
@@ -981,7 +982,7 @@ def insights_ch4():
             EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
             ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
         FROM bike_availability b
-        JOIN weather_data w ON DATE_TRUNC('minute', b.timestamp) = DATE_TRUNC('minute', w.timestamp)
+        JOIN weather_data w ON DATE_TRUNC('hour', b.timestamp) = DATE_TRUNC('hour', w.timestamp)
         WHERE b.station_id IN ({placeholders})
           AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
           AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
@@ -1000,7 +1001,7 @@ def insights_ch4():
                 (b.timestamp AT TIME ZONE 'Europe/London')::date AS day,
                 MAX(w.precipitation) AS max_precip
             FROM bike_availability b
-            JOIN weather_data w ON DATE_TRUNC('minute', b.timestamp) = DATE_TRUNC('minute', w.timestamp)
+            JOIN weather_data w ON DATE_TRUNC('hour', b.timestamp) = DATE_TRUNC('hour', w.timestamp)
             WHERE b.station_id IN ({placeholders})
               AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
             GROUP BY day
