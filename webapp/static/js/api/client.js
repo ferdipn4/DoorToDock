@@ -9,10 +9,6 @@ import {
   MOCK_PREDICTION_NOW,
   MOCK_PREDICTION_PLAN,
   MOCK_STATIONS,
-  MOCK_INSIGHTS_OVERVIEW,
-  MOCK_INSIGHTS_CORRELATIONS,
-  MOCK_INSIGHTS_PATTERNS,
-  MOCK_INSIGHTS_MODEL,
   MOCK_WEATHER_CURRENT,
   MOCK_WEATHER_FORECAST,
   MOCK_SETTINGS,
@@ -71,36 +67,20 @@ export async function getStations() {
 
 // ── Insights ──
 
-export async function getInsightsOverview() {
-  if (USE_MOCK) {
-    await delay(MOCK_DELAY);
-    return structuredClone(MOCK_INSIGHTS_OVERVIEW);
-  }
-  return fetchJSON('/api/insights/overview');
+export async function getInsightsCh1() {
+  return fetchJSON('/api/insights/ch1');
 }
 
-export async function getInsightsCorrelations() {
-  if (USE_MOCK) {
-    await delay(MOCK_DELAY);
-    return structuredClone(MOCK_INSIGHTS_CORRELATIONS);
-  }
-  return fetchJSON('/api/insights/correlations');
+export async function getInsightsCh3() {
+  return fetchJSON('/api/insights/ch3');
 }
 
-export async function getInsightsPatterns() {
-  if (USE_MOCK) {
-    await delay(MOCK_DELAY);
-    return structuredClone(MOCK_INSIGHTS_PATTERNS);
-  }
-  return fetchJSON('/api/insights/patterns');
+export async function getInsightsCh4() {
+  return fetchJSON('/api/insights/ch4');
 }
 
-export async function getInsightsModel() {
-  if (USE_MOCK) {
-    await delay(MOCK_DELAY);
-    return structuredClone(MOCK_INSIGHTS_MODEL);
-  }
-  return fetchJSON('/api/insights/model');
+export async function getInsightsCh5() {
+  return fetchJSON('/api/insights/ch5');
 }
 
 // ── Weather ──

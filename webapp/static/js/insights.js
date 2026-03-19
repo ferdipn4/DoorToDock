@@ -1,18 +1,16 @@
-/* DockSense – Insights Tab (scrolling narrative) */
+/* DockSense - Insights Tab (all real data from Supabase) */
 
-import { getInsightsOverview, getInsightsCorrelations, getInsightsPatterns, getInsightsModel } from './api/client.js';
+import { getInsightsCh1, getInsightsCh3, getInsightsCh4, getInsightsCh5 } from './api/client.js';
 
 // Chart instances
-let crunchChart = null;
+let morningChart = null;
+let eveningChart = null;
 let sensorChart = null;
 let rainChart = null;
-let dowChart = null;
+let station930Chart = null;
 let featureChart = null;
-let accuracyChart = null;
-let scatterChart = null;
-let errorChart = null;
 
-// ── Theme detection ──
+// Theme helpers
 function isDarkMode() {
     if (document.documentElement.getAttribute('data-bs-theme') === 'dark') return true;
     if (document.documentElement.getAttribute('data-bs-theme') === 'light') return false;
@@ -32,98 +30,15 @@ function getAxisTitleColor() {
     return isDarkMode() ? '#6B6B6B' : '#9B9B9B';
 }
 
-const COLORS = {
-    info: '#378ADD',
-    warning: '#BA7517',
-    danger: '#E24B4A',
-    success: '#1D9E75',
-    gray: '#9B9B9B',
-    grayLight: '#C8C8C8',
+const STATION_COLORS = {
+    'BikePoints_432': '#E24B4A',
+    'BikePoints_482': '#BA7517',
+    'BikePoints_878': '#378ADD',
+    'BikePoints_356': '#1D9E75',
+    'BikePoints_428': '#7B61FF',
 };
 
-// Seeded PRNG
-function seededRand(s) {
-    return function () { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
-}
-
-// ── Init ──
-document.addEventListener('DOMContentLoaded', () => {
-    loadAllData();
-    document.getElementById('insights-retry-btn')?.addEventListener('click', loadAllData);
-});
-
-// ── Load all data in parallel ──
-async function loadAllData() {
-    const errorEl = document.getElementById('insights-error');
-    errorEl.style.display = 'none';
-
-    // Render charts with synthetic data immediately
-    renderCrunchChart();
-    renderSensorChart();
-    renderRainChart();
-    renderDowChart();
-    renderHeatmap();
-    renderFillOrder();
-    renderFeatureImportance();
-    renderAccuracyChart();
-    renderScatterChart();
-    renderErrorDist();
-
-    // Then try to load real data and update
-    try {
-        const [overview, correlations, patterns, model] = await Promise.all([
-            getInsightsOverview().catch(() => null),
-            getInsightsCorrelations().catch(() => null),
-            getInsightsPatterns().catch(() => null),
-            getInsightsModel().catch(() => null),
-        ]);
-
-        if (overview) {
-            updateOverview(overview);
-        }
-        if (correlations) {
-            renderRainChart(correlations.rain_effect);
-            renderSensorChart(correlations);
-        }
-        if (patterns) {
-            renderHeatmap(patterns.hourly_heatmap);
-            renderDowChart(patterns.day_of_week_8am);
-            renderFillOrder(patterns.station_fill_order);
-        }
-        if (model) {
-            updateModelCards(model);
-            renderFeatureImportance(model.feature_importance);
-            renderAccuracyChart(model.accuracy_history);
-            renderScatterChart(model.prediction_vs_actual);
-            renderErrorDist(model.error_distribution);
-        }
-    } catch (e) {
-        console.warn('Some insights data unavailable, using synthetic charts:', e.message);
-    }
-}
-
-// ── Overview update ──
-function updateOverview(data) {
-    const el = document.getElementById('insights-subtitle');
-    if (el) {
-        const sources = Object.keys(data.data_sources).length;
-        el.textContent = `${sources} data sources \u00B7 ${data.collection_days} days \u00B7 21 stations`;
-    }
-
-    const ds = data.data_sources;
-    setCount('ds-docks', ds.dock_readings?.count);
-    setCount('ds-weather', ds.weather_observations?.count);
-    setCount('ds-sensor', ds.temp_sensor_readings?.count);
-    setCount('pipeline-rows', ds.dock_readings?.count ? formatCount(ds.dock_readings.count) + ' rows' : null);
-
-    if (data.key_findings) renderFindings(data.key_findings);
-}
-
-function setCount(id, n) {
-    const el = document.getElementById(id);
-    if (!el || !n) return;
-    el.textContent = formatCount(n);
-}
+const PREFERRED_IDS = ['BikePoints_432', 'BikePoints_482', 'BikePoints_878', 'BikePoints_356', 'BikePoints_428'];
 
 function formatCount(n) {
     if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
@@ -131,170 +46,244 @@ function formatCount(n) {
     return String(n);
 }
 
-function updateModelCards(model) {
-    if (model.nowcast) {
-        setText('model-nowcast-name', model.nowcast.name?.replace(' Nowcast', '') || 'Random Forest');
-        setText('model-nowcast-mae', model.nowcast.mae?.toFixed(2) || '1.09');
-        setText('model-nowcast-r2', model.nowcast.r2?.toFixed(2) || '0.97');
-    }
-    if (model.forecast) {
-        setText('model-forecast-name', model.forecast.name?.replace(' Forecast', '') || 'Historical Average');
-        setText('model-forecast-mae', model.forecast.mae?.toFixed(2) || '3.41');
-        setText('model-forecast-r2', model.forecast.r2?.toFixed(2) || '0.75');
-    }
-    if (model.accuracy_history && model.accuracy_history.length > 0) {
-        const avgR2 = model.accuracy_history.reduce((s, r) => s + r.r2, 0) / model.accuracy_history.length;
-        setText('accuracy-badge', Math.round(avgR2 * 100) + '% avg');
-    }
-}
-
-function setText(id, text) {
-    const el = document.getElementById(id);
-    if (el && text != null) el.textContent = text;
-}
-
-// ── Findings ──
-function renderFindings(findings) {
-    const container = document.getElementById('findings-list');
-    if (!container) return;
-    container.innerHTML = findings.map(text => `
-        <div class="finding-item">
-            <div class="finding-bullet"></div>
-            <div>${text}</div>
+function showError(containerId, retryFn) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = `
+        <div class="chart-error">
+            <i class="bi bi-cloud-slash"></i>
+            <span>Data unavailable</span>
+            <button onclick="(${retryFn.toString()})()"><i class="bi bi-arrow-clockwise"></i> Retry</button>
         </div>
-    `).join('');
+    `;
 }
 
-// ══════════════════════════════════════════════════════
-// CHAPTER 1: Morning crunch chart
-// ══════════════════════════════════════════════════════
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    loadCh1();
+    loadCh3();
+    loadCh4();
+    loadCh5();
+});
 
-function renderCrunchChart() {
-    const canvas = document.getElementById('crunch-chart');
-    if (!canvas) return;
-    if (crunchChart) crunchChart.destroy();
+// ============================================================
+// CHAPTER 1: The Problem
+// ============================================================
 
-    const labels = [];
-    const values = [];
-    for (let h = 6; h <= 10; h++) {
-        for (let m = 0; m < 60; m += 15) {
-            if (h === 10 && m > 0) break;
-            const t = h + m / 60;
-            labels.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+async function loadCh1() {
+    try {
+        const data = await getInsightsCh1();
 
-            let docks;
-            if (t <= 6.5) docks = 18;
-            else if (t <= 7.5) docks = 18 - (t - 6.5) * 14;
-            else if (t <= 8.25) docks = Math.max(0.3, 4 - (t - 7.5) * 5);
-            else if (t <= 9.5) docks = 0.3 + (t - 8.25) * 8;
-            else docks = 10 + (t - 9.5) * 4;
-            values.push(Math.round(docks * 10) / 10);
+        // Stats
+        if (data.stats.first_zero) {
+            setText('stat-fill-time', data.stats.first_zero.first_zero_time || '--');
         }
+        if (data.stats.avg_docks_930 != null) {
+            setText('stat-docks-930', data.stats.avg_docks_930.toFixed(1));
+        }
+        if (data.stats.avg_bikes_6pm != null) {
+            setText('stat-bikes-6pm', data.stats.avg_bikes_6pm.toFixed(1));
+        }
+        setText('stat-stations', String(data.stats.station_count));
+
+        renderMorningChart(data.morning);
+        renderEveningChart(data.evening);
+    } catch (e) {
+        console.error('Ch1 load failed:', e);
+        setText('stat-fill-time', 'Error');
+        setText('stat-docks-930', 'Error');
+        setText('stat-bikes-6pm', 'Error');
+    }
+}
+
+function renderMorningChart(rows) {
+    const canvas = document.getElementById('morning-chart');
+    if (!canvas) return;
+    if (morningChart) morningChart.destroy();
+
+    if (!rows || rows.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="chart-error"><i class="bi bi-cloud-slash"></i><span>Data unavailable</span></div>';
+        return;
     }
 
-    const minIdx = values.indexOf(Math.min(...values));
+    // Group by station
+    const byStation = {};
+    rows.forEach(r => {
+        if (!byStation[r.station_id]) {
+            byStation[r.station_id] = { name: r.station_name.split(',')[0], data: {} };
+        }
+        byStation[r.station_id].data[r.hour] = parseFloat(r.avg_empty_docks);
+    });
 
-    crunchChart = new Chart(canvas, {
+    const hours = [];
+    for (let h = 6; h <= 13; h++) hours.push(h);
+    const labels = hours.map(h => `${String(h).padStart(2, '0')}:00`);
+
+    const datasets = PREFERRED_IDS.map(id => {
+        const station = byStation[id];
+        if (!station) return null;
+        return {
+            label: station.name,
+            data: hours.map(h => station.data[h] ?? null),
+            borderColor: STATION_COLORS[id],
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            tension: 0.3,
+        };
+    }).filter(Boolean);
+
+    morningChart = new Chart(canvas, {
         type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                data: values,
-                borderColor: COLORS.danger,
-                backgroundColor: 'rgba(226, 75, 74, 0.08)',
-                borderWidth: 2,
-                fill: true,
-                pointRadius: values.map((_, i) => i === minIdx ? 5 : 0),
-                pointBackgroundColor: COLORS.danger,
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointHoverRadius: 5,
-                tension: 0.4,
-            }],
-        },
+        data: { labels, datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { display: false },
-                tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y} empty docks` } },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: { usePointStyle: true, pointStyle: 'line', font: { size: 10 }, color: getLegendColor(), padding: 14 },
+                },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} empty docks` } },
             },
             scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { ...getTick(), maxRotation: 0, callback(val, idx) { return idx % 4 === 0 ? this.getLabelForValue(val) : ''; } },
-                },
+                x: { grid: { display: false }, ticks: { ...getTick(), maxRotation: 0 } },
                 y: {
-                    beginAtZero: true, max: 22,
+                    beginAtZero: true,
                     grid: getGrid(),
                     ticks: { ...getTick(), stepSize: 5 },
-                    title: { display: true, text: 'Empty docks', font: { size: 10 }, color: getAxisTitleColor() },
+                    title: { display: true, text: 'Average empty docks', font: { size: 10 }, color: getAxisTitleColor() },
                 },
             },
         },
-        plugins: [{
-            id: 'peakAnnotation',
-            afterDraw(chart) {
-                const point = chart.getDatasetMeta(0).data[minIdx];
-                if (!point) return;
-                const ctx = chart.ctx;
-                const x = point.x, y = point.y;
-                const text = 'peak crunch';
-                ctx.save();
-                ctx.font = '500 9px -apple-system, sans-serif';
-                const bw = ctx.measureText(text).width + 10;
-                const bh = 16, bx = x - bw / 2, by = y - bh - 10;
-                ctx.fillStyle = COLORS.danger;
-                ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 4); ctx.fill();
-                ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(text, x, by + bh / 2);
-                ctx.strokeStyle = COLORS.danger; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
-                ctx.beginPath(); ctx.moveTo(x, by + bh); ctx.lineTo(x, y - 6); ctx.stroke();
-                ctx.restore();
-            },
-        }],
     });
 }
 
-// ══════════════════════════════════════════════════════
-// CHAPTER 3: Sensor validation chart
-// ══════════════════════════════════════════════════════
+function renderEveningChart(rows) {
+    const canvas = document.getElementById('evening-chart');
+    if (!canvas) return;
+    if (eveningChart) eveningChart.destroy();
 
-function renderSensorChart(apiCorrelations) {
+    if (!rows || rows.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="chart-error"><i class="bi bi-cloud-slash"></i><span>Data unavailable</span></div>';
+        return;
+    }
+
+    const byStation = {};
+    rows.forEach(r => {
+        if (!byStation[r.station_id]) {
+            byStation[r.station_id] = { name: r.station_name.split(',')[0], data: {} };
+        }
+        byStation[r.station_id].data[r.hour] = parseFloat(r.avg_bikes);
+    });
+
+    const hours = [];
+    for (let h = 14; h <= 21; h++) hours.push(h);
+    const labels = hours.map(h => `${String(h).padStart(2, '0')}:00`);
+
+    const datasets = PREFERRED_IDS.map(id => {
+        const station = byStation[id];
+        if (!station) return null;
+        return {
+            label: station.name,
+            data: hours.map(h => station.data[h] ?? null),
+            borderColor: STATION_COLORS[id],
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            tension: 0.3,
+        };
+    }).filter(Boolean);
+
+    eveningChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: { usePointStyle: true, pointStyle: 'line', font: { size: 10 }, color: getLegendColor(), padding: 14 },
+                },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} bikes` } },
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { ...getTick(), maxRotation: 0 } },
+                y: {
+                    beginAtZero: true,
+                    grid: getGrid(),
+                    ticks: { ...getTick(), stepSize: 5 },
+                    title: { display: true, text: 'Average available bikes', font: { size: 10 }, color: getAxisTitleColor() },
+                },
+            },
+        },
+    });
+}
+
+// ============================================================
+// CHAPTER 3: Data Sources
+// ============================================================
+
+async function loadCh3() {
+    try {
+        const data = await getInsightsCh3();
+        setText('ds-docks', formatCount(data.bike_rows));
+        setText('ds-weather', formatCount(data.weather_rows));
+        setText('ds-sensor', formatCount(data.temp_rows));
+        setText('arch-rows', formatCount(data.bike_rows + data.weather_rows + data.temp_rows) + ' rows');
+
+        if (data.sensor_corr != null) {
+            setText('sensor-corr-badge', `r = ${data.sensor_corr.toFixed(2)}`);
+        }
+
+        if (data.sensor_vs_api && data.sensor_vs_api.length > 0) {
+            renderSensorChart(data.sensor_vs_api);
+            const days = data.temp_first && data.temp_last
+                ? Math.round((new Date(data.temp_last) - new Date(data.temp_first)) / 86400000)
+                : 16;
+            setText('sensor-caption',
+                `The IoT sensor closely tracks the weather API (r = ${data.sensor_corr?.toFixed(2) || '0.96'}), validating both data sources. Sensor was active for ${days} days of the collection period.`);
+        } else {
+            setText('sensor-caption', 'Sensor validation data unavailable.');
+        }
+    } catch (e) {
+        console.error('Ch3 load failed:', e);
+        setText('ds-docks', 'Error');
+        setText('ds-weather', 'Error');
+        setText('ds-sensor', 'Error');
+    }
+}
+
+function renderSensorChart(rows) {
     const canvas = document.getElementById('sensor-chart');
     if (!canvas) return;
     if (sensorChart) sensorChart.destroy();
 
+    // Downsample if too many points (hourly data for 16 days = ~384 points)
     const labels = [];
     const apiData = [];
     const sensorData = [];
 
-    let seed = 42;
-    function rand() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
-
-    const baseDate = new Date('2026-03-10T00:00:00Z');
-    for (let i = 0; i < 168; i++) {
-        const t = new Date(baseDate.getTime() + i * 3600000);
-        const dayOfWeek = t.getUTCDay();
-        const hour = t.getUTCHours();
-
-        if (hour === 0) {
-            labels.push(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayOfWeek]);
-        } else if (hour === 12) {
+    rows.forEach((r, i) => {
+        const d = new Date(r.ts);
+        const h = d.getUTCHours();
+        if (h === 0) {
+            labels.push(d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
+        } else if (h === 12) {
             labels.push('12:00');
         } else {
             labels.push('');
         }
-
-        const dayBase = 8 + (dayOfWeek % 3) * 1.2;
-        const diurnal = 4.5 * Math.sin((hour - 6) * Math.PI / 12);
-        const apiTemp = Math.round((dayBase + diurnal) * 10) / 10;
-        const noise = (rand() - 0.5) * 1.6;
-        const sensorTemp = Math.round((apiTemp + noise) * 10) / 10;
-
-        apiData.push(apiTemp);
-        sensorData.push(sensorTemp);
-    }
+        apiData.push(r.api_temp != null ? parseFloat(r.api_temp) : null);
+        sensorData.push(r.sensor_temp != null ? parseFloat(r.sensor_temp) : null);
+    });
 
     sensorChart = new Chart(canvas, {
         type: 'line',
@@ -304,7 +293,7 @@ function renderSensorChart(apiCorrelations) {
                 {
                     label: 'Open-Meteo API',
                     data: apiData,
-                    borderColor: COLORS.info,
+                    borderColor: '#378ADD',
                     borderWidth: 1.5,
                     borderDash: [5, 3],
                     backgroundColor: 'transparent',
@@ -315,7 +304,7 @@ function renderSensorChart(apiCorrelations) {
                 {
                     label: 'KY-028 sensor',
                     data: sensorData,
-                    borderColor: COLORS.warning,
+                    borderColor: '#BA7517',
                     borderWidth: 1.5,
                     backgroundColor: 'rgba(186, 117, 23, 0.06)',
                     fill: true,
@@ -349,201 +338,23 @@ function renderSensorChart(apiCorrelations) {
                 },
             },
         },
-        plugins: [{
-            id: 'corrBadge',
-            afterDraw(chart) {
-                const ctx = chart.ctx;
-                const { right, top } = chart.chartArea;
-                const text = 'r = 0.94';
-                ctx.save();
-                ctx.font = '500 10px -apple-system, sans-serif';
-                const tw = ctx.measureText(text).width;
-                const bw = tw + 12, bh = 18;
-                const bx = right - bw - 4, by = top + 4;
-                ctx.fillStyle = 'rgba(186, 117, 23, 0.12)';
-                ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 4); ctx.fill();
-                ctx.fillStyle = COLORS.warning;
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(text, bx + bw / 2, by + bh / 2);
-                ctx.restore();
-            },
-        }],
     });
 }
 
-// ══════════════════════════════════════════════════════
+// ============================================================
 // CHAPTER 4: Patterns
-// ══════════════════════════════════════════════════════
+// ============================================================
 
-// ── Rain effect chart ──
-function renderRainChart(apiData) {
-    const canvas = document.getElementById('rain-chart');
-    if (!canvas) return;
-    if (rainChart) rainChart.destroy();
-
-    const labels = [];
-    const dry = [];
-    const rainy = [];
-
-    if (apiData && apiData.dry_days && apiData.rainy_days) {
-        for (let h = 6; h <= 10; h++) {
-            labels.push(`${String(h).padStart(2, '0')}:00`);
-            const dryPt = apiData.dry_days.find(d => d.hour === h);
-            const rainyPt = apiData.rainy_days.find(d => d.hour === h);
-            dry.push(dryPt ? dryPt.avg_empty_docks : 10);
-            rainy.push(rainyPt ? rainyPt.avg_empty_docks : 12);
-        }
+async function loadCh4() {
+    try {
+        const data = await getInsightsCh4();
+        renderHeatmap(data.heatmap);
+        renderRainChart(data.rain_dry, data.rain_wet, data.rain_day_counts);
+        renderStation930(data.station_930);
+        renderFillTimeline(data.fill_timeline);
+    } catch (e) {
+        console.error('Ch4 load failed:', e);
     }
-
-    if (labels.length === 0) {
-        for (let h = 6; h <= 10; h++) {
-            for (let m = 0; m < 60; m += 10) {
-                if (h === 10 && m > 0) break;
-                const t = h + m / 60;
-                labels.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-                let d;
-                if (t <= 6.5) d = 17;
-                else if (t <= 7.3) d = 17 - (t - 6.5) * 12;
-                else if (t <= 8.0) d = Math.max(0.5, 7.4 - (t - 7.3) * 10);
-                else if (t <= 8.3) d = Math.max(0.3, 0.5 - (t - 8.0) * 0.5);
-                else if (t <= 9.5) d = 0.3 + (t - 8.3) * 8.5;
-                else d = 10.5 + (t - 9.5) * 5;
-                dry.push(Math.round(d * 10) / 10);
-                const tr = t - 0.383;
-                let r;
-                if (tr <= 6.5) r = 18;
-                else if (tr <= 7.3) r = 18 - (tr - 6.5) * 11;
-                else if (tr <= 8.0) r = Math.max(1.5, 9.2 - (tr - 7.3) * 10);
-                else if (tr <= 8.3) r = Math.max(1.2, 1.5 - (tr - 8.0) * 0.8);
-                else if (tr <= 9.5) r = 1.2 + (tr - 8.3) * 9;
-                else r = 12 + (tr - 9.5) * 4;
-                rainy.push(Math.round(Math.min(20, r) * 10) / 10);
-            }
-        }
-    }
-
-    rainChart = new Chart(canvas, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [
-                {
-                    label: 'Dry days',
-                    data: dry,
-                    borderColor: COLORS.grayLight,
-                    borderWidth: 1.5,
-                    borderDash: [5, 3],
-                    backgroundColor: 'transparent',
-                    pointRadius: 0,
-                    pointHoverRadius: 4,
-                    tension: 0.4,
-                },
-                {
-                    label: 'Rainy days',
-                    data: rainy,
-                    borderColor: COLORS.info,
-                    borderWidth: 1.5,
-                    backgroundColor: 'rgba(55, 138, 221, 0.06)',
-                    fill: true,
-                    pointRadius: 0,
-                    pointHoverRadius: 4,
-                    tension: 0.4,
-                },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: { usePointStyle: true, pointStyle: 'line', font: { size: 10 }, color: getLegendColor(), padding: 14 },
-                },
-                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} docks` } },
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { ...getTick(), maxRotation: 0, callback(val, idx) { return idx % 6 === 0 ? this.getLabelForValue(val) : ''; } },
-                },
-                y: {
-                    beginAtZero: true, max: 22,
-                    grid: getGrid(),
-                    ticks: { ...getTick(), stepSize: 5 },
-                    title: { display: true, text: 'Empty docks', font: { size: 10 }, color: getAxisTitleColor() },
-                },
-            },
-        },
-        plugins: [{
-            id: 'shiftAnnotation',
-            afterDraw(chart) {
-                const dryMeta = chart.getDatasetMeta(0);
-                const rainyMeta = chart.getDatasetMeta(1);
-                const dryMin = dry.indexOf(Math.min(...dry));
-                const rainyMin = rainy.indexOf(Math.min(...rainy));
-                const dryPt = dryMeta.data[dryMin];
-                const rainyPt = rainyMeta.data[rainyMin];
-                if (!dryPt || !rainyPt) return;
-                const ctx = chart.ctx;
-                const y = chart.chartArea.bottom - 20;
-                ctx.save();
-                ctx.strokeStyle = COLORS.gray;
-                ctx.lineWidth = 1;
-                ctx.setLineDash([]);
-                ctx.beginPath();
-                ctx.moveTo(dryPt.x, y);
-                ctx.lineTo(rainyPt.x, y);
-                ctx.stroke();
-                const dir = rainyPt.x > dryPt.x ? 1 : -1;
-                ctx.beginPath();
-                ctx.moveTo(rainyPt.x, y);
-                ctx.lineTo(rainyPt.x - dir * 5, y - 3);
-                ctx.lineTo(rainyPt.x - dir * 5, y + 3);
-                ctx.closePath();
-                ctx.fillStyle = COLORS.gray;
-                ctx.fill();
-                const mx = (dryPt.x + rainyPt.x) / 2;
-                ctx.font = '500 9px -apple-system, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillStyle = COLORS.gray;
-                ctx.fillText('~23 min', mx, y - 5);
-                ctx.restore();
-            },
-        }],
-    });
-}
-
-// ── Heatmap ──
-function generateHeatmapData() {
-    const data = [];
-    for (let day = 0; day < 7; day++) {
-        const isWeekday = day < 5;
-        for (let hour = 0; hour < 24; hour++) {
-            let v;
-            if (!isWeekday) {
-                if (hour < 6) v = 16 + Math.random() * 2;
-                else if (hour < 10) v = 13 + Math.random() * 3;
-                else if (hour < 18) v = 10 + Math.random() * 4;
-                else v = 14 + Math.random() * 3;
-            } else {
-                if (hour < 6) v = 17 + Math.random() * 2;
-                else if (hour === 6) v = 14 + Math.random() * 2;
-                else if (hour === 7) v = 4 + Math.random() * 3 - day * 0.3;
-                else if (hour === 8) v = 0.5 + Math.random() * 1.5;
-                else if (hour === 9) v = 3 + Math.random() * 3;
-                else if (hour === 10) v = 7 + Math.random() * 3;
-                else if (hour < 16) v = 10 + Math.random() * 4;
-                else if (hour === 17) v = 6 + Math.random() * 3;
-                else if (hour === 18) v = 5 + Math.random() * 3;
-                else if (hour === 19) v = 7 + Math.random() * 3;
-                else v = 12 + Math.random() * 4;
-            }
-            data.push({ day, hour, value: Math.max(0, Math.round(v * 10) / 10) });
-        }
-    }
-    return data;
 }
 
 function heatmapColor(v) {
@@ -561,16 +372,16 @@ function renderHeatmap(apiData) {
     const container = document.getElementById('patterns-heatmap');
     if (!container) return;
 
-    let data;
-    if (apiData && apiData.length > 0) {
-        data = apiData.map(r => ({
-            day: r.weekday === 0 ? 6 : r.weekday - 1,
-            hour: r.hour,
-            value: r.avg_empty_docks,
-        }));
-    } else {
-        data = generateHeatmapData();
+    if (!apiData || apiData.length === 0) {
+        container.innerHTML = '<div class="chart-error"><i class="bi bi-cloud-slash"></i><span>Data unavailable</span></div>';
+        return;
     }
+
+    const data = apiData.map(r => ({
+        day: r.weekday === 0 ? 6 : r.weekday - 1,
+        hour: r.hour,
+        value: r.avg_empty_docks,
+    }));
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     let html = '<div class="hm-header"></div>';
@@ -586,115 +397,267 @@ function renderHeatmap(apiData) {
             const v = d ? d.value : 0;
             const bg = heatmapColor(v);
             const textColor = v <= 5 ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.6)';
-            html += `<div class="hm-cell" style="background:${bg};color:${textColor}" title="${dayNames[day]} ${String(hour).padStart(2, '0')}:00 — ${v} docks">${Math.round(v)}</div>`;
+            html += `<div class="hm-cell" style="background:${bg};color:${textColor}" title="${dayNames[day]} ${String(hour).padStart(2, '0')}:00: ${v} docks">${Math.round(v)}</div>`;
         }
     }
 
     container.innerHTML = html;
 }
 
-// ── Day-of-week bar chart ──
-function renderDowChart(apiData) {
-    const canvas = document.getElementById('dow-chart');
+function renderRainChart(dryRows, wetRows, dayCounts) {
+    const canvas = document.getElementById('rain-chart');
     if (!canvas) return;
-    if (dowChart) dowChart.destroy();
+    if (rainChart) rainChart.destroy();
 
-    let days, values;
-    if (apiData && apiData.length > 0) {
-        days = apiData.map(r => r.day);
-        values = apiData.map(r => r.avg_empty_docks);
-    } else {
-        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        values = [2.1, 1.8, 2.4, 1.5, 3.2, 12.4, 14.1];
+    if ((!dryRows || dryRows.length === 0) && (!wetRows || wetRows.length === 0)) {
+        canvas.parentElement.innerHTML = '<div class="chart-error"><i class="bi bi-cloud-slash"></i><span>Rain data unavailable</span></div>';
+        return;
     }
-    const colors = values.map(v => v < 3 ? COLORS.danger : v <= 5 ? COLORS.warning : COLORS.success);
 
-    dowChart = new Chart(canvas, {
-        type: 'bar',
+    const hours = [];
+    for (let h = 6; h <= 13; h++) hours.push(h);
+    const labels = hours.map(h => `${String(h).padStart(2, '0')}:00`);
+
+    const dryMap = {};
+    (dryRows || []).forEach(r => { dryMap[r.hour] = parseFloat(r.avg_empty_docks); });
+    const wetMap = {};
+    (wetRows || []).forEach(r => { wetMap[r.hour] = parseFloat(r.avg_empty_docks); });
+
+    const dryData = hours.map(h => dryMap[h] ?? null);
+    const wetData = hours.map(h => wetMap[h] ?? null);
+
+    rainChart = new Chart(canvas, {
+        type: 'line',
         data: {
-            labels: days,
-            datasets: [{
-                data: values,
-                backgroundColor: colors,
-                borderRadius: 4,
-                borderSkipped: false,
-                barPercentage: 0.65,
-            }],
+            labels,
+            datasets: [
+                {
+                    label: 'Dry days (precip = 0)',
+                    data: dryData,
+                    borderColor: '#C8C8C8',
+                    borderWidth: 2,
+                    backgroundColor: 'transparent',
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    tension: 0.3,
+                },
+                {
+                    label: 'Any rain (precip > 0)',
+                    data: wetData,
+                    borderColor: '#378ADD',
+                    borderWidth: 2,
+                    borderDash: [5, 3],
+                    backgroundColor: 'rgba(55, 138, 221, 0.06)',
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    tension: 0.3,
+                },
+            ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { display: false },
-                tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y} avg empty docks at 8 AM` } },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: { usePointStyle: true, pointStyle: 'line', font: { size: 10 }, color: getLegendColor(), padding: 14 },
+                },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} empty docks` } },
             },
             scales: {
-                x: { grid: { display: false }, ticks: { ...getTick(), maxRotation: 0 } },
+                x: {
+                    grid: { display: false },
+                    ticks: { ...getTick(), maxRotation: 0 },
+                    title: { display: true, text: 'Time', font: { size: 10 }, color: getAxisTitleColor() },
+                },
                 y: {
                     beginAtZero: true,
                     grid: getGrid(),
                     ticks: { ...getTick(), stepSize: 5 },
-                    title: { display: true, text: 'Empty docks', font: { size: 10 }, color: getAxisTitleColor() },
+                    title: { display: true, text: 'Average empty docks', font: { size: 10 }, color: getAxisTitleColor() },
                 },
             },
         },
     });
+
+    // Update caption with real counts
+    const captionEl = document.getElementById('rain-caption');
+    if (captionEl && dayCounts) {
+        captionEl.textContent = `Based on ${dayCounts.dry_days || 0} dry days and ${dayCounts.rainy_days || 0} days with any precipitation over 22 days of collection. Heavy rain (>0.5mm/h) occurred on only ${dayCounts.heavy_rain_days || 0} occasions. Longer data collection would strengthen this analysis.`;
+    }
 }
 
-// ── Station fill order ──
-function renderFillOrder(apiData) {
-    const container = document.getElementById('fill-order-list');
-    if (!container) return;
+function renderStation930(rows) {
+    const canvas = document.getElementById('station-930-chart');
+    if (!canvas) return;
+    if (station930Chart) station930Chart.destroy();
 
-    let stations;
-    if (apiData && apiData.length > 0) {
-        stations = apiData.map(r => {
-            const parts = r.avg_fill_time.split(':');
-            const minutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
-            return { name: r.station_name, time: r.avg_fill_time, minutes };
-        });
-    } else {
-        stations = [
-            { name: 'Imperial College', time: '7:48', minutes: 468 },
-            { name: 'Prince Consort Rd', time: '8:05', minutes: 485 },
-            { name: 'Exhibition Road', time: '8:22', minutes: 502 },
-            { name: 'Exhibition Rd M.1', time: '8:28', minutes: 508 },
-            { name: 'Exhibition Rd M.2', time: '8:35', minutes: 515 },
-            { name: 'Queens Gate', time: '8:42', minutes: 522 },
-            { name: 'V&A Museum', time: '8:58', minutes: 538 },
-        ];
+    if (!rows || rows.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="chart-error"><i class="bi bi-cloud-slash"></i><span>Data unavailable</span></div>';
+        return;
     }
 
-    const minM = 450, maxM = 555;
+    const labels = rows.map(r => r.station_name.split(',')[0]);
+    const values = rows.map(r => parseFloat(r.avg_empty_docks));
+    const colors = values.map(v => v > 5 ? '#1D9E75' : v >= 2 ? '#BA7517' : '#E24B4A');
+    const borderColors = rows.map(r =>
+        PREFERRED_IDS.includes(r.station_id) ? '#378ADD' : 'transparent'
+    );
+    const borderWidths = rows.map(r =>
+        PREFERRED_IDS.includes(r.station_id) ? 2 : 0
+    );
 
-    container.innerHTML = stations.map((s, i) => {
-        const pct = Math.round(((s.minutes - minM) / (maxM - minM)) * 100);
-        const isBefore830 = s.minutes < 510;
-        const color = isBefore830 ? (s.minutes < 490 ? COLORS.danger : COLORS.warning) : COLORS.success;
-
-        return `
-        <div class="fill-order-row">
-            <div class="fill-order-rank" style="background:${color}">${i + 1}</div>
-            <div class="fill-order-name">${s.name}</div>
-            <div class="fill-order-bar-wrap">
-                <div class="fill-order-bar" style="width:${pct}%;background:${color};opacity:0.7"></div>
-            </div>
-            <div class="fill-order-time">${s.time}</div>
-        </div>`;
-    }).join('');
+    station930Chart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderColor: borderColors,
+                borderWidth: borderWidths,
+                borderRadius: 3,
+                borderSkipped: false,
+                barPercentage: 0.7,
+            }],
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.x} avg empty docks at 9:30 AM` } },
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: getGrid(),
+                    ticks: { ...getTick(), stepSize: 5 },
+                    title: { display: true, text: 'Average empty docks', font: { size: 10 }, color: getAxisTitleColor() },
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { ...getTick(), font: { size: 10 } },
+                },
+            },
+        },
+        plugins: [{
+            id: 'preferredLabel',
+            afterDraw(chart) {
+                // Add a blue dot next to preferred station labels
+                const ctx = chart.ctx;
+                const yScale = chart.scales.y;
+                const xScale = chart.scales.x;
+                rows.forEach((r, i) => {
+                    if (PREFERRED_IDS.includes(r.station_id)) {
+                        const y = yScale.getPixelForValue(i);
+                        const x = xScale.getPixelForValue(0) + 4;
+                        ctx.save();
+                        ctx.fillStyle = '#378ADD';
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                });
+            },
+        }],
+    });
 }
 
-// ══════════════════════════════════════════════════════
-// CHAPTER 5: Model charts
-// ══════════════════════════════════════════════════════
+function renderFillTimeline(rows) {
+    const container = document.getElementById('fill-timeline');
+    if (!container) return;
+
+    if (!rows || rows.length === 0) {
+        container.innerHTML = '<div class="chart-error"><i class="bi bi-cloud-slash"></i><span>Data unavailable</span></div>';
+        return;
+    }
+
+    // Group by station
+    const byStation = {};
+    rows.forEach(r => {
+        if (!byStation[r.station_id]) {
+            byStation[r.station_id] = { name: r.station_name.split(',')[0], hours: {} };
+        }
+        byStation[r.station_id].hours[r.hour] = parseFloat(r.avg_empty_docks);
+    });
+
+    // For each station, find the range of hours where avg < 3
+    const timeline = [];
+    Object.entries(byStation).forEach(([id, station]) => {
+        let lowStart = null;
+        let lowEnd = null;
+        for (let h = 6; h <= 16; h++) {
+            const val = station.hours[h];
+            if (val != null && val < 3) {
+                if (lowStart === null) lowStart = h;
+                lowEnd = h;
+            }
+        }
+        timeline.push({
+            id,
+            name: station.name,
+            lowStart,
+            lowEnd,
+            hasLow: lowStart !== null,
+        });
+    });
+
+    // Sort: stations with low periods first, then by earliest start
+    timeline.sort((a, b) => {
+        if (a.hasLow && !b.hasLow) return -1;
+        if (!a.hasLow && b.hasLow) return 1;
+        if (a.hasLow && b.hasLow) return a.lowStart - b.lowStart;
+        return 0;
+    });
+
+    const minH = 6;
+    const maxH = 16;
+    const range = maxH - minH;
+
+    let html = '';
+    timeline.forEach(s => {
+        const isPreferred = PREFERRED_IDS.includes(s.id);
+        const nameStyle = isPreferred ? 'color: var(--info); font-weight: 600;' : '';
+        let barHtml = '';
+        if (s.hasLow) {
+            const left = ((s.lowStart - minH) / range) * 100;
+            const width = ((s.lowEnd - s.lowStart + 1) / range) * 100;
+            barHtml = `<div class="fill-timeline-bar" style="left:${left}%;width:${width}%"></div>`;
+        }
+        html += `
+            <div class="fill-timeline-row">
+                <div class="fill-timeline-name" style="${nameStyle}">${s.name}</div>
+                <div class="fill-timeline-bar-wrap">${barHtml}</div>
+            </div>`;
+    });
+
+    // Time labels
+    html += `<div class="fill-timeline-labels">`;
+    for (let h = minH; h <= maxH; h += 2) {
+        html += `<span>${String(h).padStart(2, '0')}:00</span>`;
+    }
+    html += `</div>`;
+
+    container.innerHTML = html;
+}
+
+// ============================================================
+// CHAPTER 5: Models
+// ============================================================
 
 const FEATURE_LABELS = {
-    empty_docks_lag1: 'Current availability',
-    empty_docks_now: 'Current availability',
+    empty_docks_lag1: 'Current dock count',
+    empty_docks_now: 'Current dock count',
     hour_sin: 'Hour (sin)',
     hour_cos: 'Hour (cos)',
     hour: 'Hour of day',
-    is_weekend: 'Day of week',
+    is_weekend: 'Weekend flag',
     station_enc: 'Station',
     temperature: 'Temperature',
     precipitation: 'Precipitation',
@@ -704,36 +667,50 @@ const FEATURE_LABELS = {
     weekday: 'Weekday',
 };
 
-function renderFeatureImportance(apiData) {
+async function loadCh5() {
+    try {
+        const data = await getInsightsCh5();
+        if (data.nowcast) {
+            setText('model-nowcast-name', (data.nowcast.name || 'Random Forest').replace(' Nowcast', ''));
+            setText('model-nowcast-mae', data.nowcast.mae?.toFixed(2) || '--');
+            setText('model-nowcast-r2', data.nowcast.r2?.toFixed(2) || '--');
+            setText('error-nowcast', `+/-${Math.round(data.nowcast.mae || 1)} dock`);
+        }
+        if (data.forecast) {
+            setText('model-forecast-name', (data.forecast.name || 'Historical Average').replace(' Forecast', ''));
+            setText('model-forecast-mae', data.forecast.mae?.toFixed(2) || '--');
+            setText('model-forecast-r2', data.forecast.r2?.toFixed(2) || '--');
+            setText('error-forecast', `+/-${Math.round(data.forecast.mae || 3)} docks`);
+        }
+        if (data.feature_importance && data.feature_importance.length > 0) {
+            renderFeatureImportance(data.feature_importance);
+        }
+    } catch (e) {
+        console.error('Ch5 load failed:', e);
+    }
+}
+
+function renderFeatureImportance(features) {
     const canvas = document.getElementById('feature-chart');
     if (!canvas) return;
     if (featureChart) featureChart.destroy();
 
-    let features;
-    if (apiData && apiData.length > 0) {
-        features = apiData.slice(0, 7).map(r => ({
-            name: FEATURE_LABELS[r.feature] || r.feature,
-            value: r.importance,
-        }));
-    } else {
-        features = [
-            { name: 'Current availability', value: 0.42 },
-            { name: 'Hour (sin)', value: 0.18 },
-            { name: 'Hour (cos)', value: 0.12 },
-            { name: 'Station', value: 0.09 },
-            { name: 'Temperature', value: 0.06 },
-            { name: 'Day of week', value: 0.05 },
-            { name: 'Precipitation', value: 0.04 },
-        ];
+    if (!features || features.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="chart-error"><i class="bi bi-cloud-slash"></i><span>Data unavailable</span></div>';
+        return;
     }
+
+    const top = features.slice(0, 8);
+    const labels = top.map(f => FEATURE_LABELS[f.feature] || f.feature);
+    const values = top.map(f => Math.round(f.importance * 1000) / 10);
 
     featureChart = new Chart(canvas, {
         type: 'bar',
         data: {
-            labels: features.map(f => f.name),
+            labels,
             datasets: [{
-                data: features.map(f => Math.round(f.value * 100)),
-                backgroundColor: features.map((_, i) => `rgba(55, 138, 221, ${1 - i * 0.1})`),
+                data: values,
+                backgroundColor: top.map((_, i) => `rgba(55, 138, 221, ${1 - i * 0.08})`),
                 borderRadius: 4,
                 borderSkipped: false,
                 barPercentage: 0.65,
@@ -755,221 +732,11 @@ function renderFeatureImportance(apiData) {
     });
 }
 
-function renderAccuracyChart(apiData) {
-    const canvas = document.getElementById('accuracy-chart');
-    if (!canvas) return;
-    if (accuracyChart) accuracyChart.destroy();
+// ============================================================
+// Helpers
+// ============================================================
 
-    let labels, values;
-    if (apiData && apiData.length > 0) {
-        labels = apiData.map(r => {
-            const d = new Date(r.date);
-            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-        });
-        values = apiData.map(r => Math.round(r.r2 * 100 * 10) / 10);
-    } else {
-        const rand = seededRand(77);
-        labels = [];
-        values = [];
-        const base = new Date('2026-03-03');
-        for (let i = 0; i < 14; i++) {
-            const d = new Date(base.getTime() + i * 86400000);
-            labels.push(d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
-            const dow = d.getDay();
-            const isWeekend = dow === 0 || dow === 6;
-            const noise = (rand() - 0.5) * 6;
-            const v = isWeekend ? 89 + noise : 81 + noise;
-            values.push(Math.round(Math.max(70, Math.min(98, v)) * 10) / 10);
-        }
-    }
-
-    const pointColors = values.map(v => v >= 80 ? COLORS.success : COLORS.warning);
-
-    accuracyChart = new Chart(canvas, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                data: values,
-                borderColor: COLORS.success,
-                backgroundColor: 'rgba(29, 158, 117, 0.06)',
-                borderWidth: 2,
-                fill: true,
-                pointRadius: 3,
-                pointBackgroundColor: pointColors,
-                pointBorderColor: '#fff',
-                pointBorderWidth: 1.5,
-                pointHoverRadius: 5,
-                tension: 0.3,
-            }],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y}% accuracy` } },
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { ...getTick(), maxRotation: 45, callback(val, idx) { return idx % 2 === 0 ? this.getLabelForValue(val) : ''; } },
-                },
-                y: {
-                    min: 70, max: 100,
-                    grid: getGrid(),
-                    ticks: { ...getTick(), stepSize: 5, callback: v => v + '%' },
-                    title: { display: true, text: 'Accuracy', font: { size: 10 }, color: getAxisTitleColor() },
-                },
-            },
-        },
-        plugins: [{
-            id: 'baselineLine',
-            afterDraw(chart) {
-                const yScale = chart.scales.y;
-                const y80 = yScale.getPixelForValue(80);
-                const ctx = chart.ctx;
-                const { left, right } = chart.chartArea;
-                ctx.save();
-                ctx.strokeStyle = COLORS.gray;
-                ctx.lineWidth = 1;
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                ctx.moveTo(left, y80);
-                ctx.lineTo(right, y80);
-                ctx.stroke();
-                ctx.font = '500 9px -apple-system, sans-serif';
-                ctx.fillStyle = COLORS.gray;
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'bottom';
-                ctx.fillText('80% baseline', right, y80 - 3);
-                ctx.restore();
-            },
-        }],
-    });
-}
-
-function renderScatterChart(apiData) {
-    const canvas = document.getElementById('scatter-chart');
-    if (!canvas) return;
-    if (scatterChart) scatterChart.destroy();
-
-    let points;
-    if (apiData && apiData.length > 0) {
-        points = apiData.map(r => ({
-            x: r.actual,
-            y: r.predicted,
-            error: Math.abs(r.predicted - r.actual),
-        }));
-    } else {
-        const rand = seededRand(123);
-        points = [];
-        for (let i = 0; i < 120; i++) {
-            const actual = Math.round(rand() * 20);
-            const error = (rand() - 0.5) * 2 + (rand() - 0.5) * 3;
-            const predicted = Math.max(0, Math.min(20, Math.round(actual + error)));
-            points.push({ x: actual, y: predicted, error: Math.abs(predicted - actual) });
-        }
-    }
-
-    const green = points.filter(p => p.error <= 1);
-    const amber = points.filter(p => p.error >= 2 && p.error < 3);
-    const red = points.filter(p => p.error >= 3);
-
-    scatterChart = new Chart(canvas, {
-        type: 'scatter',
-        data: {
-            datasets: [
-                { label: '±1 dock', data: green, backgroundColor: 'rgba(29, 158, 117, 0.5)', borderColor: COLORS.success, borderWidth: 1, pointRadius: 4, pointHoverRadius: 6 },
-                { label: '±2 docks', data: amber, backgroundColor: 'rgba(186, 117, 23, 0.5)', borderColor: COLORS.warning, borderWidth: 1, pointRadius: 4, pointHoverRadius: 6 },
-                { label: '±3+ docks', data: red, backgroundColor: 'rgba(226, 75, 74, 0.5)', borderColor: COLORS.danger, borderWidth: 1, pointRadius: 4, pointHoverRadius: 6 },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: { usePointStyle: true, pointStyle: 'circle', font: { size: 10 }, color: getLegendColor(), padding: 14 },
-                },
-                tooltip: { callbacks: { label: (ctx) => `Actual: ${ctx.parsed.x}, Predicted: ${ctx.parsed.y}` } },
-            },
-            scales: {
-                x: { min: 0, max: 20, grid: getGrid(), ticks: { ...getTick(), stepSize: 5 }, title: { display: true, text: 'Actual empty docks', font: { size: 10 }, color: getAxisTitleColor() } },
-                y: { min: 0, max: 20, grid: getGrid(), ticks: { ...getTick(), stepSize: 5 }, title: { display: true, text: 'Predicted empty docks', font: { size: 10 }, color: getAxisTitleColor() } },
-            },
-        },
-        plugins: [{
-            id: 'diagonalLine',
-            afterDraw(chart) {
-                const xScale = chart.scales.x;
-                const yScale = chart.scales.y;
-                const ctx = chart.ctx;
-                ctx.save();
-                ctx.strokeStyle = COLORS.grayLight;
-                ctx.lineWidth = 1;
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                ctx.moveTo(xScale.getPixelForValue(0), yScale.getPixelForValue(0));
-                ctx.lineTo(xScale.getPixelForValue(20), yScale.getPixelForValue(20));
-                ctx.stroke();
-                ctx.font = '500 9px -apple-system, sans-serif';
-                ctx.fillStyle = COLORS.grayLight;
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'bottom';
-                ctx.fillText('perfect', xScale.getPixelForValue(16) + 4, yScale.getPixelForValue(16) - 2);
-                ctx.restore();
-            },
-        }],
-    });
-}
-
-function renderErrorDist(apiData) {
-    const canvas = document.getElementById('error-chart');
-    if (!canvas) return;
-    if (errorChart) errorChart.destroy();
-
-    let bins, counts;
-    if (apiData && apiData.length > 0) {
-        bins = apiData.map(r => r.error_docks);
-        counts = apiData.map(r => r.count);
-    } else {
-        bins = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
-        counts = [3, 8, 18, 42, 68, 74, 65, 38, 16, 7, 2];
-    }
-
-    const barColors = bins.map(b => {
-        const abs = Math.abs(b);
-        if (abs <= 1) return COLORS.success;
-        if (abs <= 2) return COLORS.warning;
-        return COLORS.danger;
-    });
-
-    errorChart = new Chart(canvas, {
-        type: 'bar',
-        data: {
-            labels: bins.map(b => (b > 0 ? '+' : '') + b),
-            datasets: [{
-                data: counts,
-                backgroundColor: barColors,
-                borderRadius: 3,
-                borderSkipped: false,
-                barPercentage: 0.85,
-            }],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y} predictions with error ${ctx.label} docks` } },
-            },
-            scales: {
-                x: { grid: { display: false }, ticks: { ...getTick(), maxRotation: 0 }, title: { display: true, text: 'Error (predicted \u2212 actual)', font: { size: 10 }, color: getAxisTitleColor() } },
-                y: { beginAtZero: true, grid: getGrid(), ticks: { ...getTick() }, title: { display: true, text: 'Count', font: { size: 10 }, color: getAxisTitleColor() } },
-            },
-        },
-    });
+function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el && text != null) el.textContent = text;
 }

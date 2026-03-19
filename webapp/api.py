@@ -773,290 +773,286 @@ def prediction_plan():
 
 
 # ------------------------------------------------------------------
-# Insights: Overview
+# Insights: Chapter 1 - The Problem (morning docks + evening bikes)
 # ------------------------------------------------------------------
 
-@api.route("/insights/overview")
+PREFERRED_STATIONS = [
+    'BikePoints_432', 'BikePoints_482', 'BikePoints_878',
+    'BikePoints_356', 'BikePoints_428',
+]
+
+@api.route("/insights/ch1")
 @db_error_handler
-def insights_overview():
-    """Dashboard overview stats and key findings."""
+def insights_ch1():
+    """Morning dock + evening bike profiles for 5 preferred stations."""
+    station_ids = PREFERRED_STATIONS
+    placeholders = ','.join(['%s'] * len(station_ids))
+
+    # Morning empty docks (6am-2pm, weekdays, by station and hour)
+    morning_rows = query(f"""
+        SELECT station_name, station_id,
+               EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+               ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
+        FROM bike_availability
+        WHERE station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
+        GROUP BY station_name, station_id, hour
+        ORDER BY station_id, hour
+    """, station_ids)
+
+    # Evening available bikes (2pm-9pm, weekdays, by station and hour)
+    evening_rows = query(f"""
+        SELECT station_name, station_id,
+               EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+               ROUND(AVG(available_bikes)::numeric, 1) AS avg_bikes
+        FROM bike_availability
+        WHERE station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 14 AND 21
+        GROUP BY station_name, station_id, hour
+        ORDER BY station_id, hour
+    """, station_ids)
+
+    # Stat: earliest time any preferred station hits 0 empty docks (weekday avg)
+    first_zero_row = query_one(f"""
+        SELECT station_name,
+               TO_CHAR(
+                 MIN(timestamp AT TIME ZONE 'Europe/London')::time,
+                 'HH24:MI'
+               ) AS first_zero_time,
+               COUNT(DISTINCT (timestamp AT TIME ZONE 'Europe/London')::date) AS days_hit_zero,
+               (SELECT COUNT(DISTINCT (timestamp AT TIME ZONE 'Europe/London')::date)
+                FROM bike_availability
+                WHERE station_id IN ({placeholders})
+                  AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+               ) AS total_weekdays
+        FROM (
+            SELECT station_name, timestamp,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY station_id, (timestamp AT TIME ZONE 'Europe/London')::date
+                       ORDER BY timestamp
+                   ) AS rn
+            FROM bike_availability
+            WHERE station_id IN ({placeholders})
+              AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+              AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 14
+              AND empty_docks = 0
+        ) sub
+        WHERE rn = 1
+        GROUP BY station_name
+        ORDER BY first_zero_time ASC
+        LIMIT 1
+    """, station_ids + station_ids)
+
+    # Stat: avg empty docks across all 5 preferred at 9:30 (use hour=9)
+    avg_930_row = query_one(f"""
+        SELECT ROUND(AVG(empty_docks)::numeric, 1) AS avg_docks
+        FROM bike_availability
+        WHERE station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') = 9
+          AND EXTRACT(MINUTE FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 25 AND 35
+    """, station_ids)
+
+    # Stat: avg available bikes across all 5 preferred at 6pm
+    avg_6pm_row = query_one(f"""
+        SELECT ROUND(AVG(available_bikes)::numeric, 1) AS avg_bikes
+        FROM bike_availability
+        WHERE station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') = 18
+    """, station_ids)
+
+    # Station count
+    station_count = query_one("SELECT COUNT(*) AS cnt FROM monitored_stations")
+
+    return jsonify({
+        "morning": [dict(r) for r in morning_rows],
+        "evening": [dict(r) for r in evening_rows],
+        "stats": {
+            "first_zero": first_zero_row if first_zero_row else None,
+            "avg_docks_930": float(avg_930_row["avg_docks"]) if avg_930_row and avg_930_row.get("avg_docks") else None,
+            "avg_bikes_6pm": float(avg_6pm_row["avg_bikes"]) if avg_6pm_row and avg_6pm_row.get("avg_bikes") else None,
+            "station_count": station_count["cnt"] if station_count else 21,
+        },
+    })
+
+
+# ------------------------------------------------------------------
+# Insights: Chapter 3 - Data Sources
+# ------------------------------------------------------------------
+
+@api.route("/insights/ch3")
+@db_error_handler
+def insights_ch3():
+    """Data source counts + sensor validation data."""
     row = query_one("""
         SELECT
             (SELECT COUNT(*) FROM bike_availability) AS bike_rows,
             (SELECT COUNT(*) FROM weather_data) AS weather_rows,
-            (SELECT COUNT(*) FROM monitored_stations) AS station_count,
             (SELECT MIN(timestamp) FROM bike_availability) AS first_record,
             (SELECT MAX(timestamp) FROM bike_availability) AS last_record
     """)
     row = row or {}
 
-    bike_rows = row.get("bike_rows", 0)
-    weather_rows = row.get("weather_rows", 0)
-    first = row.get("first_record")
-    last = row.get("last_record")
-    days = 0
-    if first and last:
-        if isinstance(first, datetime) and isinstance(last, datetime):
-            days = (last - first).days + 1
+    # Temperature sensor count + date range
+    temp_row = query_one("""
+        SELECT COUNT(*) AS cnt,
+               MIN(timestamp) AS first_ts,
+               MAX(timestamp) AS last_ts
+        FROM temperature_readings
+    """) if _table_exists("temperature_readings") else None
 
-    # Sensor event count (table may not exist yet)
-    sensor_count = 0
-    if _table_exists("sensor_events"):
-        se_row = query_one("SELECT COUNT(*) AS cnt FROM sensor_events")
-        sensor_count = se_row["cnt"] if se_row else 0
-
-    # Model accuracy
-    svc = get_nowcast_service() or get_forecast_service()
-    r2 = 0
-    if svc:
-        for m in svc.metrics:
-            if svc.model_name in m.get("model", ""):
-                r2 = round(m.get("R2", 0), 2)
-                break
-
-    # Key findings from data
-    findings = []
-
-    # Finding 1: rain effect
-    rain_row = query_one("""
-        SELECT
-            ROUND(AVG(CASE WHEN w.precipitation > 0.5 THEN b.avg_docks END)::numeric, 1) AS rainy,
-            ROUND(AVG(CASE WHEN w.precipitation <= 0.1 THEN b.avg_docks END)::numeric, 1) AS dry
-        FROM weather_data w
-        INNER JOIN (
-            SELECT timestamp, AVG(empty_docks) AS avg_docks
-            FROM bike_availability GROUP BY timestamp
-        ) b ON w.timestamp = b.timestamp
-    """)
-    if rain_row and rain_row.get("rainy") and rain_row.get("dry"):
-        diff_pct = round((float(rain_row["rainy"]) - float(rain_row["dry"])) / max(float(rain_row["dry"]), 1) * 100)
-        if diff_pct > 0:
-            findings.append(f"Rain increases free docks by ~{abs(diff_pct)}%, reducing morning dock pressure.")
-        else:
-            findings.append(f"Rain reduces morning dock pressure by ~{abs(diff_pct)}%.")
-
-    # Finding 2: weekend vs weekday
-    weekend_row = query_one("""
-        SELECT
-            ROUND(AVG(CASE WHEN EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') IN (0,6)
-                            THEN empty_docks END)::numeric, 1) AS weekend_avg,
-            ROUND(AVG(CASE WHEN EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') NOT IN (0,6)
-                            AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') = 8
-                            THEN empty_docks END)::numeric, 1) AS weekday_8am
-        FROM bike_availability
-    """)
-    if weekend_row and weekend_row.get("weekend_avg") and weekend_row.get("weekday_8am"):
-        ratio = round(float(weekend_row["weekend_avg"]) / max(float(weekend_row["weekday_8am"]), 0.1), 1)
-        findings.append(f"Weekend availability is {ratio}x higher at 8am across all monitored stations.")
-
-    # Finding 3: busiest station
-    busiest = query_one("""
-        SELECT station_name,
-               ROUND(AVG(CASE WHEN EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') = 8
-                              THEN empty_docks END)::numeric, 1) AS avg_8am
-        FROM bike_availability
-        WHERE EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
-        GROUP BY station_name
-        ORDER BY avg_8am ASC NULLS LAST
-        LIMIT 1
-    """)
-    if busiest and busiest.get("avg_8am") is not None:
-        short = busiest["station_name"].split(",")[0]
-        findings.append(f"{short} is the first to fill on weekday mornings (avg {busiest['avg_8am']} docks at 8am).")
-
-    if not findings:
-        findings = ["Collecting data — findings will appear after a few days."]
+    # Sensor validation: hourly averages from both sources for overlap period
+    sensor_vs_api = []
+    sensor_corr = None
+    if _table_exists("temperature_readings"):
+        sensor_vs_api = query("""
+            SELECT
+                DATE_TRUNC('hour', t.timestamp) AS ts,
+                ROUND(AVG(t.temperature_c)::numeric, 1) AS sensor_temp,
+                ROUND(AVG(w.temperature)::numeric, 1) AS api_temp
+            FROM temperature_readings t
+            JOIN weather_data w ON DATE_TRUNC('hour', t.timestamp) = DATE_TRUNC('hour', w.timestamp)
+            GROUP BY DATE_TRUNC('hour', t.timestamp)
+            ORDER BY ts
+        """)
+        corr_row = query_one("""
+            SELECT CORR(t.temperature_c, w.temperature) AS r
+            FROM temperature_readings t
+            JOIN weather_data w ON DATE_TRUNC('minute', t.timestamp) = DATE_TRUNC('minute', w.timestamp)
+        """)
+        if corr_row and corr_row.get("r") is not None:
+            sensor_corr = round(float(corr_row["r"]), 3)
 
     return jsonify({
-        "data_sources": {
-            "dock_readings": {"count": bike_rows, "label": "Dock readings", "badge": "TfL Santander API"},
-            "weather_observations": {"count": weather_rows, "label": "Weather observations", "badge": "Open-Meteo API"},
-            "temp_sensor_readings": {"count": weather_rows, "label": "Temp sensor readings", "badge": "KY-028 sensor"},
-            "sensor_events": {"count": sensor_count, "label": "Motion events", "badge": "PIR sensor"},
-        },
-        "model_accuracy_7d": r2,
-        "collection_days": days,
-        "first_record": first.isoformat() if isinstance(first, datetime) else first,
-        "last_record": last.isoformat() if isinstance(last, datetime) else last,
-        "key_findings": findings,
+        "bike_rows": row.get("bike_rows", 0),
+        "weather_rows": row.get("weather_rows", 0),
+        "temp_rows": temp_row["cnt"] if temp_row else 0,
+        "temp_first": temp_row["first_ts"].isoformat() if temp_row and temp_row.get("first_ts") and isinstance(temp_row["first_ts"], datetime) else None,
+        "temp_last": temp_row["last_ts"].isoformat() if temp_row and temp_row.get("last_ts") and isinstance(temp_row["last_ts"], datetime) else None,
+        "first_record": row["first_record"].isoformat() if isinstance(row.get("first_record"), datetime) else None,
+        "last_record": row["last_record"].isoformat() if isinstance(row.get("last_record"), datetime) else None,
+        "sensor_vs_api": _serialise(sensor_vs_api),
+        "sensor_corr": sensor_corr,
     })
 
 
 # ------------------------------------------------------------------
-# Insights: Correlations
+# Insights: Chapter 4 - What Affects Dock Availability
 # ------------------------------------------------------------------
 
-@api.route("/insights/correlations")
+@api.route("/insights/ch4")
 @db_error_handler
-def insights_correlations():
-    """Pearson correlations, rain effect curves, temperature scatter."""
-    # Pearson coefficients
-    corr_row = query_one("""
-        SELECT
-            CORR(w.temperature, sub.avg_docks) AS temp_corr,
-            CORR(w.precipitation, sub.avg_docks) AS rain_corr,
-            CORR(w.wind_speed, sub.avg_docks) AS wind_corr,
-            CORR(w.humidity, sub.avg_docks) AS humidity_corr,
-            COUNT(*) AS samples
-        FROM weather_data w
-        INNER JOIN (
-            SELECT timestamp, AVG(empty_docks) AS avg_docks
-            FROM bike_availability GROUP BY timestamp
-        ) sub ON w.timestamp = sub.timestamp
-    """)
-    corr_row = corr_row or {}
-    samples = corr_row.get("samples", 0)
+def insights_ch4():
+    """Heatmap, rain effect, station comparison at 9:30, fill timeline."""
+    station_ids = PREFERRED_STATIONS
+    placeholders = ','.join(['%s'] * len(station_ids))
 
-    def _interp(coeff):
-        if coeff is None:
-            return "insufficient data"
-        c = abs(coeff)
-        strength = "Strong" if c > 0.5 else "Moderate" if c > 0.2 else "Weak" if c > 0.1 else "Very weak"
-        direction = "positive" if coeff > 0 else "negative"
-        return f"{strength} {direction}"
-
-    pearson = {}
-    for key, db_key, desc in [
-        ("temperature", "temp_corr", "warmer days see more cycling, reducing dock availability"),
-        ("precipitation", "rain_corr", "rain reduces cycling demand, leaving more docks free"),
-        ("wind_speed", "wind_corr", "high wind slightly reduces cycling"),
-        ("humidity", "humidity_corr", "humidity has minimal effect"),
-    ]:
-        coeff = corr_row.get(db_key)
-        if coeff is not None:
-            coeff = round(float(coeff), 4)
-        pearson[key] = {
-            "coefficient": coeff,
-            "p_value": 0.01 if samples > 100 else 0.1,
-            "interpretation": f"{_interp(coeff)} — {desc}",
-        }
-
-    # Rain effect: avg empty docks by hour, split by dry/rainy
-    dry_rows = query("""
-        SELECT
-            EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
-            ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
-        FROM bike_availability b
-        JOIN weather_data w ON b.timestamp = w.timestamp
-        WHERE w.precipitation <= 0.1
-        GROUP BY hour ORDER BY hour
-    """)
-    rainy_rows = query("""
-        SELECT
-            EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
-            ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
-        FROM bike_availability b
-        JOIN weather_data w ON b.timestamp = w.timestamp
-        WHERE w.precipitation > 0.5
-        GROUP BY hour ORDER BY hour
-    """)
-
-    # Fill missing hours
-    dry_map = {r["hour"]: float(r["avg_empty_docks"]) for r in dry_rows}
-    rainy_map = {r["hour"]: float(r["avg_empty_docks"]) for r in rainy_rows}
-    dry_days = [{"hour": h, "avg_empty_docks": dry_map.get(h, 10)} for h in range(24)]
-    rainy_days = [{"hour": h, "avg_empty_docks": rainy_map.get(h, 12)} for h in range(24)]
-
-    # Temperature scatter
-    temp_rows = query("""
-        SELECT w.temperature,
-               ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
-        FROM bike_availability b
-        JOIN weather_data w ON b.timestamp = w.timestamp
-        WHERE w.temperature IS NOT NULL
-        GROUP BY w.temperature
-        ORDER BY w.temperature
-    """)
-    temp_scatter = [{"temperature": float(r["temperature"]),
-                     "avg_empty_docks": float(r["avg_empty_docks"])} for r in temp_rows]
-
-    return jsonify({
-        "pearson": pearson,
-        "rain_effect": {"dry_days": dry_days, "rainy_days": rainy_days},
-        "temp_scatter": temp_scatter,
-        "sensor_vs_api": [],
-        "sensor_api_correlation": None,
-    })
-
-
-# ------------------------------------------------------------------
-# Insights: Patterns
-# ------------------------------------------------------------------
-
-@api.route("/insights/patterns")
-@db_error_handler
-def insights_patterns():
-    """Heatmap, day-of-week at 8am, station fill order."""
-    # Hourly heatmap (hour x weekday)
-    heatmap_rows = query("""
+    # Heatmap: hour x weekday for preferred stations
+    heatmap_rows = query(f"""
         SELECT
             EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London')::int AS weekday,
             EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
             ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
         FROM bike_availability
+        WHERE station_id IN ({placeholders})
         GROUP BY weekday, hour
         ORDER BY weekday, hour
-    """)
-    # Convert DOW (0=Sun) to frontend format (0=Sun kept)
-    hourly_heatmap = [{"weekday": r["weekday"], "hour": r["hour"],
-                       "avg_empty_docks": float(r["avg_empty_docks"])} for r in heatmap_rows]
+    """, station_ids)
 
-    # Day of week at 8am
-    dow_rows = query("""
+    # Rain effect: dry vs rainy, 6am-2pm, weekdays, preferred stations
+    dry_rows = query(f"""
         SELECT
-            EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London')::int AS dow,
-            ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
-        FROM bike_availability
-        WHERE EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') = 8
-        GROUP BY dow
-        ORDER BY dow
-    """)
-    day_names = {0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat"}
-    # Reorder to Mon-Sun
-    dow_map = {r["dow"]: float(r["avg_empty_docks"]) for r in dow_rows}
-    day_of_week_8am = [{"day": day_names[d], "avg_empty_docks": dow_map.get(d, 0)}
-                       for d in [1, 2, 3, 4, 5, 6, 0]]
+            EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+            ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
+        FROM bike_availability b
+        JOIN weather_data w ON DATE_TRUNC('minute', b.timestamp) = DATE_TRUNC('minute', w.timestamp)
+        WHERE b.station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
+          AND w.precipitation = 0
+        GROUP BY hour ORDER BY hour
+    """, station_ids)
 
-    # Station fill order (weekday mornings)
-    fill_rows = query("""
-        SELECT station_name,
-               ROUND(AVG(empty_docks)::numeric, 1) AS avg_8am
+    rainy_rows = query(f"""
+        SELECT
+            EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+            ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
+        FROM bike_availability b
+        JOIN weather_data w ON DATE_TRUNC('minute', b.timestamp) = DATE_TRUNC('minute', w.timestamp)
+        WHERE b.station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
+          AND w.precipitation > 0
+        GROUP BY hour ORDER BY hour
+    """, station_ids)
+
+    # Count dry vs rainy days
+    rain_day_counts = query_one(f"""
+        SELECT
+            COUNT(DISTINCT CASE WHEN max_precip = 0 THEN day END) AS dry_days,
+            COUNT(DISTINCT CASE WHEN max_precip > 0 THEN day END) AS rainy_days,
+            COUNT(DISTINCT CASE WHEN max_precip > 0.5 THEN day END) AS heavy_rain_days
+        FROM (
+            SELECT
+                (b.timestamp AT TIME ZONE 'Europe/London')::date AS day,
+                MAX(w.precipitation) AS max_precip
+            FROM bike_availability b
+            JOIN weather_data w ON DATE_TRUNC('minute', b.timestamp) = DATE_TRUNC('minute', w.timestamp)
+            WHERE b.station_id IN ({placeholders})
+              AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+            GROUP BY day
+        ) sub
+    """, station_ids)
+
+    # Station comparison at 9:30 (all 21 stations)
+    station_930 = query("""
+        SELECT station_name, station_id,
+               ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
         FROM bike_availability
         WHERE EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
-          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') = 8
-        GROUP BY station_name
-        ORDER BY avg_8am ASC
-        LIMIT 7
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') = 9
+          AND EXTRACT(MINUTE FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 25 AND 35
+        GROUP BY station_name, station_id
+        ORDER BY avg_empty_docks DESC
     """)
-    station_fill_order = []
-    for i, r in enumerate(fill_rows):
-        short = r["station_name"].split(",")[0]
-        # Estimate fill time based on avg docks at 8am
-        avg = float(r["avg_8am"])
-        fill_min = max(0, int(48 - avg * 6))
-        fill_hour = 7 + fill_min // 60
-        fill_minute = fill_min % 60
-        station_fill_order.append({
-            "station_name": short,
-            "avg_fill_time": f"{fill_hour:02d}:{fill_minute:02d}",
-            "rank": i + 1,
-        })
+
+    # Station fill timeline: hours when empty_docks < 3 for preferred + Imperial
+    fill_station_ids = station_ids + ['BikePoints_392']
+    fill_placeholders = ','.join(['%s'] * len(fill_station_ids))
+    fill_timeline = query(f"""
+        SELECT station_name, station_id,
+               EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+               ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
+        FROM bike_availability
+        WHERE station_id IN ({fill_placeholders})
+          AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 16
+        GROUP BY station_name, station_id, hour
+        ORDER BY station_id, hour
+    """, fill_station_ids)
 
     return jsonify({
-        "hourly_heatmap": hourly_heatmap,
-        "day_of_week_8am": day_of_week_8am,
-        "station_fill_order": station_fill_order,
+        "heatmap": [{"weekday": r["weekday"], "hour": r["hour"],
+                     "avg_empty_docks": float(r["avg_empty_docks"])} for r in heatmap_rows],
+        "rain_dry": [dict(r) for r in dry_rows],
+        "rain_wet": [dict(r) for r in rainy_rows],
+        "rain_day_counts": dict(rain_day_counts) if rain_day_counts else {"dry_days": 0, "rainy_days": 0, "heavy_rain_days": 0},
+        "station_930": [dict(r) for r in station_930],
+        "fill_timeline": [dict(r) for r in fill_timeline],
     })
 
 
 # ------------------------------------------------------------------
-# Insights: Model
+# Insights: Chapter 5 - The Prediction Models
 # ------------------------------------------------------------------
 
-@api.route("/insights/model")
+@api.route("/insights/ch5")
 @db_error_handler
-def insights_model():
-    """Model info, feature importance, error distribution."""
+def insights_ch5():
+    """Model info + feature importance from real model."""
     fc = get_forecast_service()
     nc = get_nowcast_service()
 
@@ -1078,105 +1074,17 @@ def insights_model():
             "features": svc.features,
         }
 
-    # Feature importance from the best model
-    best_svc = nc or fc
+    # Feature importance from Nowcast (Random Forest)
     feature_importance = []
-    if best_svc and hasattr(best_svc.model, "feature_importances_") and best_svc.model.feature_importances_ is not None:
-        importances = best_svc.model.feature_importances_
-        for feat, imp in sorted(zip(best_svc.features, importances), key=lambda x: -x[1]):
+    if nc and hasattr(nc.model, "feature_importances_") and nc.model.feature_importances_ is not None:
+        importances = nc.model.feature_importances_
+        for feat, imp in sorted(zip(nc.features, importances), key=lambda x: -x[1]):
             feature_importance.append({"feature": feat, "importance": round(float(imp), 4)})
-
-    # Accuracy history: compute daily MAE from recent predictions vs actuals
-    # Use last 14 days of data comparing model predictions to actual values
-    accuracy_history = []
-    if best_svc:
-        daily_rows = query("""
-            SELECT
-                (timestamp AT TIME ZONE 'Europe/London')::date AS day,
-                AVG(empty_docks) AS avg_actual,
-                STDDEV(empty_docks) AS std_actual,
-                COUNT(*) AS samples
-            FROM bike_availability
-            WHERE timestamp > NOW() - INTERVAL '14 days'
-            GROUP BY day
-            ORDER BY day
-        """)
-        for r in daily_rows:
-            day = r["day"]
-            if isinstance(day, date):
-                day_str = day.isoformat()
-            else:
-                day_str = str(day)
-            std = float(r.get("std_actual") or 2)
-            # Approximate MAE from std deviation relative to model's overall MAE
-            base_mae = 0
-            for m in best_svc.metrics:
-                if best_svc.model_name in m.get("model", ""):
-                    base_mae = m.get("MAE", 1.5)
-                    break
-            daily_mae = round(base_mae * (0.8 + 0.4 * (std / max(std, 1))), 2)
-            base_r2 = 0
-            for m in best_svc.metrics:
-                if best_svc.model_name in m.get("model", ""):
-                    base_r2 = m.get("R2", 0.95)
-                    break
-            accuracy_history.append({
-                "date": day_str,
-                "mae": daily_mae,
-                "r2": round(base_r2, 4),
-            })
-
-    # Error distribution: histogram of (predicted - actual) from test data
-    # Use recent data to build a proxy distribution
-    error_distribution = []
-    if best_svc:
-        base_mae = 1.5
-        for m in best_svc.metrics:
-            if best_svc.model_name in m.get("model", ""):
-                base_mae = m.get("MAE", 1.5)
-                break
-        sigma = base_mae * 1.2
-        for err in range(-5, 6):
-            count = int(200 * math.exp(-0.5 * (err / max(sigma, 0.5)) ** 2))
-            error_distribution.append({"error_docks": err, "count": count})
-
-    # Prediction vs actual scatter: sample recent data points
-    prediction_vs_actual = []
-    if best_svc:
-        sample_rows = query("""
-            SELECT station_id, empty_docks, total_docks,
-                   EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')
-                     + EXTRACT(MINUTE FROM timestamp AT TIME ZONE 'Europe/London') / 60 AS frac_hour,
-                   EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London')::int AS dow
-            FROM bike_availability
-            WHERE timestamp > NOW() - INTERVAL '2 days'
-            ORDER BY RANDOM()
-            LIMIT 80
-        """)
-        weather_now_row = query_one("""
-            SELECT temperature, humidity, precipitation, wind_speed
-            FROM weather_data ORDER BY timestamp DESC LIMIT 1
-        """) or {}
-        for r in sample_rows:
-            actual = int(r["empty_docks"])
-            pred = best_svc.predict(
-                r["station_id"], r["total_docks"],
-                float(r["frac_hour"]), int(r["dow"]),
-                weather_now_row,
-            )
-            if pred is not None:
-                prediction_vs_actual.append({
-                    "actual": actual,
-                    "predicted": round(pred),
-                })
 
     return jsonify({
         "nowcast": _model_dict(nc),
         "forecast": _model_dict(fc),
         "feature_importance": feature_importance,
-        "accuracy_history": accuracy_history,
-        "error_distribution": error_distribution,
-        "prediction_vs_actual": prediction_vs_actual,
     })
 
 

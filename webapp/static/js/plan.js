@@ -3,34 +3,37 @@
 const SCAN_CACHE_KEY = 'door2dock_planner_cache';
 const SELECTED_KEY = 'door2dock_planner_selected';
 
-// Priority stations in order of importance
-const PRIORITY_STATION_NAMES = [
-    'Exhibition Road Museums 1',
-    'Exhibition Road Museums 2',
-    'Victoria & Albert Museum',
-    'Exhibition Road',
-    'South Kensington Station',
-    'Holy Trinity Brompton',
-    'Natural History Museum',
-];
-
 let allStations = [];
 let selectedStations = new Set();
 let timelineChart = null;
 let currentMode = 'morning'; // 'morning' or 'evening'
 
 // ------------------------------------------------------------------
-// Priority station matching
+// Priority stations from Settings (localStorage)
 // ------------------------------------------------------------------
 
-function getPriorityIndex(stationName) {
-    const name = stationName.toLowerCase();
-    for (let i = 0; i < PRIORITY_STATION_NAMES.length; i++) {
-        if (name.includes(PRIORITY_STATION_NAMES[i].toLowerCase())) {
-            return i;
+const DEFAULT_PRIORITY_IDS = [
+    'BikePoints_432', // Exhibition Road Museums 1
+    'BikePoints_482', // Exhibition Road Museums 2
+    'BikePoints_878', // Victoria & Albert Museum
+    'BikePoints_356', // South Kensington Station
+    'BikePoints_428', // Exhibition Road
+];
+
+function getPriorityStationIds() {
+    try {
+        const raw = localStorage.getItem('ds_station_order');
+        if (raw) {
+            const ids = JSON.parse(raw);
+            if (Array.isArray(ids) && ids.length > 0) return ids.slice(0, 5);
         }
-    }
-    return -1;
+    } catch { /* ignore */ }
+    return DEFAULT_PRIORITY_IDS;
+}
+
+function getPriorityIndex(stationId) {
+    const ids = getPriorityStationIds();
+    return ids.indexOf(stationId);
 }
 
 // ------------------------------------------------------------------
@@ -115,13 +118,15 @@ async function loadStations() {
 
         restoreSelected();
 
-        // If nothing was restored, auto-select priority stations
+        // If nothing was restored, auto-select priority stations from settings
         if (selectedStations.size === 0 && allStations.length > 0) {
-            const prioritySorted = [...allStations]
-                .filter(s => getPriorityIndex(s.station_name) >= 0)
-                .sort((a, b) => getPriorityIndex(a.station_name) - getPriorityIndex(b.station_name));
-            prioritySorted.forEach(s => selectedStations.add(s.station_id));
-            // If no priority matched, fall back to nearest 3
+            const priorityIds = getPriorityStationIds();
+            priorityIds.forEach(id => {
+                if (allStations.find(s => s.station_id === id)) {
+                    selectedStations.add(id);
+                }
+            });
+            // If no priority set in settings, fall back to nearest 3
             if (selectedStations.size === 0) {
                 allStations.slice(0, 3).forEach(s => selectedStations.add(s.station_id));
             }
@@ -143,8 +148,8 @@ function renderStationList() {
         if (aSel !== bSel) return aSel - bSel;
 
         // Within selection group, sort by priority then walking distance
-        const aPri = getPriorityIndex(a.station_name);
-        const bPri = getPriorityIndex(b.station_name);
+        const aPri = getPriorityIndex(a.station_id);
+        const bPri = getPriorityIndex(b.station_id);
         if (aPri >= 0 && bPri >= 0) return aPri - bPri;
         if (aPri >= 0) return -1;
         if (bPri >= 0) return 1;
@@ -154,7 +159,7 @@ function renderStationList() {
     container.innerHTML = sorted.map(s => {
         const isSelected = selectedStations.has(s.station_id);
         const dist = Math.round(s.walking_distance_m || 0);
-        const isPriority = getPriorityIndex(s.station_name) >= 0;
+        const isPriority = getPriorityIndex(s.station_id) >= 0;
         return `
         <div class="station-check-item ${isSelected ? 'check-active' : ''}"
              onclick="toggleStation('${s.station_id}')">

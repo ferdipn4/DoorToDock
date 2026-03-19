@@ -37,6 +37,12 @@ function renderStationList() {
     const ordered = orderStations(settings.station_order);
     const list = ordered.slice(0, 10);
 
+    // Persist initial order so Now/Plan pages can read it
+    if (!localStorage.getItem('ds_station_order')) {
+        const initialOrder = ordered.map(s => s.station_id);
+        localStorage.setItem('ds_station_order', JSON.stringify(initialOrder));
+    }
+
     container.innerHTML = list.map((st, i) => {
         const name = st.station_name.split(',')[0];
         const walkMin = Math.round((st.walking_duration_s || 0) / 60);

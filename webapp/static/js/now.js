@@ -1,16 +1,5 @@
 /* Door2Dock – Now Page (Clean, focused live status) */
 
-// Priority stations in order of importance
-const PRIORITY_STATION_NAMES = [
-    'Exhibition Road Museums 1',
-    'Exhibition Road Museums 2',
-    'Victoria & Albert Museum',
-    'Exhibition Road',
-    'South Kensington Station',
-    'Holy Trinity Brompton',
-    'Natural History Museum',
-];
-
 const PRIORITY_SHOW_COUNT = 3; // only show top 3 on first glance
 
 let map;
@@ -22,21 +11,35 @@ let forecastData = {};
 let forecastHorizon = 15;
 
 // ------------------------------------------------------------------
-// Priority station matching
+// Priority stations from Settings (localStorage)
 // ------------------------------------------------------------------
 
-function getPriorityIndex(stationName) {
-    const name = stationName.toLowerCase();
-    for (let i = 0; i < PRIORITY_STATION_NAMES.length; i++) {
-        if (name.includes(PRIORITY_STATION_NAMES[i].toLowerCase())) {
-            return i;
+const DEFAULT_PRIORITY_IDS = [
+    'BikePoints_432', // Exhibition Road Museums 1
+    'BikePoints_482', // Exhibition Road Museums 2
+    'BikePoints_878', // Victoria & Albert Museum
+    'BikePoints_356', // South Kensington Station
+    'BikePoints_428', // Exhibition Road
+];
+
+function getPriorityStationIds() {
+    try {
+        const raw = localStorage.getItem('ds_station_order');
+        if (raw) {
+            const ids = JSON.parse(raw);
+            if (Array.isArray(ids) && ids.length > 0) return ids.slice(0, 5);
         }
-    }
-    return -1;
+    } catch { /* ignore */ }
+    return DEFAULT_PRIORITY_IDS;
 }
 
-function isPriorityStation(stationName) {
-    return getPriorityIndex(stationName) >= 0;
+function getPriorityIndex(stationId) {
+    const ids = getPriorityStationIds();
+    return ids.indexOf(stationId);
+}
+
+function isPriorityStation(stationId) {
+    return getPriorityIndex(stationId) >= 0;
 }
 
 // ------------------------------------------------------------------
@@ -180,8 +183,8 @@ function updateQuickRecommendation() {
     const card = document.getElementById('quick-rec-card');
 
     const priorityStations = currentStations
-        .filter(s => isPriorityStation(s.station_name))
-        .sort((a, b) => getPriorityIndex(a.station_name) - getPriorityIndex(b.station_name));
+        .filter(s => isPriorityStation(s.station_id))
+        .sort((a, b) => getPriorityIndex(a.station_id) - getPriorityIndex(b.station_id));
 
     // Best = nearest priority station with 5+ docks
     const best = priorityStations
@@ -205,7 +208,7 @@ function updateQuickRecommendation() {
         text.textContent = `${best.empty_docks} free docks at ${best.station_name.split(',')[0]}`;
         detail.textContent = `${walkMin} min walk${forecastText}`;
     } else {
-        const anyAvailable = priorityStations.find(s => s.empty_docks >= 1);
+        const anyAvailable = priorityStations.find(s => (s.empty_docks || 0) >= 1);
         if (anyAvailable) {
             const walkMin = Math.round((anyAvailable.walking_duration_s || 0) / 60);
             card.classList.add('rec-yellow');
@@ -231,8 +234,8 @@ function renderPriorityStations() {
         ? `${Math.round(forecastHorizon / 60)}h` : `${forecastHorizon}min`;
 
     const priority = currentStations
-        .filter(s => isPriorityStation(s.station_name))
-        .sort((a, b) => getPriorityIndex(a.station_name) - getPriorityIndex(b.station_name))
+        .filter(s => isPriorityStation(s.station_id))
+        .sort((a, b) => getPriorityIndex(a.station_id) - getPriorityIndex(b.station_id))
         .slice(0, PRIORITY_SHOW_COUNT);
 
     if (priority.length === 0) {
