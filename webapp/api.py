@@ -788,30 +788,44 @@ def insights_ch1():
     station_ids = PREFERRED_STATIONS
     placeholders = ','.join(['%s'] * len(station_ids))
 
-    # Morning empty docks (6am-2pm, weekdays, by station and hour)
+    # Morning empty docks (6am-2pm, weekdays, by station, 15-min intervals)
     morning_rows = query(f"""
         SELECT station_name, station_id,
                EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+               (FLOOR(EXTRACT(MINUTE FROM timestamp AT TIME ZONE 'Europe/London')::int / 15) * 15)::int AS minute,
                ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
         FROM bike_availability
         WHERE station_id IN ({placeholders})
           AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
           AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
-        GROUP BY station_name, station_id, hour
-        ORDER BY station_id, hour
+        GROUP BY station_name, station_id, hour, minute
+        ORDER BY station_id, hour, minute
     """, station_ids)
 
-    # Evening available bikes (2pm-9pm, weekdays, by station and hour)
+    # Evening available bikes (2pm-9pm, weekdays, by station, 15-min intervals)
     evening_rows = query(f"""
         SELECT station_name, station_id,
                EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+               (FLOOR(EXTRACT(MINUTE FROM timestamp AT TIME ZONE 'Europe/London')::int / 15) * 15)::int AS minute,
                ROUND(AVG(available_bikes)::numeric, 1) AS avg_bikes
         FROM bike_availability
         WHERE station_id IN ({placeholders})
           AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
           AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 14 AND 21
-        GROUP BY station_name, station_id, hour
-        ORDER BY station_id, hour
+        GROUP BY station_name, station_id, hour, minute
+        ORDER BY station_id, hour, minute
+    """, station_ids)
+
+    # Heatmap: hour x weekday for preferred stations
+    heatmap_rows = query(f"""
+        SELECT
+            EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London')::int AS weekday,
+            EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+            ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
+        FROM bike_availability
+        WHERE station_id IN ({placeholders})
+        GROUP BY weekday, hour
+        ORDER BY weekday, hour
     """, station_ids)
 
     # Stat: earliest time any preferred station hits 0 empty docks (weekday avg)
@@ -870,6 +884,8 @@ def insights_ch1():
     return jsonify({
         "morning": [dict(r) for r in morning_rows],
         "evening": [dict(r) for r in evening_rows],
+        "heatmap": [{"weekday": r["weekday"], "hour": r["hour"],
+                     "avg_empty_docks": float(r["avg_empty_docks"])} for r in heatmap_rows],
         "stats": {
             "first_zero": first_zero_row if first_zero_row else None,
             "avg_docks_930": float(avg_930_row["avg_docks"]) if avg_930_row and avg_930_row.get("avg_docks") else None,
@@ -946,23 +962,11 @@ def insights_ch3():
 @api.route("/insights/ch4")
 @db_error_handler
 def insights_ch4():
-    """Heatmap, rain effect, station comparison at 9:30, fill timeline."""
+    """Rain effect, station comparison at 9:30."""
     station_ids = PREFERRED_STATIONS
     placeholders = ','.join(['%s'] * len(station_ids))
 
-    # Heatmap: hour x weekday for preferred stations
-    heatmap_rows = query(f"""
-        SELECT
-            EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London')::int AS weekday,
-            EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
-            ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
-        FROM bike_availability
-        WHERE station_id IN ({placeholders})
-        GROUP BY weekday, hour
-        ORDER BY weekday, hour
-    """, station_ids)
-
-    # Rain effect: dry vs rainy, 6am-2pm, weekdays, preferred stations
+    # Rain effect: dry vs rainy, 6am-8pm, weekdays, preferred stations
     # Pre-aggregate weather to unique hours first, then join to bike data
     dry_rows = query(f"""
         WITH hourly_weather AS (
@@ -978,7 +982,7 @@ def insights_ch4():
         JOIN hourly_weather w ON DATE_TRUNC('hour', b.timestamp) = w.hr
         WHERE b.station_id IN ({placeholders})
           AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
-          AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
+          AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 19
           AND w.avg_precip = 0
         GROUP BY hour ORDER BY hour
     """, station_ids)
@@ -997,7 +1001,7 @@ def insights_ch4():
         JOIN hourly_weather w ON DATE_TRUNC('hour', b.timestamp) = w.hr
         WHERE b.station_id IN ({placeholders})
           AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
-          AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 13
+          AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 19
           AND w.avg_precip > 0
         GROUP BY hour ORDER BY hour
     """, station_ids)
@@ -1030,29 +1034,11 @@ def insights_ch4():
         ORDER BY avg_empty_docks DESC
     """)
 
-    # Station fill timeline: hours when empty_docks < 3 for preferred + Imperial
-    fill_station_ids = station_ids + ['BikePoints_392']
-    fill_placeholders = ','.join(['%s'] * len(fill_station_ids))
-    fill_timeline = query(f"""
-        SELECT station_name, station_id,
-               EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
-               ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
-        FROM bike_availability
-        WHERE station_id IN ({fill_placeholders})
-          AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
-          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 16
-        GROUP BY station_name, station_id, hour
-        ORDER BY station_id, hour
-    """, fill_station_ids)
-
     return jsonify({
-        "heatmap": [{"weekday": r["weekday"], "hour": r["hour"],
-                     "avg_empty_docks": float(r["avg_empty_docks"])} for r in heatmap_rows],
         "rain_dry": [dict(r) for r in dry_rows],
         "rain_wet": [dict(r) for r in rainy_rows],
         "rain_day_counts": dict(rain_day_counts) if rain_day_counts else {"dry_days": 0, "rainy_days": 0, "heavy_rain_days": 0},
         "station_930": [dict(r) for r in station_930],
-        "fill_timeline": [dict(r) for r in fill_timeline],
     })
 
 
@@ -1092,10 +1078,20 @@ def insights_ch5():
         for feat, imp in sorted(zip(nc.features, importances), key=lambda x: -x[1]):
             feature_importance.append({"feature": feat, "importance": round(float(imp), 4)})
 
+    # Conceptual importance for Forecast (Historical Average baseline)
+    forecast_importance = [
+        {"feature": "station", "importance": 0.40},
+        {"feature": "hour", "importance": 0.35},
+        {"feature": "weekday", "importance": 0.25},
+        {"feature": "weather", "importance": 0.0},
+        {"feature": "current_availability", "importance": 0.0},
+    ]
+
     return jsonify({
         "nowcast": _model_dict(nc),
         "forecast": _model_dict(fc),
         "feature_importance": feature_importance,
+        "forecast_importance": forecast_importance,
     })
 
 

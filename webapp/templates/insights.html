@@ -14,23 +14,23 @@
     <section class="chapter" id="ch-problem">
         <div class="chapter-label">Chapter 1</div>
         <h2 class="chapter-title">The problem</h2>
-        <p class="chapter-intro">Dock availability near Imperial College declines over the morning as commuters and students arrive. Finding a bike to ride home in the evening can be equally challenging. These charts show average weekday patterns across the five closest stations: Exhibition Road Museums 1 &amp; 2, Victoria &amp; Albert Museum, South Kensington Station, and Exhibition Road.</p>
+        <p class="chapter-intro">Dock availability near Imperial College declines over the morning as commuters and students arrive. Finding a bike to ride home in the evening can be equally challenging. These charts show average weekday patterns across the five preferred stations: Exhibition Road Museums 1 &amp; 2, Victoria &amp; Albert Museum, South Kensington Station, and Exhibition Road.</p>
 
         <!-- Stat cards -->
         <div class="stat-strip">
-            <div class="stat-card stat-card-danger">
+            <div class="stat-card">
                 <div class="stat-value" id="stat-fill-time">--</div>
                 <div class="stat-label">earliest station hits 0 docks</div>
             </div>
-            <div class="stat-card stat-card-warning">
+            <div class="stat-card">
                 <div class="stat-value" id="stat-docks-930">--</div>
                 <div class="stat-label">avg empty docks at 9:30 AM</div>
             </div>
-            <div class="stat-card stat-card-info">
+            <div class="stat-card">
                 <div class="stat-value" id="stat-bikes-6pm">--</div>
                 <div class="stat-label">avg bikes at 6 PM</div>
             </div>
-            <div class="stat-card stat-card-success">
+            <div class="stat-card">
                 <div class="stat-value" id="stat-stations">--</div>
                 <div class="stat-label">stations monitored</div>
             </div>
@@ -40,14 +40,27 @@
         <div class="ds-card chart-card">
             <div class="chart-title">Morning dock availability (weekdays)</div>
             <div class="chart-wrap chart-wrap-tall"><canvas id="morning-chart"></canvas></div>
-            <div class="chart-caption">Average empty docks per station, 6 AM to 2 PM. "Empty docks" means places to park your bike when arriving.</div>
+            <div class="chart-caption">Average empty docks per station, 6 AM to 2 PM, at 15-minute intervals. "Empty docks" means places to park your bike when arriving.</div>
+        </div>
+
+        <!-- Heatmap (moved from Chapter 4) -->
+        <div class="ds-card chart-card">
+            <div class="chart-title">Empty docks by hour and day (preferred stations)</div>
+            <div class="heatmap-scroll">
+                <div class="heatmap" id="ch1-heatmap"></div>
+            </div>
+            <div class="heatmap-legend-bar">
+                <span class="heatmap-legend-label">0 docks</span>
+                <div class="heatmap-legend-gradient"></div>
+                <span class="heatmap-legend-label">15+ docks</span>
+            </div>
         </div>
 
         <!-- Evening bike chart -->
         <div class="ds-card chart-card">
             <div class="chart-title">Evening bike availability (weekdays)</div>
             <div class="chart-wrap chart-wrap-tall"><canvas id="evening-chart"></canvas></div>
-            <div class="chart-caption">Average available bikes per station, 2 PM to 9 PM. "Available bikes" means bikes you can ride home.</div>
+            <div class="chart-caption">Average available bikes per station, 2 PM to 9 PM, at 15-minute intervals. "Available bikes" means bikes you can ride home.</div>
         </div>
     </section>
 
@@ -57,45 +70,65 @@
         <h2 class="chapter-title">System architecture and data flow</h2>
         <p class="chapter-intro">Three data sources feed into a cloud pipeline that predicts dock availability.</p>
 
-        <!-- Diagram 1: Data collection flow -->
+        <!-- Diagram 1: Sensing pipeline -->
         <div class="ds-card arch-card">
-            <div class="arch-title">Data collection</div>
-            <div class="arch-flow">
-                <div class="arch-sources">
-                    <div class="arch-source">
-                        <div class="arch-source-icon"><i class="bi bi-bicycle"></i></div>
-                        <div class="arch-source-info">
+            <div class="arch-title">Sensing pipeline</div>
+            <div class="sensing-flow">
+                <div class="sensing-sources">
+                    <div class="sensing-node sensing-node-api">
+                        <div class="sensing-icon"><i class="bi bi-bicycle"></i></div>
+                        <div class="sensing-info">
                             <strong>TfL Santander API</strong>
-                            <span>800 stations, every 60s</span>
-                            <span class="arch-fields">available_bikes, empty_docks, ebikes</span>
+                            <span class="sensing-fields">bikes, docks, ebikes per station</span>
+                            <span class="sensing-freq">every 60s</span>
                         </div>
                     </div>
-                    <div class="arch-source">
-                        <div class="arch-source-icon"><i class="bi bi-cloud-rain"></i></div>
-                        <div class="arch-source-info">
+                    <div class="sensing-node sensing-node-weather">
+                        <div class="sensing-icon"><i class="bi bi-cloud-rain"></i></div>
+                        <div class="sensing-info">
                             <strong>Open-Meteo API</strong>
-                            <span>Every 60s</span>
-                            <span class="arch-fields">temperature, humidity, precipitation, wind</span>
+                            <span class="sensing-fields">temperature, humidity, precipitation, wind</span>
+                            <span class="sensing-freq">every 60s</span>
                         </div>
                     </div>
-                    <div class="arch-source">
-                        <div class="arch-source-icon"><i class="bi bi-thermometer-half"></i></div>
-                        <div class="arch-source-info">
+                    <div class="sensing-node sensing-node-sensor">
+                        <div class="sensing-icon"><i class="bi bi-thermometer-half"></i></div>
+                        <div class="sensing-info">
                             <strong>KY-028 via ESP32</strong>
-                            <span>Continuous, HTTPS to Supabase</span>
-                            <span class="arch-fields">temperature_c, raw_adc (training only)</span>
+                            <span class="sensing-fields">temperature_c, raw_adc</span>
+                            <span class="sensing-freq">continuous (training only)</span>
                         </div>
                     </div>
                 </div>
-                <div class="arch-arrow-col">
-                    <i class="bi bi-arrow-right"></i>
-                    <i class="bi bi-arrow-right"></i>
-                    <i class="bi bi-arrow-right"></i>
+                <div class="sensing-arrows">
+                    <div class="sensing-arrow-line"></div>
+                    <div class="sensing-arrow-line"></div>
+                    <div class="sensing-arrow-line"></div>
                 </div>
-                <div class="arch-db">
-                    <i class="bi bi-database"></i>
-                    <strong>Supabase PostgreSQL</strong>
-                    <span id="arch-rows">Loading...</span>
+                <div class="sensing-db-col">
+                    <div class="sensing-node sensing-node-db">
+                        <div class="sensing-icon"><i class="bi bi-database"></i></div>
+                        <div class="sensing-info">
+                            <strong>Supabase PostgreSQL</strong>
+                            <span class="sensing-fields" id="arch-rows">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="sensing-arrow-single"><i class="bi bi-arrow-right"></i></div>
+                <div class="sensing-node sensing-node-ml">
+                    <div class="sensing-icon"><i class="bi bi-cpu"></i></div>
+                    <div class="sensing-info">
+                        <strong>ML Models</strong>
+                        <span class="sensing-fields">Nowcast + Forecast</span>
+                    </div>
+                </div>
+                <div class="sensing-arrow-single"><i class="bi bi-arrow-right"></i></div>
+                <div class="sensing-node sensing-node-dash">
+                    <div class="sensing-icon"><i class="bi bi-display"></i></div>
+                    <div class="sensing-info">
+                        <strong>Web Dashboard</strong>
+                        <span class="sensing-fields">5 pages</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -103,71 +136,90 @@
         <!-- Diagram 2: Actuation pipeline -->
         <div class="ds-card arch-card">
             <div class="arch-title">Actuation pipeline</div>
-            <div class="pipeline-strip">
-                <div class="pipeline-node pipeline-source">
-                    <div class="pipeline-icon"><i class="bi bi-person-walking"></i></div>
-                    <div class="pipeline-label">PIR sensor</div>
-                    <div class="pipeline-detail">Detects departure</div>
+            <div class="actuation-flow">
+                <div class="act-node">
+                    <div class="act-icon"><i class="bi bi-person-walking"></i></div>
+                    <div class="act-label">PIR motion sensor</div>
+                    <div class="act-detail">HC-SR501 + ESP32</div>
                 </div>
-                <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
-                <div class="pipeline-node pipeline-storage">
-                    <div class="pipeline-icon"><i class="bi bi-database"></i></div>
-                    <div class="pipeline-label">Supabase insert</div>
-                    <div class="pipeline-detail">sensor_events</div>
+                <div class="act-arrow">
+                    <span class="act-arrow-label">departure event</span>
+                    <div class="act-arrow-line"><i class="bi bi-arrow-right"></i></div>
                 </div>
-                <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
-                <div class="pipeline-node pipeline-output">
-                    <div class="pipeline-icon"><i class="bi bi-cpu"></i></div>
-                    <div class="pipeline-label">Nowcast model</div>
-                    <div class="pipeline-detail">Random Forest</div>
+                <div class="act-node">
+                    <div class="act-icon"><i class="bi bi-database"></i></div>
+                    <div class="act-label">Supabase insert</div>
+                    <div class="act-detail">sensor_events table</div>
                 </div>
-                <div class="pipeline-arrow"><i class="bi bi-arrow-right"></i></div>
-                <div class="pipeline-node pipeline-ui">
-                    <div class="pipeline-icon"><i class="bi bi-telegram"></i></div>
-                    <div class="pipeline-label">Telegram</div>
-                    <div class="pipeline-detail">Push notification</div>
+                <div class="act-arrow">
+                    <span class="act-arrow-label">triggers prediction</span>
+                    <div class="act-arrow-line"><i class="bi bi-arrow-right"></i></div>
+                </div>
+                <div class="act-node">
+                    <div class="act-icon"><i class="bi bi-cpu"></i></div>
+                    <div class="act-label">Nowcast model</div>
+                    <div class="act-detail">Random Forest, T+15 min</div>
+                </div>
+                <div class="act-arrow">
+                    <span class="act-arrow-label">dock prediction</span>
+                    <div class="act-arrow-line"><i class="bi bi-arrow-right"></i></div>
+                </div>
+                <div class="act-node">
+                    <div class="act-icon"><i class="bi bi-telegram"></i></div>
+                    <div class="act-label">Telegram</div>
+                    <div class="act-detail">push notification</div>
                 </div>
             </div>
         </div>
 
-        <!-- Diagram 3: 4 app modes -->
+        <!-- Diagram 3: 4 app modes as 2x2 matrix -->
         <div class="arch-title" style="margin-top:16px;">The 4 app modes</div>
-        <div class="mode-grid">
-            <div class="ds-card mode-card">
-                <div class="mode-header">
-                    <span class="ds-badge ds-badge-info">To Imperial + Now</span>
-                </div>
-                <div class="mode-usecase">"I'm leaving home now, where do I dock?"</div>
+        <div class="mode-matrix">
+            <!-- Column headers -->
+            <div class="mode-matrix-corner"></div>
+            <div class="mode-matrix-col-header">To Imperial (dock bike)</div>
+            <div class="mode-matrix-col-header">From Imperial (pick up bike)</div>
+
+            <!-- Now row -->
+            <div class="mode-matrix-row-header mode-matrix-row-now">Now</div>
+            <div class="ds-card mode-cell mode-cell-now">
+                <div class="mode-usecase">"I'm leaving home now, where do I dock my bike?"</div>
                 <div class="mode-detail"><strong>Model:</strong> Nowcast (Random Forest)</div>
                 <div class="mode-detail"><strong>Input:</strong> current empty_docks, weather, time</div>
                 <div class="mode-detail"><strong>Output:</strong> predicted empty docks in 15 min</div>
             </div>
-            <div class="ds-card mode-card">
-                <div class="mode-header">
-                    <span class="ds-badge ds-badge-success">From Imperial + Now</span>
-                </div>
-                <div class="mode-usecase">"I'm leaving uni now, where do I find a bike?"</div>
+            <div class="ds-card mode-cell mode-cell-now">
+                <div class="mode-usecase">"I'm at uni, where do I pick up a bike?"</div>
                 <div class="mode-detail"><strong>Model:</strong> None (live data only)</div>
-                <div class="mode-detail"><strong>Input:</strong> current available_bikes</div>
-                <div class="mode-detail"><strong>Output:</strong> available bikes per station</div>
+                <div class="mode-detail"><strong>Input:</strong> current available_bikes from API</div>
+                <div class="mode-detail"><strong>Output:</strong> current bikes per station</div>
             </div>
-            <div class="ds-card mode-card">
-                <div class="mode-header">
-                    <span class="ds-badge ds-badge-warning">To Imperial + Plan</span>
-                </div>
-                <div class="mode-usecase">"I need to arrive by 10:15 AM tomorrow"</div>
+
+            <!-- Plan row -->
+            <div class="mode-matrix-row-header mode-matrix-row-plan">Plan trip</div>
+            <div class="ds-card mode-cell mode-cell-plan">
+                <div class="mode-usecase">"I need to arrive by 10:15 AM tomorrow. When should I leave and where do I dock?"</div>
                 <div class="mode-detail"><strong>Model:</strong> Forecast (Historical Average)</div>
                 <div class="mode-detail"><strong>Input:</strong> weather forecast, hour, weekday</div>
-                <div class="mode-detail"><strong>Output:</strong> predicted empty docks at arrival</div>
+                <div class="mode-detail"><strong>Output:</strong> predicted empty docks at arrival time</div>
             </div>
-            <div class="ds-card mode-card">
-                <div class="mode-header">
-                    <span class="ds-badge ds-badge-danger">From Imperial + Plan</span>
-                </div>
-                <div class="mode-usecase">"I want to leave uni at 4 PM tomorrow"</div>
+            <div class="ds-card mode-cell mode-cell-plan">
+                <div class="mode-usecase">"I want to leave uni at 4 PM tomorrow. Which station will have bikes?"</div>
                 <div class="mode-detail"><strong>Model:</strong> Forecast (Historical Average)</div>
                 <div class="mode-detail"><strong>Input:</strong> weather forecast, hour, weekday</div>
                 <div class="mode-detail"><strong>Output:</strong> predicted available bikes</div>
+            </div>
+        </div>
+
+        <!-- Model definition strip -->
+        <div class="model-def-strip">
+            <div class="ds-card model-def-card">
+                <span class="model-def-badge model-def-badge-primary">NOWCAST</span>
+                <span class="model-def-text">Random Forest (200 trees). Uses current dock count as primary feature. Predicts 15 minutes ahead. MAE: 1.09 docks.</span>
+            </div>
+            <div class="ds-card model-def-card">
+                <span class="model-def-badge model-def-badge-secondary">FORECAST</span>
+                <span class="model-def-text">Historical Average grouped by station, hour, and weekday. No current availability input. Predicts hours ahead. MAE: 3.41 docks.</span>
             </div>
         </div>
     </section>
@@ -231,27 +283,17 @@
         <h2 class="chapter-title">What affects dock availability?</h2>
         <p class="chapter-intro">Time of day, day of week, and weather all play a role.</p>
 
-        <!-- Heatmap -->
-        <div class="ds-card chart-card">
-            <div class="chart-title">Empty docks by hour and day (preferred stations)</div>
-            <div class="heatmap-scroll">
-                <div class="heatmap" id="patterns-heatmap"></div>
-            </div>
-            <div class="heatmap-legend-bar">
-                <span class="heatmap-legend-label">0 docks</span>
-                <div class="heatmap-legend-gradient"></div>
-                <span class="heatmap-legend-label">15+ docks</span>
-            </div>
-        </div>
-
         <!-- Rain effect -->
         <div class="ds-card chart-card">
             <div class="chart-header">
-                <span class="chart-title">Empty docks on dry vs rainy mornings</span>
+                <span class="chart-title">Empty docks on dry vs rainy weekdays</span>
                 <span class="ds-badge ds-badge-info">weekdays only</span>
             </div>
             <div class="chart-wrap chart-wrap-tall"><canvas id="rain-chart"></canvas></div>
-            <div class="chart-caption" id="rain-caption">Loading rain data...</div>
+            <!-- Disclaimer callout -->
+            <div class="rain-disclaimer" id="rain-disclaimer">
+                Loading rain data...
+            </div>
         </div>
 
         <!-- Station comparison at 9:30 -->
@@ -261,16 +303,7 @@
                 <span class="ds-badge ds-badge-success">all 21 stations</span>
             </div>
             <div class="chart-wrap chart-wrap-very-tall"><canvas id="station-930-chart"></canvas></div>
-        </div>
-
-        <!-- Station fill timeline -->
-        <div class="ds-card chart-card">
-            <div class="chart-header">
-                <span class="chart-title">When does each station run low? (weekday mornings)</span>
-                <span class="ds-badge ds-badge-danger">empty docks below 3</span>
-            </div>
-            <div class="fill-timeline" id="fill-timeline"></div>
-            <div class="chart-caption">Hours when a station typically has fewer than 3 empty docks on weekday mornings.</div>
+            <div class="chart-caption"><i class="bi bi-circle-fill" style="color:#378ADD;font-size:8px"></i> Preferred stations in blue</div>
         </div>
     </section>
 
@@ -330,11 +363,18 @@
             <span>The Nowcast model achieves high accuracy because the current dock count is the strongest predictor of the count 15 minutes later. This is expected in time-series data: the most recent observation dominates. The Forecast model, which cannot use current availability (it predicts hours ahead), has 3x higher error. With more training data and weather diversity, this gap could narrow.</span>
         </div>
 
-        <!-- Feature importance -->
-        <div class="ds-card chart-card">
-            <div class="chart-title">What drives the Nowcast prediction?</div>
-            <div class="chart-wrap"><canvas id="feature-chart"></canvas></div>
-            <div class="chart-caption">Feature importance from the Random Forest Nowcast model (200 trees).</div>
+        <!-- Feature importance: two charts side by side -->
+        <div class="feature-compare">
+            <div class="ds-card chart-card feature-compare-item">
+                <div class="chart-title">What drives the Nowcast prediction?</div>
+                <div class="chart-wrap"><canvas id="feature-chart"></canvas></div>
+                <div class="chart-caption">Feature importance measured by mean decrease in prediction error across 200 decision trees (sklearn feature_importances_).</div>
+            </div>
+            <div class="ds-card chart-card feature-compare-item">
+                <div class="chart-title">What drives the Forecast prediction?</div>
+                <div class="chart-wrap"><canvas id="forecast-feature-chart"></canvas></div>
+                <div class="chart-caption">Conceptual breakdown: the Historical Average baseline groups by these dimensions.</div>
+            </div>
         </div>
 
         <!-- Error summary -->
@@ -500,15 +540,9 @@
 .stat-card {
     background: var(--bg-secondary);
     border-radius: 10px;
-    padding: 12px;
+    padding: 14px 12px;
     text-align: center;
-    border-left: 3px solid transparent;
 }
-
-.stat-card-danger { border-left-color: var(--danger); }
-.stat-card-warning { border-left-color: var(--warning); }
-.stat-card-success { border-left-color: var(--success); }
-.stat-card-info { border-left-color: var(--info); }
 
 .stat-value {
     font-size: 20px;
@@ -571,148 +605,215 @@
     margin-bottom: 12px;
 }
 
-.arch-flow {
+/* Sensing pipeline flow */
+.sensing-flow {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 0;
 }
 
-.arch-sources {
+.sensing-sources {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    flex: 1;
-}
-
-.arch-source {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.arch-source-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: var(--bg-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    color: var(--info);
+    gap: 8px;
     flex-shrink: 0;
 }
 
-.arch-source:nth-child(2) .arch-source-icon { color: var(--success); }
-.arch-source:nth-child(3) .arch-source-icon { color: var(--warning); }
+.sensing-node {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border-left: 3px solid var(--text-tertiary);
+    min-width: 170px;
+}
 
-.arch-source-info {
+.sensing-node-api { border-left-color: var(--info); }
+.sensing-node-weather { border-left-color: var(--success); }
+.sensing-node-sensor { border-left-color: var(--warning); }
+.sensing-node-db { border-left-color: var(--success); }
+.sensing-node-ml { border-left-color: var(--danger); }
+.sensing-node-dash { border-left-color: var(--info); }
+
+.sensing-icon {
+    font-size: 16px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+}
+
+.sensing-info {
     display: flex;
     flex-direction: column;
-    font-size: 11px;
-    color: var(--text-secondary);
     line-height: 1.3;
 }
 
-.arch-source-info strong {
-    font-size: 12px;
+.sensing-info strong {
+    font-size: 11px;
     color: var(--text-primary);
 }
 
-.arch-fields {
+.sensing-fields {
     font-size: 10px;
     color: var(--text-tertiary);
 }
 
-.arch-arrow-col {
+.sensing-freq {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+
+.sensing-arrows {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 20px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.sensing-arrow-line {
+    width: 24px;
+    height: 2px;
+    background: var(--text-tertiary);
+    position: relative;
+}
+
+.sensing-arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -3px;
+    border: 4px solid transparent;
+    border-left-color: var(--text-tertiary);
+}
+
+.sensing-db-col {
+    flex-shrink: 0;
+}
+
+.sensing-arrow-single {
     color: var(--text-tertiary);
     font-size: 14px;
     flex-shrink: 0;
 }
 
-.arch-db {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 14px;
-    background: var(--bg-secondary);
-    border-radius: 10px;
-    flex-shrink: 0;
-    text-align: center;
-    min-width: 100px;
-}
-
-.arch-db i { font-size: 24px; color: var(--success); }
-
-.arch-db strong {
-    font-size: 11px;
-    color: var(--text-primary);
-}
-
-.arch-db span {
-    font-size: 10px;
-    color: var(--text-tertiary);
-}
-
 @media (max-width: 640px) {
-    .arch-flow { flex-direction: column; }
-    .arch-arrow-col {
-        flex-direction: row;
-        justify-content: center;
+    .sensing-flow { flex-direction: column; align-items: stretch; }
+    .sensing-arrows { flex-direction: row; justify-content: center; }
+    .sensing-arrow-line {
+        width: 2px;
+        height: 16px;
     }
+    .sensing-arrow-line::after {
+        right: -3px;
+        top: auto;
+        bottom: -1px;
+        border: 4px solid transparent;
+        border-top-color: var(--text-tertiary);
+        border-left-color: transparent;
+    }
+    .sensing-arrow-single { transform: rotate(90deg); text-align: center; }
 }
 
-/* Pipeline strip */
-.pipeline-strip {
+/* Actuation pipeline flow */
+.actuation-flow {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 16px 0;
+    align-items: flex-start;
+    gap: 0;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    padding: 8px 0;
 }
 
-.pipeline-node {
+.act-node {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
     padding: 10px 12px;
-    border-radius: 10px;
+    border-radius: 8px;
     background: var(--bg-secondary);
     min-width: 80px;
     text-align: center;
     flex-shrink: 0;
 }
 
-.pipeline-icon { font-size: 18px; color: var(--text-secondary); }
-.pipeline-source .pipeline-icon { color: var(--info); }
-.pipeline-storage .pipeline-icon { color: var(--success); }
-.pipeline-output .pipeline-icon { color: var(--danger); }
-.pipeline-ui .pipeline-icon { color: var(--info); }
+.act-icon { font-size: 18px; color: var(--text-secondary); }
+.act-label { font-size: 11px; font-weight: 500; color: var(--text-primary); }
+.act-detail { font-size: 9px; color: var(--text-tertiary); }
 
-.pipeline-label { font-size: 11px; font-weight: 500; color: var(--text-primary); }
-.pipeline-detail { font-size: 9px; color: var(--text-tertiary); }
-.pipeline-arrow { color: var(--text-tertiary); font-size: 14px; flex-shrink: 0; }
+.act-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0 2px;
+    flex-shrink: 0;
+    min-width: 50px;
+}
 
-/* Mode grid (2x2) */
-.mode-grid {
+.act-arrow-label {
+    font-size: 8px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    font-style: italic;
+}
+
+.act-arrow-line {
+    color: var(--text-tertiary);
+    font-size: 12px;
+}
+
+/* Mode matrix (2x2) */
+.mode-matrix {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
+    grid-template-columns: auto 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 12px;
 }
 
-@media (min-width: 640px) {
-    .mode-grid { grid-template-columns: 1fr 1fr; }
+.mode-matrix-corner {
+    /* empty top-left cell */
 }
 
-.mode-card { }
-.mode-header { margin-bottom: 8px; }
+.mode-matrix-col-header {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 8px 4px;
+}
+
+.mode-matrix-row-header {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.mode-cell {
+    padding: 10px 12px;
+}
+
+.mode-cell-now { background: color-mix(in srgb, var(--info) 5%, var(--bg-secondary)); }
+.mode-cell-plan { background: color-mix(in srgb, var(--warning) 5%, var(--bg-secondary)); }
 
 .mode-usecase {
     font-size: 12px;
@@ -724,6 +825,69 @@
 .mode-detail {
     font-size: 11px;
     color: var(--text-tertiary);
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .mode-matrix {
+        grid-template-columns: 1fr;
+    }
+    .mode-matrix-corner,
+    .mode-matrix-col-header,
+    .mode-matrix-row-header {
+        display: none;
+    }
+    .mode-cell::before {
+        display: block;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+    .mode-cell-now:first-of-type::before { content: 'To Imperial + Now'; }
+    .mode-cell-now:last-of-type::before { content: 'From Imperial + Now'; }
+    .mode-cell-plan:first-of-type::before { content: 'To Imperial + Plan'; }
+    .mode-cell-plan:last-of-type::before { content: 'From Imperial + Plan'; }
+}
+
+/* Model definition strip */
+.model-def-strip {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+@media (min-width: 640px) {
+    .model-def-strip { grid-template-columns: 1fr 1fr; }
+}
+
+.model-def-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+}
+
+.model-def-badge {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    color: #fff;
+    margin-top: 1px;
+}
+
+.model-def-badge-primary { background: var(--success); }
+.model-def-badge-secondary { background: var(--text-tertiary); }
+
+.model-def-text {
+    font-size: 11px;
+    color: var(--text-secondary);
     line-height: 1.5;
 }
 
@@ -824,52 +988,16 @@
     background: linear-gradient(to right, #C62828, #E53935, #EF6C00, #F9A825, #66BB6A, #2E7D32);
 }
 
-/* Fill timeline */
-.fill-timeline {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.fill-timeline-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.fill-timeline-name {
+/* Rain disclaimer callout */
+.rain-disclaimer {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.25);
+    border-radius: 6px;
     font-size: 11px;
-    font-weight: 500;
-    color: var(--text-primary);
-    width: 140px;
-    flex-shrink: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.fill-timeline-bar-wrap {
-    flex: 1;
-    height: 16px;
-    background: var(--bg-tertiary);
-    border-radius: 3px;
-    position: relative;
-}
-
-.fill-timeline-bar {
-    position: absolute;
-    height: 100%;
-    border-radius: 3px;
-    background: var(--danger);
-    opacity: 0.6;
-}
-
-.fill-timeline-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 4px;
-    font-size: 9px;
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
+    line-height: 1.5;
 }
 
 /* Model comparison */
@@ -949,6 +1077,20 @@
 }
 
 .model-explain i { color: var(--success); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+/* Feature compare (side by side) */
+.feature-compare {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+    .feature-compare { grid-template-columns: 1fr 1fr; }
+}
+
+.feature-compare-item { margin-bottom: 0; }
 
 /* Model error summary */
 .model-error-summary {
