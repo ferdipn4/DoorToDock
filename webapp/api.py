@@ -896,11 +896,11 @@ def insights_ch3():
     """)
     row = row or {}
 
-    # Temperature sensor count + date range
+    # Temperature sensor count + date range (column is created_at, not timestamp)
     temp_row = query_one("""
         SELECT COUNT(*) AS cnt,
-               MIN(timestamp) AS first_ts,
-               MAX(timestamp) AS last_ts
+               MIN(created_at) AS first_ts,
+               MAX(created_at) AS last_ts
         FROM temperature_readings
     """) if _table_exists("temperature_readings") else None
 
@@ -910,18 +910,18 @@ def insights_ch3():
     if _table_exists("temperature_readings"):
         sensor_vs_api = query("""
             SELECT
-                DATE_TRUNC('hour', t.timestamp) AS ts,
+                DATE_TRUNC('hour', t.created_at) AS ts,
                 ROUND(AVG(t.temperature_c)::numeric, 1) AS sensor_temp,
                 ROUND(AVG(w.temperature)::numeric, 1) AS api_temp
             FROM temperature_readings t
-            JOIN weather_data w ON DATE_TRUNC('hour', t.timestamp) = DATE_TRUNC('hour', w.timestamp)
-            GROUP BY DATE_TRUNC('hour', t.timestamp)
+            JOIN weather_data w ON DATE_TRUNC('hour', t.created_at) = DATE_TRUNC('hour', w.timestamp)
+            GROUP BY DATE_TRUNC('hour', t.created_at)
             ORDER BY ts
         """)
         corr_row = query_one("""
             SELECT CORR(t.temperature_c, w.temperature) AS r
             FROM temperature_readings t
-            JOIN weather_data w ON DATE_TRUNC('minute', t.timestamp) = DATE_TRUNC('minute', w.timestamp)
+            JOIN weather_data w ON DATE_TRUNC('minute', t.created_at) = DATE_TRUNC('minute', w.timestamp)
         """)
         if corr_row and corr_row.get("r") is not None:
             sensor_corr = round(float(corr_row["r"]), 3)
