@@ -534,7 +534,21 @@ function renderRainChart(dryRows, wetRows, dayCounts) {
     // Update disclaimer with real counts
     const disclaimerEl = document.getElementById('rain-disclaimer');
     if (disclaimerEl && dayCounts) {
-        disclaimerEl.innerHTML = `<i class="bi bi-exclamation-triangle" style="margin-right:4px"></i> <strong>Limited rain data:</strong> based on ${dayCounts.dry_days || 0} dry weekdays and ${dayCounts.rainy_days || 0} weekdays with any precipitation (>0 mm/h) over 22 days of collection. Heavy rain (>0.5 mm/h) did not occur during the collection period. The rain line may be incomplete where insufficient data exists for certain hours. A full seasonal cycle of data collection would be needed to draw robust conclusions about weather effects.`;
+        const dry = dayCounts.dry_days || 0;
+        const rainy = dayCounts.rainy_days || 0;
+        disclaimerEl.innerHTML = `
+            <div class="caveat-header">
+                <span class="caveat-icon"><i class="bi bi-exclamation-triangle"></i></span>
+                <span class="caveat-title">Limited rain data</span>
+            </div>
+            <div class="caveat-stats">
+                <div class="caveat-stat"><span class="caveat-num">${dry}</span> dry weekdays</div>
+                <div class="caveat-divider"></div>
+                <div class="caveat-stat"><span class="caveat-num">${rainy}</span> rainy weekdays</div>
+                <div class="caveat-divider"></div>
+                <div class="caveat-stat"><span class="caveat-num">0</span> heavy rain days</div>
+            </div>
+            <div class="caveat-note">Based on 22 days of collection. Heavy rain (&gt;0.5 mm/h) did not occur. The rain line may be incomplete where insufficient data exists. A full seasonal cycle would be needed for robust weather-effect conclusions.</div>`;
     }
 }
 
