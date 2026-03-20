@@ -27,7 +27,7 @@
   --radius-xl: 16px;
 
   /* Layout */
-  --sidebar-width: 56px;
+  --topbar-height: 50px;
   --bottomnav-height: 56px;
 }
 
@@ -92,6 +92,7 @@ body {
 /* ── App Shell ── */
 .app-shell {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
 }
@@ -103,122 +104,71 @@ body {
 }
 
 /* Mobile: content needs bottom padding for nav */
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   .app-content {
     padding-bottom: calc(var(--bottomnav-height) + env(safe-area-inset-bottom, 0px));
   }
 }
 
-/* ── Sidebar (desktop, > 1024px) ── */
-.sidebar {
+/* ── Top Bar (desktop, >= 768px) ── */
+.topbar {
   display: none;
-  width: var(--sidebar-width);
-  flex-shrink: 0;
-  background-color: var(--bg-secondary);
-  border-right: 0.5px solid var(--border);
-  flex-direction: column;
+  height: var(--topbar-height);
+  background-color: var(--bg-primary);
+  border-bottom: 0.5px solid var(--border);
   align-items: center;
-  padding: 12px 0;
+  padding: 0 20px;
+  flex-shrink: 0;
 }
 
-.sidebar-nav {
+.topbar-brand {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.topbar-center {
+  flex: 1;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+}
+
+.topbar-nav {
+  display: flex;
   align-items: center;
   gap: 4px;
-  flex: 1;
-  width: 100%;
-  padding: 0 8px;
 }
 
-.sidebar-spacer {
-  flex: 1;
-}
-
-.sidebar-item {
+.topbar-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
-  color: var(--text-tertiary);
+  gap: 5px;
+  padding: 6px 14px;
   text-decoration: none;
-  transition: background-color 0.15s, color 0.15s;
-  position: relative;
-  gap: 1px;
-}
-
-.sidebar-item i {
-  font-size: 18px;
-  opacity: 0.65;
-  -webkit-text-stroke: 0.3px currentColor;
-  transition: opacity 0.15s;
-}
-
-.sidebar-item-label {
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-tertiary);
-  margin-top: 1px;
-  opacity: 0.7;
-  transition: opacity 0.15s, color 0.15s;
-}
-
-.sidebar-item:hover {
-  background-color: var(--bg-tertiary);
-}
-
-.sidebar-item:hover i {
-  opacity: 0.85;
-}
-
-.sidebar-item:hover .sidebar-item-label {
-  opacity: 0.9;
-}
-
-.sidebar-item.active {
-  background-color: var(--info-bg);
-}
-
-.sidebar-item.active i {
-  color: var(--info);
-  opacity: 1;
-}
-
-.sidebar-item.active .sidebar-item-label {
-  color: var(--info);
-  opacity: 1;
-}
-
-/* Tooltip on hover */
-.sidebar-item::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: var(--text-primary);
-  color: var(--bg-primary);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
   white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s;
-  z-index: 100;
 }
 
-.sidebar-item:hover::after {
-  opacity: 1;
+.topbar-item i {
+  font-size: 14px;
 }
 
-/* Show sidebar on desktop */
-@media (min-width: 1024px) {
-  .sidebar {
+.topbar-item:hover {
+  color: var(--text-secondary);
+}
+
+.topbar-item.active {
+  color: var(--info);
+  border-bottom-color: var(--info);
+}
+
+@media (min-width: 768px) {
+  .topbar {
     display: flex;
   }
 }
@@ -258,12 +208,17 @@ body {
   -webkit-text-stroke: 0.3px currentColor;
 }
 
-.bottom-nav-item.active {
-  color: var(--info);
+.bottom-nav-item {
+  opacity: 0.7;
 }
 
-/* Hide bottom nav on desktop */
-@media (min-width: 1024px) {
+.bottom-nav-item.active {
+  color: var(--info);
+  opacity: 1;
+}
+
+/* Hide bottom nav on tablet+ */
+@media (min-width: 768px) {
   .bottom-nav {
     display: none;
   }
@@ -276,8 +231,8 @@ body {
   margin: 0 auto;
 }
 
-/* Desktop: wider max when sidebar present */
-@media (min-width: 1024px) {
+/* Desktop: wider max */
+@media (min-width: 768px) {
   .tab-page {
     padding: 24px 32px;
     max-width: 1200px;

@@ -1,14 +1,23 @@
 {% extends "base.html" %}
 {% block title %}Go{% endblock %}
 
+{% block topbar_center %}
+<div class="topbar-direction-toggle">
+    <div class="ds-segmented">
+        <button class="ds-segmented-btn active" id="topbar-btn-to">To Imperial</button>
+        <button class="ds-segmented-btn" id="topbar-btn-from">From Imperial</button>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="go-layout">
 
     <!-- Left panel (controls + stations) -->
     <div class="go-panel">
 
-        <!-- Toggle row -->
-        <div class="go-toggles">
+        <!-- Toggle row (mobile only) -->
+        <div class="go-toggles go-toggles-mobile">
             <div class="ds-segmented">
                 <button class="ds-segmented-btn active" id="btn-to">To Imperial</button>
                 <button class="ds-segmented-btn" id="btn-from">From Imperial</button>
@@ -337,10 +346,10 @@
             </div>
         </div>
         <!-- Plan mode: station ranking chart -->
-        <div id="go-right-chart" class="go-right-view" style="display: none;">
+        <div id="go-right-chart" class="go-right-view" style="display: none; background-color: var(--bg-secondary);">
             <!-- Empty state placeholder -->
             <div class="plan-chart-empty" id="plan-chart-empty">
-                <i class="bi bi-bar-chart-line"></i>
+                <i class="bi bi-calendar3"></i>
                 <p>Select a date and time to see station predictions</p>
             </div>
             <!-- Chart container (hidden until scan) -->
@@ -382,13 +391,12 @@
 
 @media (min-width: 1024px) {
     .go-layout {
-        height: 100vh;
+        height: calc(100vh - var(--topbar-height));
     }
 
     .go-panel {
-        width: 55%;
+        width: 58%;
         min-width: 380px;
-        max-width: 540px;
         margin: 0;
         padding: 16px 20px;
         border-right: 0.5px solid var(--border);
@@ -406,6 +414,23 @@
         flex: 1;
         width: 100%;
         min-height: 0;
+    }
+}
+
+/* -- Direction toggle: mobile vs topbar -- */
+.topbar-direction-toggle {
+    display: flex;
+}
+
+@media (min-width: 768px) {
+    .go-toggles-mobile {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    .topbar-direction-toggle {
+        display: none;
     }
 }
 

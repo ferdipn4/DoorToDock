@@ -552,7 +552,7 @@ def _build_prediction_now():
     for i, s in enumerate(sorted(live, key=lambda x: x.get("walking_duration_s") or 9999)):
         sid = s["station_id"]
         predicted = pred_map.get(sid)
-        walk_min = round((s.get("walking_duration_s") or 0) / 60)
+        walk_min = math.ceil((s.get("walking_duration_s") or 0) / 60)
 
         if predicted is not None:
             if predicted >= 5:
@@ -572,6 +572,7 @@ def _build_prediction_now():
             "predicted_empty_docks": round(predicted, 1) if predicted is not None else 0,
             "confidence": 0.85,
             "walk_to_destination_min": walk_min,
+            "walking_distance_m": int(s.get("walking_distance_m") or 0),
             "preference_rank": i + 1,
             "is_recommended": False,
             "status": status,
@@ -587,6 +588,7 @@ def _build_prediction_now():
                 "predicted_empty_docks": st["predicted_empty_docks"],
                 "confidence": st["confidence"],
                 "walk_to_destination_min": st["walk_to_destination_min"],
+                "walking_distance_m": st["walking_distance_m"],
                 "total_trip_min": st["walk_to_destination_min"] + 15,
             }
             break
@@ -600,6 +602,7 @@ def _build_prediction_now():
             "predicted_empty_docks": best["predicted_empty_docks"],
             "confidence": best["confidence"],
             "walk_to_destination_min": best["walk_to_destination_min"],
+            "walking_distance_m": best["walking_distance_m"],
             "total_trip_min": best["walk_to_destination_min"] + 15,
         }
 
@@ -697,12 +700,13 @@ def prediction_plan():
     for s in sorted(all_stations, key=lambda x: x.get("walking_duration_s") or 9999):
         sid = s["station_id"]
         predicted = pred_map.get(sid, 0)
-        walk_min = round((s.get("walking_duration_s") or 0) / 60)
+        walk_min = math.ceil((s.get("walking_duration_s") or 0) / 60)
         candidates.append({
             "station_id": sid,
             "station_name": s["station_name"],
             "predicted_empty_docks": round(predicted, 1),
             "walk_to_destination_min": walk_min,
+            "walking_distance_m": int(s.get("walking_distance_m") or 0),
             "confidence": 0.85,
         })
 
@@ -730,9 +734,12 @@ def prediction_plan():
             "further walk"
         )
         alternatives.append({
+            "station_id": c["station_id"],
             "station_name": c["station_name"],
             "predicted": c["predicted_empty_docks"],
             "confidence": c["confidence"],
+            "walk_to_destination_min": c["walk_to_destination_min"],
+            "walking_distance_m": c["walking_distance_m"],
             "reason": reason,
         })
 

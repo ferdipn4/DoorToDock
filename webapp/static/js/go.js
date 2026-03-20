@@ -92,23 +92,55 @@ function autoDetectDirection() {
 
 // -- Toggle wiring --
 function setupToggles() {
-    document.getElementById('btn-to').addEventListener('click', () => {
-        if (direction === 'to') return;
-        direction = 'to';
-        syncToggleUI();
-        switchState();
-    });
-    document.getElementById('btn-from').addEventListener('click', () => {
-        if (direction === 'from') return;
-        direction = 'from';
+    // Mobile toggles
+    wireToggle('btn-to', 'to');
+    wireToggle('btn-from', 'from');
+    // Desktop topbar toggles
+    wireToggle('topbar-btn-to', 'to');
+    wireToggle('topbar-btn-from', 'from');
+}
+
+function wireToggle(btnId, dir) {
+    const el = document.getElementById(btnId);
+    if (!el) return;
+    el.addEventListener('click', () => {
+        if (direction === dir) return;
+        onDirectionSwitch();
+        direction = dir;
         syncToggleUI();
         switchState();
     });
 }
 
+function onDirectionSwitch() {
+    // Clear stale plan results when switching direction
+    if (timing === 'plan') {
+        planData = null;
+        ['to-plan-result', 'from-plan-result'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        ['to-plan-empty', 'from-plan-empty'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = '';
+        });
+        if (planChart) {
+            planChart.destroy();
+            planChart = null;
+        }
+        const emptyEl = document.getElementById('plan-chart-empty');
+        const containerEl = document.getElementById('plan-chart-container');
+        if (emptyEl) emptyEl.style.display = '';
+        if (containerEl) containerEl.style.display = 'none';
+    }
+}
+
 function syncToggleUI() {
+    // Sync both mobile and desktop toggles
     setActiveBtn('btn-to', direction === 'to');
     setActiveBtn('btn-from', direction === 'from');
+    setActiveBtn('topbar-btn-to', direction === 'to');
+    setActiveBtn('topbar-btn-from', direction === 'from');
 }
 
 function setActiveBtn(id, active) {
@@ -239,7 +271,7 @@ function renderMobileMapMarkers() {
             marker.bindPopup(
                 `<strong>${shortName(st.station_name)}</strong><br>` +
                 `<span style="color:${color}; font-size:1.3em; font-weight:500;">${docks}</span> predicted docks<br>` +
-                `<small>${pred.walk_to_destination_min} min walk to uni</small>`
+                `<small>${formatWalk(pred.walk_to_destination_min, pred.walking_distance_m)} walk to uni</small>`
             );
             mobileMapMarkers[st.station_id] = marker;
 
@@ -264,11 +296,11 @@ function renderMobileMapMarkers() {
                 radius, fillColor: isBest ? COLORS.success : color, color: '#fff', weight: 1.5, fillOpacity: 0.9,
             }).addTo(mobileMap);
 
-            const walkMin = Math.round(st.walking_duration_s / 60);
+            const walkMinMobile = Math.round(st.walking_duration_s / 60);
             marker.bindPopup(
                 `<strong>${shortName(st.station_name)}</strong><br>` +
                 `<span style="color:${color}; font-size:1.3em; font-weight:500;">${bikes}</span> bikes available<br>` +
-                `<small>${walkMin} min walk from uni</small>`
+                `<small>${formatWalk(walkMinMobile, st.walking_distance_m)} walk from uni</small>`
             );
             mobileMapMarkers[st.station_id] = marker;
 
@@ -379,7 +411,7 @@ async function loadToNow() {
 function renderToNowHero(rec) {
     document.getElementById('to-now-name').textContent = shortName(rec.station_name);
     document.getElementById('to-now-docks').textContent = Math.round(rec.predicted_empty_docks);
-    document.getElementById('to-now-walk').textContent = rec.walk_to_destination_min + ' min';
+    document.getElementById('to-now-walk').textContent = formatWalk(rec.walk_to_destination_min, rec.walking_distance_m);
 
     const total = rec.total_trip_min;
     const walk = rec.walk_to_destination_min;
@@ -422,7 +454,7 @@ function renderToNowStations(stations, recommendedId) {
                 <div class="station-row-name">${shortName(s.station_name)}</div>
                 <div class="station-row-meta">
                     <i class="bi bi-person-walking"></i>
-                    ${s.walk_to_destination_min} min to uni
+                    ${formatWalk(s.walk_to_destination_min, s.walking_distance_m)} to uni
                 </div>
             </div>
             <div class="station-row-right">
@@ -465,7 +497,7 @@ async function loadFromNow() {
         document.getElementById('from-now-name').textContent = shortName(best.station_name);
         document.getElementById('from-now-bikes').textContent = best.available_bikes;
         const walkMin = Math.round(best.walking_duration_s / 60);
-        document.getElementById('from-now-walk').textContent = walkMin + ' min';
+        document.getElementById('from-now-walk').textContent = formatWalk(walkMin, best.walking_distance_m);
 
         // Render other stations
         const others = sorted.filter(s => s.station_id !== best.station_id);
@@ -506,7 +538,7 @@ function renderFromNowStations(stations, bestId) {
                 <div class="station-row-name">${shortName(s.station_name)}</div>
                 <div class="station-row-meta">
                     <i class="bi bi-person-walking"></i>
-                    ${walkMin} min from uni
+                    ${formatWalk(walkMin, s.walking_distance_m)} from uni
                 </div>
             </div>
             <div class="station-row-right">
@@ -641,7 +673,7 @@ function renderToPlanResult(data) {
     // Subtitle
     const stn = shortName(data.recommended_station.station_name);
     document.getElementById('to-plan-subtitle').textContent =
-        `Dock at ${stn} \u00B7 ${data.recommended_station.walk_to_destination_min} min walk to uni`;
+        `Dock at ${stn} \u00B7 ${formatWalk(data.recommended_station.walk_to_destination_min, data.recommended_station.walking_distance_m)} walk to uni`;
 
     // Timeline bar
     const bd = data.breakdown;
@@ -729,7 +761,7 @@ function renderFromPlanResult(data) {
     const targetStr = getSelectedTimeDisplay('from-plan');
     document.getElementById('from-plan-bikes-label').textContent = `predicted bikes at ${targetStr}`;
 
-    document.getElementById('from-plan-walk').textContent = rec.walk_to_destination_min + ' min';
+    document.getElementById('from-plan-walk').textContent = formatWalk(rec.walk_to_destination_min, rec.walking_distance_m);
 
     // Alternatives
     renderAlternatives('from-plan-alternatives', data.alternatives_at_target_time, 'green');
@@ -749,11 +781,15 @@ function renderAlternatives(containerId, alts, theme) {
         const colorCls = isFrom ? bikeColorClass(rp) : dockColorClass(rp);
         const zeroLabel = isFrom ? 'no bikes' : 'likely full';
         const unitLabel = isFrom ? 'bikes' : 'docks';
+        const walkLabel = isFrom ? 'from uni' : 'to uni';
+        const walkText = a.walking_distance_m
+            ? formatWalk(a.walk_to_destination_min, a.walking_distance_m) + ' ' + walkLabel
+            : a.reason;
         return `
         <div class="alt-row${isRec ? ' ' + recClass : ''}">
             <div class="alt-row-left">
                 <div class="alt-row-name">${shortName(a.station_name)}</div>
-                <div class="alt-row-reason">${a.reason}</div>
+                <div class="alt-row-reason"><i class="bi bi-person-walking"></i> ${walkText}</div>
             </div>
             <div class="alt-row-right">
                 <div class="station-row-docks">
@@ -991,7 +1027,7 @@ function renderMapMarkers() {
         marker.bindPopup(
             `<strong>${shortName(st.station_name)}</strong><br>` +
             `<span style="color:${color}; font-size:1.3em; font-weight:500;">${docks}</span> predicted docks<br>` +
-            `<small>${pred.walk_to_destination_min} min walk to uni</small>`
+            `<small>${formatWalk(pred.walk_to_destination_min, pred.walking_distance_m)} walk to uni</small>`
         );
 
         marker._baseRadius = radius;
@@ -1029,11 +1065,11 @@ function renderMapMarkersFrom(stations, bestId) {
             fillOpacity: 0.9,
         }).addTo(map);
 
-        const walkMin = Math.round(st.walking_duration_s / 60);
+        const walkMinMap = Math.round(st.walking_duration_s / 60);
         marker.bindPopup(
             `<strong>${shortName(st.station_name)}</strong><br>` +
             `<span style="color:${color}; font-size:1.3em; font-weight:500;">${bikes}</span> bikes available<br>` +
-            `<small>${walkMin} min walk from uni</small>`
+            `<small>${formatWalk(walkMinMap, st.walking_distance_m)} walk from uni</small>`
         );
 
         marker._baseRadius = radius;
@@ -1102,6 +1138,14 @@ window._goUnhighlight = (id) => unhighlightMarker(id);
 
 function shortName(name) {
     return name.split(',')[0];
+}
+
+function formatWalk(walkMin, distanceM) {
+    const min = walkMin || 0;
+    const dist = (distanceM || 0) >= 1000
+        ? ((distanceM || 0) / 1000).toFixed(1) + 'km'
+        : Math.round(distanceM || 0) + 'm';
+    return `${min} min (${dist})`;
 }
 
 function weatherIcon(desc) {
