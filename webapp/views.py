@@ -1,4 +1,4 @@
-"""HTML page routes for the DockSense app."""
+"""HTML page routes for the Door2Dock app."""
 
 from flask import Blueprint, render_template, redirect, request
 

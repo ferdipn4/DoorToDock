@@ -3,7 +3,7 @@
 
 {% block topbar_center %}
 <div class="topbar-direction-toggle">
-    <div class="ds-segmented">
+    <div class="ds-segmented topbar-segmented">
         <button class="ds-segmented-btn active" id="topbar-btn-to">To Imperial</button>
         <button class="ds-segmented-btn" id="topbar-btn-from">From Imperial</button>
     </div>
@@ -417,28 +417,33 @@
     }
 }
 
-/* -- Direction toggle: mobile vs topbar -- */
+/* -- Topbar direction toggle (desktop) -- */
 .topbar-direction-toggle {
     display: flex;
 }
 
-@media (min-width: 768px) {
-    .go-toggles-mobile {
-        display: none;
-    }
+.topbar-segmented {
+    padding: 3px;
 }
 
-@media (max-width: 767px) {
-    .topbar-direction-toggle {
-        display: none;
-    }
+.topbar-segmented .ds-segmented-btn {
+    padding: 6px 18px;
+    font-size: 13px;
+    font-weight: 500;
 }
 
-/* -- Toggles row -- */
+/* -- Toggles row (page content, mobile only) -- */
 .go-toggles {
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
+}
+
+/* Hide in-page toggle on desktop (topbar has it) */
+@media (min-width: 768px) {
+    .go-toggles.go-toggles-mobile {
+        display: none !important;
+    }
 }
 
 /* Mobile list/map view toggle */
@@ -543,7 +548,7 @@
 
 .hero-metric-value {
     font-size: 22px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1;
 }
 
@@ -625,9 +630,9 @@
 
 .station-list-header {
     font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--info);
     text-transform: uppercase;
     margin-bottom: 8px;
 }
@@ -718,7 +723,7 @@
 
 .dock-number {
     font-size: 18px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1;
 }
 

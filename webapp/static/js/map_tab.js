@@ -1,4 +1,4 @@
-/* DockSense – Map Tab (full-screen station map) */
+/* Door2Dock – Map Tab (full-screen station map) */
 
 import { getPredictionNow, getStations } from './api/client.js';
 

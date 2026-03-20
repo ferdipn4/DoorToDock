@@ -176,12 +176,11 @@
         <div class="arch-title" style="margin-top:16px;">The 4 app modes</div>
         <div class="mode-matrix">
             <!-- Column headers -->
-            <div class="mode-matrix-corner"></div>
             <div class="mode-matrix-col-header">To Imperial (dock bike)</div>
             <div class="mode-matrix-col-header">From Imperial (pick up bike)</div>
 
             <!-- Now row -->
-            <div class="mode-matrix-row-header mode-matrix-row-now">Now</div>
+            <div class="mode-matrix-row-strip mode-matrix-row-now"><i class="bi bi-cursor-fill"></i> Now</div>
             <div class="ds-card mode-cell mode-cell-now">
                 <div class="mode-usecase">"I'm leaving home now, where do I dock my bike?"</div>
                 <div class="mode-detail"><strong>Model:</strong> Nowcast (Random Forest)</div>
@@ -196,7 +195,7 @@
             </div>
 
             <!-- Plan row -->
-            <div class="mode-matrix-row-header mode-matrix-row-plan">Plan trip</div>
+            <div class="mode-matrix-row-strip mode-matrix-row-plan"><i class="bi bi-calendar-check"></i> Plan trip</div>
             <div class="ds-card mode-cell mode-cell-plan">
                 <div class="mode-usecase">"I need to arrive by 10:15 AM tomorrow. When should I leave and where do I dock?"</div>
                 <div class="mode-detail"><strong>Model:</strong> Forecast (Historical Average)</div>
@@ -396,6 +395,8 @@
         <h2 class="chapter-title">Design trade-offs</h2>
         <p class="chapter-intro">Every system involves trade-offs. Here are the key decisions we made and why.</p>
 
+        <!-- Architecture decisions -->
+        <div class="tradeoff-group-label">Architecture decisions</div>
         <div class="tradeoff-grid">
             <div class="ds-card tradeoff-card">
                 <div class="tradeoff-title">Polling: 1/min vs 5/min</div>
@@ -414,7 +415,11 @@
                 <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Historical Average wins</div>
                 <div class="tradeoff-reason">With only 22 days of data and limited weather diversity, per-(station, hour, weekday) averages outperform Random Forest and Gradient Boosting.</div>
             </div>
+        </div>
 
+        <!-- Technology choices -->
+        <div class="tradeoff-group-label">Technology choices</div>
+        <div class="tradeoff-grid">
             <div class="ds-card tradeoff-card">
                 <div class="tradeoff-title">Open-Meteo vs OpenWeatherMap</div>
                 <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Open-Meteo</div>
@@ -438,16 +443,20 @@
                 <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Validated, then retired</div>
                 <div class="tradeoff-reason">The KY-028 temperature sensor validated the weather API (r = 0.96) and enriched training data. After validation, the deployed model uses only the weather API for reliability.</div>
             </div>
+        </div>
 
-            <div class="ds-card tradeoff-card">
+        <!-- Limitations -->
+        <div class="tradeoff-group-label">Limitations</div>
+        <div class="tradeoff-grid">
+            <div class="ds-card tradeoff-card tradeoff-card-limitation">
                 <div class="tradeoff-title">Rain analysis limitation</div>
-                <div class="tradeoff-decision"><i class="bi bi-info-circle-fill"></i> 22 days of data</div>
+                <div class="tradeoff-decision tradeoff-decision-limitation"><i class="bi bi-exclamation-triangle-fill"></i> 22 days of data</div>
                 <div class="tradeoff-reason">22 days of data with minimal heavy precipitation limits rain-effect analysis. Longer collection periods would enable seasonal and weather-pattern insights.</div>
             </div>
 
-            <div class="ds-card tradeoff-card tradeoff-card-wide">
+            <div class="ds-card tradeoff-card tradeoff-card-limitation tradeoff-card-wide">
                 <div class="tradeoff-title">Nowcast model honesty</div>
-                <div class="tradeoff-decision"><i class="bi bi-info-circle-fill"></i> 98.6% lag feature</div>
+                <div class="tradeoff-decision tradeoff-decision-limitation"><i class="bi bi-exclamation-triangle-fill"></i> 98.6% lag feature</div>
                 <div class="tradeoff-reason">The Nowcast model's accuracy is dominated by current dock count (98.6% importance). This is expected for short-horizon time-series prediction but means the model adds limited value beyond "check current availability." Its value is in the 15-minute forward projection and confidence scoring.</div>
             </div>
         </div>
@@ -461,14 +470,14 @@
 /* Insights page (scrolling narrative) */
 .insights-page {
     padding: 16px 16px 80px;
-    max-width: 900px;
+    max-width: 860px;
     margin: 0 auto;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
     .insights-page {
         padding: 24px 32px 80px;
-        max-width: 960px;
+        max-width: 860px;
     }
 }
 
@@ -490,77 +499,97 @@
 
 /* Chapters */
 .chapter {
-    margin-top: 36px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-primary);
+    margin-top: 48px;
+    padding-top: 0;
+    border-top: none;
+}
+
+.chapter::before {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 2px;
+    background: var(--info);
+    margin: 0 auto 24px;
 }
 
 .chapter:first-of-type {
-    margin-top: 20px;
-    border-top: none;
-    padding-top: 0;
+    margin-top: 8px;
+}
+
+.chapter:first-of-type::before {
+    display: none;
 }
 
 .chapter-label {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--text-tertiary);
+    color: var(--info);
     margin-bottom: 4px;
 }
 
 .chapter-title {
-    font-size: 16px;
-    font-weight: 500;
+    font-size: 22px;
+    font-weight: 600;
     color: var(--text-primary);
-    margin: 0 0 6px 0;
+    margin: 0 0 8px 0;
 }
 
 .chapter-intro {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-secondary);
-    line-height: 1.5;
-    margin: 0 0 16px 0;
+    line-height: 1.65;
+    margin: 0 0 20px 0;
     max-width: 640px;
 }
 
 /* Stat strip */
 .stat-strip {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    display: flex;
+    gap: 0;
     margin-bottom: 16px;
-}
-
-@media (min-width: 640px) {
-    .stat-strip { grid-template-columns: repeat(4, 1fr); }
+    background: rgba(226, 75, 74, 0.03);
+    border: 1px solid rgba(226, 75, 74, 0.08);
+    border-radius: 12px;
+    padding: 16px 20px;
 }
 
 .stat-card {
-    background: var(--bg-secondary);
-    border-radius: 10px;
-    padding: 14px 12px;
+    flex: 1;
     text-align: center;
 }
 
+.stat-card + .stat-card {
+    border-left: 1px solid var(--border);
+}
+
 .stat-value {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
 .stat-label {
-    font-size: 11px;
-    color: var(--text-tertiary);
+    font-size: 12px;
+    color: var(--text-secondary);
     margin-top: 2px;
 }
 
+@media (max-width: 639px) {
+    .stat-strip { flex-wrap: wrap; }
+    .stat-card { flex: 0 0 50%; padding: 8px 0; }
+    .stat-card:nth-child(2) { border-left: 1px solid var(--border); }
+    .stat-card:nth-child(3) { border-left: none; border-top: 1px solid var(--border); }
+    .stat-card:nth-child(4) { border-left: 1px solid var(--border); border-top: 1px solid var(--border); }
+}
+
 /* Chart card */
-.chart-card { margin-bottom: 12px; }
+.chart-card { margin-bottom: 12px; padding: 24px 28px; }
 
 .chart-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 12px;
@@ -731,8 +760,22 @@
     gap: 0;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 8px 0;
+    padding: 12px 0;
+    position: relative;
 }
+
+.actuation-flow::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 24px;
+    right: 24px;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+}
+
+.actuation-flow > * { position: relative; z-index: 1; }
 
 .act-node {
     display: flex;
@@ -770,20 +813,29 @@
 }
 
 .act-arrow-line {
-    color: var(--text-tertiary);
-    font-size: 12px;
+    width: 24px;
+    height: 2px;
+    background: var(--text-tertiary);
+    position: relative;
 }
+
+.act-arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -3px;
+    border: 4px solid transparent;
+    border-left-color: var(--text-tertiary);
+}
+
+.act-arrow-line i { display: none; }
 
 /* Mode matrix (2x2) */
 .mode-matrix {
     display: grid;
-    grid-template-columns: auto 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 4px;
     margin-bottom: 12px;
-}
-
-.mode-matrix-corner {
-    /* empty top-left cell */
 }
 
 .mode-matrix-col-header {
@@ -794,18 +846,29 @@
     padding: 8px 4px;
 }
 
-.mode-matrix-row-header {
+.mode-matrix-row-strip {
+    grid-column: 1 / -1;
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 8px;
-    writing-mode: vertical-lr;
-    transform: rotate(180deg);
     letter-spacing: 1px;
     text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mode-matrix-row-strip i { font-size: 12px; }
+
+.mode-matrix-row-now {
+    color: var(--info);
+    background: color-mix(in srgb, var(--info) 6%, var(--bg-secondary));
+}
+
+.mode-matrix-row-plan {
+    color: var(--warning);
+    background: color-mix(in srgb, var(--warning) 6%, var(--bg-secondary));
 }
 
 .mode-cell {
@@ -832,9 +895,7 @@
     .mode-matrix {
         grid-template-columns: 1fr;
     }
-    .mode-matrix-corner,
-    .mode-matrix-col-header,
-    .mode-matrix-row-header {
+    .mode-matrix-col-header {
         display: none;
     }
     .mode-cell::before {
@@ -846,10 +907,10 @@
         letter-spacing: 0.5px;
         text-transform: uppercase;
     }
-    .mode-cell-now:first-of-type::before { content: 'To Imperial + Now'; }
-    .mode-cell-now:last-of-type::before { content: 'From Imperial + Now'; }
-    .mode-cell-plan:first-of-type::before { content: 'To Imperial + Plan'; }
-    .mode-cell-plan:last-of-type::before { content: 'From Imperial + Plan'; }
+    .mode-cell-now:first-of-type::before { content: 'To Imperial'; }
+    .mode-cell-now:last-of-type::before { content: 'From Imperial'; }
+    .mode-cell-plan:first-of-type::before { content: 'To Imperial'; }
+    .mode-cell-plan:last-of-type::before { content: 'From Imperial'; }
 }
 
 /* Model definition strip */
@@ -943,7 +1004,7 @@
 }
 
 /* Heatmap */
-.heatmap-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.heatmap-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 8px 0; }
 
 .heatmap {
     display: grid;
@@ -957,7 +1018,7 @@
 .hm-row-label { font-size: 11px; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; padding-right: 4px; }
 
 .hm-cell {
-    border-radius: 3px;
+    border-radius: 2px;
     min-height: 24px;
     display: flex;
     align-items: center;
@@ -1020,7 +1081,7 @@
     position: relative;
 }
 
-.model-card-primary { border: 2px solid var(--success); }
+.model-card-primary { border: 2px solid var(--success); background: rgba(29, 158, 117, 0.03); }
 
 .model-card-badge {
     display: inline-block;
@@ -1119,10 +1180,22 @@
 }
 
 /* Trade-offs */
+.tradeoff-group-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--info);
+    margin: 20px 0 8px;
+}
+
+.tradeoff-group-label:first-of-type { margin-top: 0; }
+
 .tradeoff-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 10px;
+    margin-bottom: 8px;
 }
 
 @media (min-width: 640px) {
@@ -1143,6 +1216,14 @@
 }
 
 .tradeoff-decision i { font-size: 14px; }
+
+.tradeoff-card-limitation {
+    border-left: 3px solid var(--warning);
+}
+
+.tradeoff-decision-limitation {
+    color: var(--warning);
+}
 
 .tradeoff-reason {
     font-size: 11px;

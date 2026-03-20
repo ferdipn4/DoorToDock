@@ -1,4 +1,4 @@
-/* DockSense – Settings Tab */
+/* Door2Dock – Settings Tab */
 
 import { getSettings, getStations } from './api/client.js';
 

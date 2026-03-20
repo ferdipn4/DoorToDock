@@ -1,5 +1,5 @@
 /**
- * API client with mock data toggle for DockSense frontend development.
+ * API client with mock data toggle for Door2Dock frontend development.
  *
  * Set USE_MOCK = true to use hardcoded mock data (no backend needed).
  * Set USE_MOCK = false to hit the live Flask API endpoints.

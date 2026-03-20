@@ -1,4 +1,4 @@
-/* DockSense -- Go Tab (4-state: direction x timing, desktop map + chart) */
+/* Door2Dock -- Go Tab (4-state: direction x timing, desktop map + chart) */
 
 import { getPredictionNow, getPredictionPlan, getStations } from './api/client.js';
 

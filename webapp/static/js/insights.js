@@ -1,4 +1,4 @@
-/* DockSense - Insights Tab (all real data from Supabase) */
+/* Door2Dock - Insights Tab (all real data from Supabase) */
 
 import { getInsightsCh1, getInsightsCh3, getInsightsCh4, getInsightsCh5 } from './api/client.js';
 

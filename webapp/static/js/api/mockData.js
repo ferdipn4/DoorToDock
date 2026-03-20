@@ -1,5 +1,5 @@
 /**
- * Mock data layer for DockSense frontend development.
+ * Mock data layer for Door2Dock frontend development.
  * Matches the API response shapes defined in CLAUDE_CODE_INSTRUCTIONS.md Section 6.
  * Uses real station names and realistic coordinates from monitored_stations.
  */
