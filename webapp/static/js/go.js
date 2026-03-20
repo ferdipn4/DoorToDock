@@ -92,12 +92,8 @@ function autoDetectDirection() {
 
 // -- Toggle wiring --
 function setupToggles() {
-    // Mobile toggles
     wireToggle('btn-to', 'to');
     wireToggle('btn-from', 'from');
-    // Desktop topbar toggles
-    wireToggle('topbar-btn-to', 'to');
-    wireToggle('topbar-btn-from', 'from');
 }
 
 function wireToggle(btnId, dir) {
@@ -136,11 +132,8 @@ function onDirectionSwitch() {
 }
 
 function syncToggleUI() {
-    // Sync both mobile and desktop toggles
     setActiveBtn('btn-to', direction === 'to');
     setActiveBtn('btn-from', direction === 'from');
-    setActiveBtn('topbar-btn-to', direction === 'to');
-    setActiveBtn('topbar-btn-from', direction === 'from');
 }
 
 function setActiveBtn(id, active) {

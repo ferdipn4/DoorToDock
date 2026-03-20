@@ -128,13 +128,9 @@ body {
   white-space: nowrap;
 }
 
-.topbar-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
 .topbar-nav {
+  flex: 1;
+  justify-content: flex-end;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -174,12 +170,6 @@ body {
   font-weight: 500;
   border-bottom-color: var(--info);
   border-radius: 0;
-}
-
-/* On non-go pages, fade the direction toggle */
-.topbar-direction-toggle.topbar-toggle-faded {
-  opacity: 0.4;
-  pointer-events: none;
 }
 
 @media (min-width: 768px) {
@@ -301,9 +291,10 @@ body {
 .ds-card {
   background-color: var(--bg-primary);
   border: 0.5px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 20px 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03),
+              0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
 .ds-metric-card {
