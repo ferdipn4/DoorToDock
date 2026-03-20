@@ -36,8 +36,26 @@ const COLORS = {
 const STATE_IDS = ['state-to-now', 'state-from-now', 'state-to-plan', 'state-from-plan'];
 
 // Sort state
-let toNowSort = 'distance';
-let fromNowSort = 'distance';
+let toNowSort = 'preference';
+let fromNowSort = 'preference';
+
+// Preference station IDs from settings
+function getPreferenceIds() {
+    try {
+        const raw = localStorage.getItem('ds_station_order');
+        if (raw) {
+            const ids = JSON.parse(raw);
+            if (Array.isArray(ids) && ids.length > 0) return ids;
+        }
+    } catch { /* ignore */ }
+    return [];
+}
+
+function preferenceIndex(stationId) {
+    const ids = getPreferenceIds();
+    const idx = ids.indexOf(stationId);
+    return idx >= 0 ? idx : 9999;
+}
 
 // -- Init --
 document.addEventListener('DOMContentLoaded', () => {
@@ -384,7 +402,9 @@ function renderToNowStations(stations, recommendedId) {
     const container = document.getElementById('to-now-stations');
     // Filter out recommended station for alternatives list
     let alts = stations.filter(s => s.station_id !== recommendedId);
-    if (toNowSort === 'distance') {
+    if (toNowSort === 'preference') {
+        alts = [...alts].sort((a, b) => preferenceIndex(a.station_id) - preferenceIndex(b.station_id));
+    } else if (toNowSort === 'distance') {
         alts = [...alts].sort((a, b) => (a.walk_to_destination_min || 99) - (b.walk_to_destination_min || 99));
     } else {
         alts = [...alts].sort((a, b) => b.predicted_empty_docks - a.predicted_empty_docks);
@@ -467,7 +487,9 @@ async function loadFromNow() {
 function renderFromNowStations(stations, bestId) {
     const container = document.getElementById('from-now-stations');
     let sorted;
-    if (fromNowSort === 'distance') {
+    if (fromNowSort === 'preference') {
+        sorted = [...stations].sort((a, b) => preferenceIndex(a.station_id) - preferenceIndex(b.station_id));
+    } else if (fromNowSort === 'distance') {
         sorted = [...stations].sort((a, b) => (a.walking_duration_s || 9999) - (b.walking_duration_s || 9999));
     } else {
         sorted = [...stations].sort((a, b) => b.available_bikes - a.available_bikes);
@@ -580,8 +602,13 @@ function getSelectedTimeDisplay(prefix) {
 
 async function loadToPlan() {
     const btn = document.getElementById('to-plan-scan-btn');
+    const emptyState = document.getElementById('to-plan-empty');
+    const resultEl = document.getElementById('to-plan-result');
     btn.classList.add('loading');
-    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Calculating...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Calculating...';
+    // Hide empty state and previous result, show loading in result area
+    if (emptyState) emptyState.style.display = 'none';
+    if (resultEl) resultEl.style.display = 'none';
     try {
         const data = await getPredictionPlan({
             arriveBy: getSelectedTime('to-plan'),
@@ -664,8 +691,12 @@ function renderToPlanResult(data) {
 
 async function loadFromPlan() {
     const btn = document.getElementById('from-plan-scan-btn');
+    const emptyState = document.getElementById('from-plan-empty');
+    const resultEl = document.getElementById('from-plan-result');
     btn.classList.add('loading');
-    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Calculating...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Calculating...';
+    if (emptyState) emptyState.style.display = 'none';
+    if (resultEl) resultEl.style.display = 'none';
     try {
         const data = await getPredictionPlan({
             arriveBy: getSelectedTime('from-plan'),
@@ -759,7 +790,15 @@ function switchDesktopRightPanel(view) {
     if (view === 'chart') {
         mapView.style.display = 'none';
         chartView.style.display = 'flex';
-        if (planData) renderPlanChart();
+        if (planData) {
+            renderPlanChart();
+        } else {
+            // Show empty placeholder
+            const emptyEl = document.getElementById('plan-chart-empty');
+            const containerEl = document.getElementById('plan-chart-container');
+            if (emptyEl) emptyEl.style.display = '';
+            if (containerEl) containerEl.style.display = 'none';
+        }
     } else {
         mapView.style.display = 'flex';
         chartView.style.display = 'none';
@@ -772,6 +811,12 @@ function renderPlanChart() {
     if (!planData) return;
     const canvas = document.getElementById('plan-chart');
     if (!canvas) return;
+
+    // Show chart, hide empty state
+    const emptyEl = document.getElementById('plan-chart-empty');
+    const containerEl = document.getElementById('plan-chart-container');
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (containerEl) containerEl.style.display = '';
 
     if (planChart) planChart.destroy();
 

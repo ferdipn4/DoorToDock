@@ -87,8 +87,9 @@
             <div class="station-list-sort-row">
                 <span class="station-list-header">ALTERNATIVES</span>
                 <div class="sort-toggle" id="to-now-sort">
+                    <button class="sort-btn active" data-sort="preference">By preference</button>
                     <button class="sort-btn" data-sort="availability">By availability</button>
-                    <button class="sort-btn active" data-sort="distance">By distance</button>
+                    <button class="sort-btn" data-sort="distance">By distance</button>
                 </div>
             </div>
             <div class="station-list" id="to-now-stations">
@@ -146,8 +147,9 @@
             <div class="station-list-sort-row">
                 <span class="station-list-header">OTHER STATIONS</span>
                 <div class="sort-toggle" id="from-now-sort">
+                    <button class="sort-btn active" data-sort="preference">By preference</button>
                     <button class="sort-btn" data-sort="availability">By availability</button>
-                    <button class="sort-btn active" data-sort="distance">By distance</button>
+                    <button class="sort-btn" data-sort="distance">By distance</button>
                 </div>
             </div>
             <div class="station-list" id="from-now-stations">
@@ -336,7 +338,13 @@
         </div>
         <!-- Plan mode: station ranking chart -->
         <div id="go-right-chart" class="go-right-view" style="display: none;">
-            <div class="plan-chart-container">
+            <!-- Empty state placeholder -->
+            <div class="plan-chart-empty" id="plan-chart-empty">
+                <i class="bi bi-bar-chart-line"></i>
+                <p>Select a date and time to see station predictions</p>
+            </div>
+            <!-- Chart container (hidden until scan) -->
+            <div class="plan-chart-container" id="plan-chart-container" style="display: none;">
                 <div class="plan-chart-header">
                     <span class="plan-chart-title" id="plan-chart-title">All stations at target time</span>
                 </div>
@@ -378,9 +386,9 @@
     }
 
     .go-panel {
-        width: 400px;
-        min-width: 400px;
-        max-width: 400px;
+        width: 55%;
+        min-width: 380px;
+        max-width: 540px;
         margin: 0;
         padding: 16px 20px;
         border-right: 0.5px solid var(--border);
@@ -1006,6 +1014,28 @@
     flex-shrink: 0;
 }
 
+
+/* -- Plan chart empty state -- */
+.plan-chart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: var(--text-tertiary);
+}
+
+.plan-chart-empty i {
+    font-size: 48px;
+    opacity: 0.3;
+}
+
+.plan-chart-empty p {
+    font-size: 14px;
+    margin: 0;
+    opacity: 0.6;
+}
 
 /* -- Desktop plan chart -- */
 .plan-chart-container {
