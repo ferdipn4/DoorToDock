@@ -78,7 +78,7 @@ function handleDeepLink() {
     if (d === 'to' || d === 'from') direction = d;
     if (t === 'now') timing = 'now';
     else if (t === 'plan') timing = 'plan';
-    // Keep timing param in URL for sidebar active state
+    // Keep timing param in URL for nav active state
 
     syncToggleUI();
 }

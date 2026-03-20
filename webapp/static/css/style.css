@@ -126,6 +126,14 @@ body {
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-brand i {
+  font-size: 20px;
+  color: var(--info);
 }
 
 .topbar-nav {
