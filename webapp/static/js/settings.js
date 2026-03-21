@@ -33,15 +33,21 @@ function renderStationList() {
     const container = document.getElementById('station-reorder-list');
     if (!container) return;
 
-    // Order stations by settings.station_order, take first 10
-    const ordered = orderStations(settings.station_order);
+    // Prefer saved order from localStorage, fall back to API default
+    let orderIds = settings.station_order;
+    try {
+        const saved = localStorage.getItem('ds_station_order');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) orderIds = parsed;
+        }
+    } catch { /* ignore */ }
+
+    const ordered = orderStations(orderIds);
     const list = ordered.slice(0, 10);
 
-    // Persist initial order so Now/Plan pages can read it
-    if (!localStorage.getItem('ds_station_order')) {
-        const initialOrder = ordered.map(s => s.station_id);
-        localStorage.setItem('ds_station_order', JSON.stringify(initialOrder));
-    }
+    // Persist order so Now/Plan pages can read it
+    localStorage.setItem('ds_station_order', JSON.stringify(ordered.map(s => s.station_id)));
 
     container.innerHTML = list.map((st, i) => {
         const name = st.station_name.split(',')[0];

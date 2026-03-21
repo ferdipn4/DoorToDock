@@ -1,4 +1,4 @@
-/* Door2Dock -- Go Tab (4-state: direction x timing, desktop map + chart) */
+/* Door2Dock -- Go Tab (4-state: direction x timing, desktop map) */
 
 import { getPredictionNow, getPredictionPlan, getStations } from './api/client.js';
 
@@ -11,15 +11,11 @@ let planData = null;
 let map = null;
 let mapMarkers = {};
 let mapLayers = {};
-let planChart = null;
 let tileLayer = null;
 let mobileMap = null;
 let mobileMapMarkers = {};
 let mobileMapLayers = {};
 let mobileView = 'list'; // 'list' | 'map'
-
-// Track which states have been loaded to avoid redundant fetches
-let loadedStates = {};
 
 const IMPERIAL = [51.498099, -0.174956];
 const DESKTOP_BP = 1024;
@@ -120,14 +116,10 @@ function onDirectionSwitch() {
             const el = document.getElementById(id);
             if (el) el.style.display = '';
         });
-        if (planChart) {
-            planChart.destroy();
-            planChart = null;
-        }
-        const emptyEl = document.getElementById('plan-chart-empty');
-        const containerEl = document.getElementById('plan-chart-container');
-        if (emptyEl) emptyEl.style.display = '';
-        if (containerEl) containerEl.style.display = 'none';
+        // Clear map markers and show overlay
+        if (map) clearMapLayers();
+        const overlay = document.getElementById('plan-map-overlay');
+        if (overlay) overlay.style.display = '';
     }
 }
 
@@ -344,11 +336,7 @@ function switchState() {
     }
 
     // Desktop right panel
-    if (timing === 'now') {
-        switchDesktopRightPanel('map');
-    } else {
-        switchDesktopRightPanel('chart');
-    }
+    switchDesktopRightPanel(timing === 'plan' ? 'plan' : 'now');
 
     // Load data for this state
     const stateKey = `${direction}-${timing}`;
@@ -560,11 +548,10 @@ function setupPlanForms() {
 function setupPlanFormFor(prefix) {
     const hourSel = document.getElementById(`${prefix}-hour`);
     const minSel = document.getElementById(`${prefix}-minute`);
-    const ampmSel = document.getElementById(`${prefix}-ampm`);
     const daysContainer = document.getElementById(`${prefix}-days`);
 
-    // Populate hours
-    for (let h = 1; h <= 12; h++) {
+    // Populate hours (0-23)
+    for (let h = 0; h <= 23; h++) {
         const opt = document.createElement('option');
         opt.value = h;
         opt.textContent = String(h).padStart(2, '0');
@@ -580,8 +567,6 @@ function setupPlanFormFor(prefix) {
         if (m === 15) opt.selected = true;
         minSel.appendChild(opt);
     }
-
-    ampmSel.value = 'AM';
 
     // Populate days
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -602,11 +587,8 @@ function setupPlanFormFor(prefix) {
 }
 
 function getSelectedTime(prefix) {
-    let hour = parseInt(document.getElementById(`${prefix}-hour`).value);
+    const hour = parseInt(document.getElementById(`${prefix}-hour`).value);
     const min = parseInt(document.getElementById(`${prefix}-minute`).value);
-    const ampm = document.getElementById(`${prefix}-ampm`).value;
-    if (ampm === 'PM' && hour < 12) hour += 12;
-    if (ampm === 'AM' && hour === 12) hour = 0;
 
     const activeDay = document.querySelector(`#${prefix}-days .plan-day-btn.active`);
     const date = activeDay ? activeDay.dataset.date : new Date().toISOString().split('T')[0];
@@ -617,8 +599,7 @@ function getSelectedTime(prefix) {
 function getSelectedTimeDisplay(prefix) {
     const h = parseInt(document.getElementById(`${prefix}-hour`).value);
     const m = parseInt(document.getElementById(`${prefix}-minute`).value);
-    const ap = document.getElementById(`${prefix}-ampm`).value;
-    return `${h}:${String(m).padStart(2, '0')} ${ap}`;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 // ====================================================
@@ -635,14 +616,15 @@ async function loadToPlan() {
     if (emptyState) emptyState.style.display = 'none';
     if (resultEl) resultEl.style.display = 'none';
     try {
-        const data = await getPredictionPlan({
-            arriveBy: getSelectedTime('to-plan'),
-            mode: 'arrive',
-        });
+        const [data, stns] = await Promise.all([
+            getPredictionPlan({ arriveBy: getSelectedTime('to-plan'), mode: 'arrive' }),
+            stationsData.length ? Promise.resolve(stationsData) : getStations(),
+        ]);
         planData = data;
+        if (!stationsData.length) stationsData = stns;
         renderToPlanResult(data);
         renderPlanWeather('to-plan', data.weather_forecast);
-        if (isDesktop()) renderPlanChart();
+        if (isDesktop()) renderMapMarkersPlan();
     } catch (e) {
         console.error('Failed to load plan:', e);
     } finally {
@@ -659,8 +641,8 @@ function renderToPlanResult(data) {
     // Leave by
     const leaveTime = new Date(data.leave_by);
     const leaveStr = leaveTime.toLocaleTimeString('en-GB', {
-        hour: '2-digit', minute: '2-digit', hour12: true,
-    }).toUpperCase();
+        hour: '2-digit', minute: '2-digit', hour12: false,
+    });
     document.getElementById('to-plan-leave-by').textContent = leaveStr;
 
     // Subtitle
@@ -691,8 +673,8 @@ function renderToPlanResult(data) {
     // Arrival strip
     const arrivalTime = new Date(bd.arrival_time);
     const arrStr = arrivalTime.toLocaleTimeString('en-GB', {
-        hour: '2-digit', minute: '2-digit', hour12: true,
-    }).toUpperCase();
+        hour: '2-digit', minute: '2-digit', hour12: false,
+    });
     const targetStr = getSelectedTimeDisplay('to-plan');
     document.getElementById('to-plan-arrival-strip').textContent =
         `Arrives ${arrStr} \u00B7 ${bd.buffer_min} min buffer before ${targetStr}`;
@@ -723,14 +705,15 @@ async function loadFromPlan() {
     if (emptyState) emptyState.style.display = 'none';
     if (resultEl) resultEl.style.display = 'none';
     try {
-        const data = await getPredictionPlan({
-            arriveBy: getSelectedTime('from-plan'),
-            mode: 'depart',
-        });
+        const [data, stns] = await Promise.all([
+            getPredictionPlan({ arriveBy: getSelectedTime('from-plan'), mode: 'depart' }),
+            stationsData.length ? Promise.resolve(stationsData) : getStations(),
+        ]);
         planData = data;
+        if (!stationsData.length) stationsData = stns;
         renderFromPlanResult(data);
         renderPlanWeather('from-plan', data.weather_forecast);
-        if (isDesktop()) renderPlanChart();
+        if (isDesktop()) renderMapMarkersPlan();
     } catch (e) {
         console.error('Failed to load from-plan:', e);
     } finally {
@@ -811,136 +794,112 @@ function renderPlanWeather(prefix, forecast) {
 // DESKTOP RIGHT PANEL
 // ====================================================
 
-function switchDesktopRightPanel(view) {
+function switchDesktopRightPanel(mode) {
     const mapView = document.getElementById('go-right-map');
-    const chartView = document.getElementById('go-right-chart');
-    if (!mapView || !chartView) return;
+    if (!mapView) return;
 
-    if (view === 'chart') {
-        mapView.style.display = 'none';
-        chartView.style.display = 'flex';
+    // Map is always visible
+    mapView.style.display = 'flex';
+    const overlay = document.getElementById('plan-map-overlay');
+
+    if (mode === 'plan') {
+        // Plan mode: show overlay if no plan data, otherwise render plan markers
         if (planData) {
-            renderPlanChart();
+            if (overlay) overlay.style.display = 'none';
+            renderMapMarkersPlan();
         } else {
-            // Show empty placeholder
-            const emptyEl = document.getElementById('plan-chart-empty');
-            const containerEl = document.getElementById('plan-chart-container');
-            if (emptyEl) emptyEl.style.display = '';
-            if (containerEl) containerEl.style.display = 'none';
+            if (overlay) overlay.style.display = '';
+            if (map) clearMapLayers();
         }
     } else {
-        mapView.style.display = 'flex';
-        chartView.style.display = 'none';
-        if (map) setTimeout(() => map.invalidateSize(), 50);
+        // Now mode: hide overlay, markers are rendered by loadToNow/loadFromNow
+        if (overlay) overlay.style.display = 'none';
     }
+    if (map) setTimeout(() => map.invalidateSize(), 50);
 }
 
-// -- Plan chart (desktop right panel) — horizontal bar chart of ALL stations --
-function renderPlanChart() {
-    if (!planData) return;
-    const canvas = document.getElementById('plan-chart');
-    if (!canvas) return;
+// -- Plan map (desktop right panel) — map with predicted availability --
+function renderMapMarkersPlan() {
+    if (!planData || !map) return;
 
-    // Show chart, hide empty state
-    const emptyEl = document.getElementById('plan-chart-empty');
-    const containerEl = document.getElementById('plan-chart-container');
-    if (emptyEl) emptyEl.style.display = 'none';
-    if (containerEl) containerEl.style.display = '';
+    clearMapLayers();
 
-    if (planChart) planChart.destroy();
+    // Hide overlay
+    const overlay = document.getElementById('plan-map-overlay');
+    if (overlay) overlay.style.display = 'none';
 
     const isFrom = direction === 'from';
     const alts = planData.alternatives_at_target_time;
-    const recStation = planData.recommended_station;
+    const recId = planData.recommended_station ? planData.recommended_station.station_id : null;
 
-    // Update title
-    const titleEl = document.getElementById('plan-chart-title');
-    if (titleEl) titleEl.textContent = isFrom
-        ? 'Predicted bikes at all stations'
-        : 'Predicted empty docks at all stations';
+    // Build station lookup for lat/lng
+    const stationLookup = {};
+    stationsData.forEach(s => { stationLookup[s.station_id] = s; });
 
-    // Sort by predicted value descending
-    const sorted = [...alts].sort((a, b) => b.predicted - a.predicted);
+    alts.forEach(a => {
+        const st = stationLookup[a.station_id];
+        if (!st) return;
 
-    const labels = sorted.map(a => shortName(a.station_name));
-    const values = sorted.map(a => Math.round(a.predicted));
-    const isRec = sorted.map(a => a.reason === 'recommended');
+        const predicted = Math.round(a.predicted);
+        const isRec = a.reason === 'recommended';
+        const color = isRec
+            ? (isFrom ? COLORS.success : COLORS.info)
+            : (isFrom ? bikeColor(predicted) : dockColor(predicted));
+        const radius = isRec ? 9 : Math.max(5, Math.min(9, 5 + predicted * 0.3));
 
-    const barColors = sorted.map(a => {
-        const v = Math.round(a.predicted);
-        if (a.reason === 'recommended') return isFrom ? COLORS.success : COLORS.info;
-        if (isFrom) return bikeColor(v);
-        return dockColor(v);
-    });
+        const marker = L.circleMarker([st.latitude, st.longitude], {
+            radius,
+            fillColor: color,
+            color: isDarkMode() ? '#444' : '#fff',
+            weight: 1.5,
+            fillOpacity: 0.9,
+        }).addTo(map);
 
-    const borderColors = sorted.map(a => {
-        if (a.reason === 'recommended') return isFrom ? COLORS.success : COLORS.info;
-        return 'transparent';
-    });
+        const unit = isFrom ? 'bikes' : 'empty docks';
+        const walkLabel = isFrom ? 'from uni' : 'to uni';
+        const walkText = a.walking_distance_m
+            ? formatWalk(a.walk_to_destination_min, a.walking_distance_m)
+            : '';
 
-    planChart = new Chart(canvas, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [{
-                data: values,
-                backgroundColor: barColors.map(c => c + '33'),
-                borderColor: barColors,
-                borderWidth: isRec.map(r => r ? 2 : 1),
-                borderRadius: 4,
-                barPercentage: 0.7,
-                categoryPercentage: 0.85,
-            }],
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => {
-                            const a = sorted[ctx.dataIndex];
-                            const unit = isFrom ? 'bikes' : 'empty docks';
-                            const rec = a.reason === 'recommended' ? ' (recommended)' : '';
-                            return `${Math.round(a.predicted)} ${unit}${rec}`;
-                        },
-                    },
-                },
-            },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: isFrom ? 'Predicted bikes' : 'Predicted empty docks',
-                        font: { size: 10 },
-                        color: isDarkMode() ? '#6B6B6B' : '#9B9B9B',
-                    },
-                    grid: {
-                        color: isDarkMode() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                        drawTicks: false,
-                    },
-                    ticks: {
-                        font: { size: 10 },
-                        color: isDarkMode() ? '#6B6B6B' : '#9B9B9B',
-                        stepSize: 2,
-                    },
-                },
-                y: {
-                    grid: { display: false },
-                    ticks: {
-                        font: { size: 11 },
-                        color: (ctx) => {
-                            const idx = ctx.index;
-                            if (idx !== undefined && isRec[idx]) return isFrom ? COLORS.success : COLORS.info;
-                            return isDarkMode() ? '#A0A0A0' : '#6B6B6B';
-                        },
-                    },
-                },
-            },
-        },
+        marker.bindPopup(
+            `<strong>${shortName(a.station_name)}</strong>` +
+            `${isRec ? ' <span style="color:' + color + '; font-size:10px;">(recommended)</span>' : ''}<br>` +
+            `<span style="color:${color}; font-size:1.3em; font-weight:500;">${predicted}</span> predicted ${unit}<br>` +
+            (walkText ? `<small><i class="bi bi-person-walking"></i> ${walkText} ${walkLabel}</small>` : '')
+        );
+
+        marker._baseRadius = radius;
+        mapMarkers[a.station_id] = marker;
+
+        // Hover effects
+        marker.on('mouseover', () => {
+            marker.setStyle({ radius: radius + 4, weight: 3, fillOpacity: 1 });
+            marker.bringToFront();
+        });
+        marker.on('mouseout', () => {
+            if (!marker.isPopupOpen()) {
+                marker.setStyle({ radius, weight: 1.5, fillOpacity: 0.9 });
+            }
+        });
+        marker.on('popupclose', () => {
+            marker.setStyle({ radius, weight: 1.5, fillOpacity: 0.9 });
+        });
+
+        // Dashed ring around recommended
+        if (isRec) {
+            mapLayers.recRing = L.circleMarker([st.latitude, st.longitude], {
+                radius: 18,
+                fill: false,
+                color: color,
+                weight: 2,
+                dashArray: '4, 4',
+            }).addTo(map);
+
+            mapLayers.route = L.polyline(
+                curvedPath(isFrom ? IMPERIAL : [st.latitude, st.longitude], isFrom ? [st.latitude, st.longitude] : IMPERIAL),
+                { color: color, weight: 1.5, dashArray: '6, 6', opacity: 0.5 }
+            ).addTo(map);
+        }
     });
 }
 
@@ -981,8 +940,11 @@ function createMap() {
         radius: 7, fillColor: markerFill, color: isDarkMode() ? '#444' : '#fff', weight: 2, fillOpacity: 0.9,
     }).addTo(map).bindPopup('<strong>Imperial College London</strong>');
 
-    if (predictionData && direction === 'to') renderMapMarkers();
-    if (stationsData.length && direction === 'from') {
+    if (timing === 'plan' && planData) {
+        renderMapMarkersPlan();
+    } else if (predictionData && direction === 'to') {
+        renderMapMarkers();
+    } else if (stationsData.length && direction === 'from') {
         const sorted = [...stationsData].sort((a, b) => a.walking_distance_m - b.walking_distance_m);
         const best = sorted.find(s => s.available_bikes > 0) || sorted[0];
         renderMapMarkersFrom(sorted, best ? best.station_id : null);

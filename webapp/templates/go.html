@@ -174,10 +174,6 @@
                             <select class="plan-select" id="to-plan-hour"></select>
                             <span class="plan-time-sep">:</span>
                             <select class="plan-select" id="to-plan-minute"></select>
-                            <select class="plan-select plan-select-narrow" id="to-plan-ampm">
-                                <option value="AM">AM</option>
-                                <option value="PM">PM</option>
-                            </select>
                         </div>
                     </div>
                     <div class="plan-day-selector" id="to-plan-days"></div>
@@ -244,10 +240,6 @@
                             <select class="plan-select" id="from-plan-hour"></select>
                             <span class="plan-time-sep">:</span>
                             <select class="plan-select" id="from-plan-minute"></select>
-                            <select class="plan-select plan-select-narrow" id="from-plan-ampm">
-                                <option value="AM">AM</option>
-                                <option value="PM">PM</option>
-                            </select>
                         </div>
                     </div>
                     <div class="plan-day-selector" id="from-plan-days"></div>
@@ -286,7 +278,7 @@
                             <span class="hero-metric-label">walk from uni</span>
                         </div>
                     </div>
-                    <div class="hero-trip hero-trip-live">Walk to station only, no cycle time</div>
+                    <div class="hero-trip">Walk to station only, no cycle time</div>
                 </div>
 
                 <!-- Other stations at future time -->
@@ -316,9 +308,8 @@
 
     </div>
 
-    <!-- Right panel: map or chart (desktop only) -->
+    <!-- Right panel: map (desktop only) -->
     <div class="go-map-panel" id="go-map-panel">
-        <!-- Now mode: map -->
         <div id="go-right-map" class="go-right-view">
             <div id="go-map" class="go-map"></div>
             <div class="map-legend" id="map-legend">
@@ -336,21 +327,11 @@
                 </div>
             </div>
         </div>
-        <!-- Plan mode: station ranking chart -->
-        <div id="go-right-chart" class="go-right-view" style="display: none; background-color: var(--bg-secondary);">
-            <!-- Empty state placeholder -->
-            <div class="plan-chart-empty" id="plan-chart-empty">
+        <!-- Plan mode: map overlay (shown over go-right-map) -->
+        <div id="plan-map-overlay" class="plan-map-overlay" style="display: none;">
+            <div class="plan-map-overlay-inner">
                 <i class="bi bi-calendar3"></i>
                 <p>Select a date and time to see station predictions</p>
-            </div>
-            <!-- Chart container (hidden until scan) -->
-            <div class="plan-chart-container" id="plan-chart-container" style="display: none;">
-                <div class="plan-chart-header">
-                    <span class="plan-chart-title" id="plan-chart-title">All stations at target time</span>
-                </div>
-                <div class="plan-chart-wrap">
-                    <canvas id="plan-chart"></canvas>
-                </div>
             </div>
         </div>
     </div>
@@ -833,10 +814,6 @@
     min-width: 52px;
 }
 
-.plan-select-narrow {
-    min-width: 46px;
-}
-
 .plan-time-sep {
     font-size: 16px;
     font-weight: 500;
@@ -967,11 +944,17 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px;
+    padding: 10px 12px;
     background-color: var(--bg-secondary);
     border-radius: var(--radius-md);
-    gap: 8px;
+    gap: 10px;
     border-left: 3px solid transparent;
+    transition: background-color 0.12s;
+    cursor: pointer;
+}
+
+.alt-row:hover {
+    background-color: var(--bg-tertiary);
 }
 
 .alt-row.alt-recommended {
@@ -979,9 +962,19 @@
     border-left-color: var(--info);
 }
 
+.alt-row.alt-recommended:hover {
+    background-color: var(--info-bg);
+    filter: brightness(0.95);
+}
+
 .alt-row.alt-recommended-green {
     background-color: var(--success-bg);
     border-left-color: var(--success);
+}
+
+.alt-row.alt-recommended-green:hover {
+    background-color: var(--success-bg);
+    filter: brightness(0.95);
 }
 
 .alt-row-left {
@@ -1002,8 +995,11 @@
 }
 
 .alt-row-reason {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .alt-row-right {
@@ -1014,60 +1010,40 @@
 }
 
 
-/* -- Plan chart empty state -- */
-.plan-chart-empty {
+/* -- Plan map overlay (empty state over map) -- */
+.plan-map-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(245, 245, 240, 0.85);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+[data-bs-theme="dark"] .plan-map-overlay {
+    background-color: rgba(26, 26, 26, 0.85);
+}
+
+.plan-map-overlay-inner {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100%;
     gap: 12px;
     color: var(--text-tertiary);
 }
 
-.plan-chart-empty i {
+.plan-map-overlay-inner i {
     font-size: 48px;
     opacity: 0.3;
 }
 
-.plan-chart-empty p {
+.plan-map-overlay-inner p {
     font-size: 14px;
     margin: 0;
     opacity: 0.6;
-}
-
-/* -- Desktop plan chart -- */
-.plan-chart-container {
-    display: flex;
-    flex-direction: column;
-    padding: 24px;
-    height: 100%;
-    max-height: 100%;
-    overflow: hidden;
-}
-
-.plan-chart-header {
-    margin-bottom: 16px;
-    flex-shrink: 0;
-}
-
-.plan-chart-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.plan-chart-wrap {
-    flex: 1;
-    min-height: 0;
-    position: relative;
-}
-
-.plan-chart-wrap canvas {
-    position: absolute;
-    inset: 0;
-    width: 100% !important;
-    height: 100% !important;
 }
 
 /* -- State transitions -- */
