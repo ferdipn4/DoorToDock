@@ -1811,6 +1811,79 @@
     color: var(--text-secondary);
     line-height: 1.65;
 }
+
+/* ================================================================
+   MOBILE OVERRIDES (< 640px)
+   ================================================================ */
+@media (max-width: 639px) {
+    /* Reduce section padding */
+    .ins-section { padding: 48px 16px; }
+    .ins-hero { padding: 48px 16px 40px; }
+
+    /* Hero text legibility */
+    .ins-hero-headline { font-size: 24px; line-height: 1.3; }
+    .ins-hero .ins-hero-sub { color: #c0c0cc; font-size: 15px; line-height: 1.6; }
+    .ins-hero .ins-hero-footnote { color: #9898aa; font-size: 11px; }
+    .ins-hero-stat-value { font-size: 24px; }
+    .ins-hero-stat { padding: 16px 14px; }
+
+    /* Typography scale-down */
+    .ins-lead { font-size: 17px; }
+    .ins-h2 { font-size: 16px; }
+    .ins-body { font-size: 14px; }
+
+    /* Chart containers */
+    .ins-chart-wrap { padding: 14px 12px 12px; border-radius: 10px; }
+    .ins-chart-title { font-size: 12px; }
+    .ins-chart-takeaway { font-size: 12px; }
+    .ins-chart-note { font-size: 11px; padding: 6px 10px; }
+
+    /* Cards */
+    .ins-direction-card,
+    .ins-mode-card,
+    .ins-model-card,
+    .ins-limit-card,
+    .ins-decision-card,
+    .ins-assess-card,
+    .ins-callout { padding: 16px; border-radius: 10px; }
+
+    .ins-source-card { padding: 14px; border-radius: 10px; }
+
+    /* Model card metrics */
+    .ins-model-metrics { grid-template-columns: repeat(2, 1fr); }
+    .ins-model-name { font-size: 18px; }
+
+    /* Pipeline diagrams - tighter */
+    .ins-pv2-sources { min-width: 150px; }
+    .ins-pv2-db { min-width: 100px; }
+    .ins-pv2-outputs { min-width: 170px; }
+    .ins-pipe-node { padding: 8px 10px; }
+    .ins-pipe-node-name { font-size: 11px; }
+    .ins-pipe-node-detail { font-size: 10px; }
+    .ins-pipe-node-freq { font-size: 9px; }
+
+    /* Nav */
+    .ins-nav-inner { padding: 0 12px; }
+    .ins-nav-link { padding: 10px 10px; font-size: 11px; }
+
+    /* Heatmap cells smaller */
+    .ins-heatmap-cell { min-width: 14px; }
+    .ins-heatmap { min-width: 480px; }
+
+    /* Flow steps */
+    .ins-app-flow { gap: 0; }
+    .ins-flow-step { padding: 14px 12px; }
+    .ins-flow-title { font-size: 13px; }
+    .ins-flow-desc { font-size: 12px; }
+
+    /* Section label */
+    .ins-section-label { font-size: 10px; letter-spacing: 1.5px; }
+
+    /* Limit/decision cards text */
+    .ins-limit-text { font-size: 12px; }
+    .ins-decision-reason { font-size: 12px; }
+    .ins-assess-body { font-size: 12px; }
+}
 </style>
 {% endblock %}
 
