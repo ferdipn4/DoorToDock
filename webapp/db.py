@@ -7,8 +7,8 @@ from urllib.parse import urlparse
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
-IMPERIAL_LAT = 51.4988
-IMPERIAL_LON = -0.1749
+IMPERIAL_LAT = 51.498099
+IMPERIAL_LON = -0.174956
 OSRM_TABLE_URL = "https://router.project-osrm.org/table/v1/foot"
 
 

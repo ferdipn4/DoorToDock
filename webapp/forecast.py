@@ -248,8 +248,8 @@ def fetch_weather_forecast(date_str):
         resp = requests.get(
             "https://api.open-meteo.com/v1/forecast",
             params={
-                "latitude": 51.4988,
-                "longitude": -0.1749,
+                "latitude": 51.498099,
+                "longitude": -0.174956,
                 "hourly": "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m",
                 "start_date": date_str,
                 "end_date": date_str,

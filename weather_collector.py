@@ -26,8 +26,8 @@ from datetime import datetime, timezone
 # KONFIGURATION
 # ============================================================
 
-IMPERIAL_LAT = 51.4988
-IMPERIAL_LON = -0.1749
+IMPERIAL_LAT = 51.498099
+IMPERIAL_LON = -0.174956
 POLL_INTERVAL = 60  # 1 Minute (wie bike_collector, für 1:1 Mapping)
 
 # Open-Meteo: kostenlos, kein API-Key nötig

@@ -2,7 +2,7 @@
 
 import { getPredictionNow, getStations } from './api/client.js';
 
-const IMPERIAL = [51.4988, -0.1749];
+const IMPERIAL = [51.498099, -0.174956];
 
 // Tile providers
 const TILES_LIGHT = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';

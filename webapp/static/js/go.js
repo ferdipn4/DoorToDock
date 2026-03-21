@@ -21,7 +21,7 @@ let mobileView = 'list'; // 'list' | 'map'
 // Track which states have been loaded to avoid redundant fetches
 let loadedStates = {};
 
-const IMPERIAL = [51.4988, -0.1749];
+const IMPERIAL = [51.498099, -0.174956];
 const DESKTOP_BP = 1024;
 const TILES_LIGHT = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const TILES_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';

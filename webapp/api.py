@@ -149,6 +149,8 @@ def heatmap():
     """Average dock availability by half-hour (London time) and weekday."""
     station_ids = request.args.get("station_ids", "")
     id_list = [s.strip() for s in station_ids.split(",") if s.strip()]
+    metric = request.args.get("metric", "empty_docks")
+    col = "available_bikes" if metric == "available_bikes" else "empty_docks"
 
     if id_list:
         placeholders = ",".join(["%s"] * len(id_list))
@@ -158,7 +160,7 @@ def heatmap():
                 EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
                 CASE WHEN EXTRACT(MINUTE FROM timestamp AT TIME ZONE 'Europe/London') < 30
                      THEN 0 ELSE 30 END AS minute,
-                ROUND(AVG(empty_docks)::numeric, 1) AS avg_docks,
+                ROUND(AVG({col})::numeric, 1) AS avg_docks,
                 COUNT(*) AS samples
             FROM bike_availability
             WHERE station_id IN ({placeholders})
@@ -166,13 +168,13 @@ def heatmap():
             ORDER BY weekday, hour, minute
         """, tuple(id_list))
     else:
-        rows = query("""
+        rows = query(f"""
             SELECT
                 EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London')::int AS weekday,
                 EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
                 CASE WHEN EXTRACT(MINUTE FROM timestamp AT TIME ZONE 'Europe/London') < 30
                      THEN 0 ELSE 30 END AS minute,
-                ROUND(AVG(empty_docks)::numeric, 1) AS avg_docks,
+                ROUND(AVG({col})::numeric, 1) AS avg_docks,
                 COUNT(*) AS samples
             FROM bike_availability
             GROUP BY weekday, hour, minute
@@ -1094,11 +1096,34 @@ def insights_ch5():
         {"feature": "current_availability", "importance": 0.0},
     ]
 
+    # All benchmarked models (for comparison charts)
+    all_nowcast = []
+    if nc:
+        for m in nc.metrics:
+            all_nowcast.append({
+                "model": m.get("model", ""),
+                "mae": round(m.get("MAE", 0), 2),
+                "rmse": round(float(m.get("RMSE", 0)), 2),
+                "r2": round(m.get("R2", 0), 4),
+            })
+
+    all_forecast = []
+    if fc:
+        for m in fc.metrics:
+            all_forecast.append({
+                "model": m.get("model", ""),
+                "mae": round(m.get("MAE", 0), 2),
+                "rmse": round(float(m.get("RMSE", 0)), 2),
+                "r2": round(m.get("R2", 0), 4),
+            })
+
     return jsonify({
         "nowcast": _model_dict(nc),
         "forecast": _model_dict(fc),
         "feature_importance": feature_importance,
         "forecast_importance": forecast_importance,
+        "all_nowcast": all_nowcast,
+        "all_forecast": all_forecast,
     })
 
 
@@ -1212,7 +1237,7 @@ def settings_endpoint():
         "commute": {
             "cycling_speed_min": 15,
             "destination": "Imperial College London",
-            "destination_coords": {"lat": 51.4988, "lng": -0.1749},
+            "destination_coords": {"lat": 51.498099, "lng": -0.174956},
         },
         "mode_auto_switch": True,
         "mode_switch_time": "12:00",

@@ -287,7 +287,7 @@ export const MOCK_SETTINGS = {
   commute: {
     cycling_speed_min: 15,
     destination: 'Imperial College London',
-    destination_coords: { lat: 51.4988, lng: -0.1749 },
+    destination_coords: { lat: 51.498099, lng: -0.174956 },
   },
   mode_auto_switch: true,
   mode_switch_time: '12:00',

@@ -83,6 +83,17 @@ export async function getInsightsCh5() {
   return fetchJSON('/api/insights/ch5');
 }
 
+export async function getHeatmap({ stationIds, metric } = {}) {
+  const params = new URLSearchParams();
+  if (stationIds) params.set('station_ids', stationIds);
+  if (metric) params.set('metric', metric);
+  return fetchJSON(`/api/heatmap?${params}`);
+}
+
+export async function getCorrelationStats() {
+  return fetchJSON('/api/correlation-stats');
+}
+
 // ── Weather ──
 
 export async function getWeatherCurrent() {

@@ -97,18 +97,18 @@ function initMapIfNeeded() {
     map = L.map('map', {
         zoomControl: true,
         scrollWheelZoom: true,
-    }).setView([51.4988, -0.1749], 15);
+    }).setView([51.498099, -0.174956], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap',
         maxZoom: 19,
     }).addTo(map);
 
-    L.circleMarker([51.4988, -0.1749], {
+    L.circleMarker([51.498099, -0.174956], {
         radius: 8, fillColor: '#0d6efd', color: '#fff', weight: 2, fillOpacity: 0.9,
     }).addTo(map).bindPopup('<strong>Imperial College London</strong><br>South Kensington Campus');
 
-    L.circle([51.4988, -0.1749], {
+    L.circle([51.498099, -0.174956], {
         radius: 800, color: '#0d6efd', fillColor: '#0d6efd',
         fillOpacity: 0.05, weight: 1, dashArray: '5, 5',
     }).addTo(map);

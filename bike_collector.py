@@ -28,8 +28,8 @@ from datetime import datetime, timezone
 # KONFIGURATION
 # ============================================================
 
-IMPERIAL_LAT = 51.4988
-IMPERIAL_LON = -0.1749
+IMPERIAL_LAT = 51.498099
+IMPERIAL_LON = -0.174956
 SEARCH_RADIUS_M = 800
 POLL_INTERVAL = 60  # 1 Minute
 
