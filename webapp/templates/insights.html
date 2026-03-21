@@ -300,7 +300,7 @@
         <div class="model-compare">
             <div class="ds-card model-card model-card-primary">
                 <div class="model-card-badge">NOWCAST</div>
-                <div class="model-card-name" id="model-nowcast-name">Random Forest</div>
+                <div class="model-card-name" id="model-nowcast-name">Gradient Boosting</div>
                 <div class="model-card-purpose">"Now" mode predictions</div>
                 <div class="model-card-metrics">
                     <div class="model-metric">
@@ -312,12 +312,12 @@
                         <div class="model-metric-label">R&sup2;</div>
                     </div>
                 </div>
-                <div class="model-card-detail">98.6% importance on current dock count</div>
+                <div class="model-card-detail">99.0% importance on current dock count</div>
                 <div class="model-card-insight">Essentially predicts: current availability +/- small adjustment</div>
             </div>
 
             <div class="model-compare-arrow">
-                <div class="model-compare-label">3x better</div>
+                <div class="model-compare-label">3.4x better</div>
                 <i class="bi bi-arrow-left"></i>
             </div>
 
@@ -336,14 +336,14 @@
                     </div>
                 </div>
                 <div class="model-card-detail">Without current availability, relies on time patterns</div>
-                <div class="model-card-insight">Best available approach with 22 days of training data</div>
+                <div class="model-card-insight">Best available approach with 24 days of training data</div>
             </div>
         </div>
 
         <!-- Honest explanation -->
         <div class="model-explain">
             <i class="bi bi-lightbulb"></i>
-            <span>The Nowcast model achieves high accuracy because the current dock count is the strongest predictor of the count 15 minutes later. This is expected in time-series data: the most recent observation dominates. The Forecast model, which cannot use current availability (it predicts hours ahead), has 3x higher error. With more training data and weather diversity, this gap could narrow.</span>
+            <span>The Nowcast model achieves high accuracy because the current dock count is the strongest predictor of the count 15 minutes later. This is expected in time-series data: the most recent observation dominates. The Forecast model, which cannot use current availability (it predicts hours ahead), has 3.4x higher error. With more training data and weather diversity, this gap could narrow.</span>
         </div>
 
         <!-- Feature importance: two charts side by side -->
@@ -391,13 +391,13 @@
             <div class="ds-card tradeoff-card">
                 <div class="tradeoff-title">Two models vs one</div>
                 <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Two separate models</div>
-                <div class="tradeoff-reason">Nowcast (with lag feature) gets 3x better accuracy for live use. Forecast (no lag) enables planning but with higher error.</div>
+                <div class="tradeoff-reason">Nowcast (with lag feature) gets 3.4x better accuracy for live use. Forecast (no lag) enables planning but with higher error.</div>
             </div>
 
             <div class="ds-card tradeoff-card">
                 <div class="tradeoff-title">Baseline vs ML for Forecast</div>
                 <div class="tradeoff-decision"><i class="bi bi-check-circle-fill"></i> Historical Average wins</div>
-                <div class="tradeoff-reason">With only 22 days of data and limited weather diversity, per-(station, hour, weekday) averages outperform Random Forest and Gradient Boosting.</div>
+                <div class="tradeoff-reason">With 24 days of data and limited weather diversity, per-(station, hour, weekday) averages outperform Random Forest and Gradient Boosting for the forecast task.</div>
             </div>
         </div>
 
@@ -434,14 +434,14 @@
         <div class="tradeoff-grid">
             <div class="ds-card tradeoff-card tradeoff-card-limitation">
                 <div class="tradeoff-title">Rain analysis limitation</div>
-                <div class="tradeoff-decision tradeoff-decision-limitation"><i class="bi bi-exclamation-triangle-fill"></i> 22 days of data</div>
-                <div class="tradeoff-reason">22 days of data with minimal heavy precipitation limits rain-effect analysis. Longer collection periods would enable seasonal and weather-pattern insights.</div>
+                <div class="tradeoff-decision tradeoff-decision-limitation"><i class="bi bi-exclamation-triangle-fill"></i> 24 days of data</div>
+                <div class="tradeoff-reason">24 days of data with minimal heavy precipitation limits rain-effect analysis. Longer collection periods would enable seasonal and weather-pattern insights.</div>
             </div>
 
             <div class="ds-card tradeoff-card tradeoff-card-limitation">
                 <div class="tradeoff-title">Nowcast model honesty</div>
-                <div class="tradeoff-decision tradeoff-decision-limitation"><i class="bi bi-exclamation-triangle-fill"></i> 98.6% lag feature</div>
-                <div class="tradeoff-reason">The Nowcast model's accuracy is dominated by current dock count (98.6% importance). This is expected for short-horizon time-series prediction but means the model adds limited value beyond "check current availability." Its value is in the 15-minute forward projection and confidence scoring.</div>
+                <div class="tradeoff-decision tradeoff-decision-limitation"><i class="bi bi-exclamation-triangle-fill"></i> 99.0% lag feature</div>
+                <div class="tradeoff-reason">The Nowcast model's accuracy is dominated by current dock count (99.0% importance). This is expected for short-horizon time-series prediction but means the model adds limited value beyond "check current availability." Its value is in the 15-minute forward projection and confidence scoring.</div>
             </div>
         </div>
     </section>

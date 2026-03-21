@@ -548,7 +548,7 @@ function renderRainChart(dryRows, wetRows, dayCounts) {
                 <div class="caveat-divider"></div>
                 <div class="caveat-stat"><span class="caveat-num">0</span> heavy rain days</div>
             </div>
-            <div class="caveat-note">Based on 22 days of collection. Heavy rain (&gt;0.5 mm/h) did not occur. The rain line may be incomplete where insufficient data exists. A full seasonal cycle would be needed for robust weather-effect conclusions.</div>`;
+            <div class="caveat-note">Based on 24 days of collection. Heavy rain (&gt;0.5 mm/h) did not occur. The rain line may be incomplete where insufficient data exists. A full seasonal cycle would be needed for robust weather-effect conclusions.</div>`;
     }
 }
 
@@ -647,7 +647,7 @@ async function loadCh5() {
     try {
         const data = await getInsightsCh5();
         if (data.nowcast) {
-            setText('model-nowcast-name', (data.nowcast.name || 'Random Forest').replace(' Nowcast', ''));
+            setText('model-nowcast-name', (data.nowcast.name || 'Gradient Boosting').replace(' Nowcast', ''));
             setText('model-nowcast-mae', data.nowcast.mae?.toFixed(2) || '--');
             setText('model-nowcast-r2', data.nowcast.r2?.toFixed(2) || '--');
             setText('error-nowcast', `+/-${Math.round(data.nowcast.mae || 1)} dock`);
