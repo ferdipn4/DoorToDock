@@ -23,7 +23,7 @@
     <section class="ins-hero" id="s-problem">
         <div class="ins-hero-inner">
             <h1 class="ins-hero-headline">I cycle to Imperial every morning. Finding a dock shouldn't be this hard.</h1>
-            <p class="ins-hero-sub">Most mornings, the docks closest to campus are already full by the time I arrive. I end up cycling past station after station looking for a free slot — each one adding minutes to my walk and the risk of being late. In the evening it's the reverse: I want to grab a bike and go, but the nearest stations are empty.</p>
+            <p class="ins-hero-sub">Most mornings, the docks closest to campus are already full by the time I arrive. I end up cycling past station after station looking for a free slot - each one adding minutes to my walk and the risk of being late. In the evening it's the reverse: I want to grab a bike and go, but the nearest stations are empty.</p>
             <div class="ins-hero-stats">
                 <div class="ins-hero-stat">
                     <div class="ins-hero-stat-value" id="hero-fill-time">--</div>
@@ -38,6 +38,7 @@
                     <div class="ins-hero-stat-label">5 preferred stations, 16 backup alternatives monitored</div>
                 </div>
             </div>
+            <div class="ins-hero-footnote">The 5 preferred stations are the docking stations closest to Imperial College: Exhibition Road Museums 1 &amp; 2, Victoria &amp; Albert Museum, South Kensington Station, and Exhibition Road.</div>
         </div>
     </section>
 
@@ -47,7 +48,7 @@
     <section class="ins-section" id="s-solution">
         <div class="ins-section-inner">
             <div class="ins-section-label">The Solution</div>
-            <p class="ins-lead">Door2Dock predicts bike and dock availability at 21 stations near Imperial College — so I know where to go before I leave.</p>
+            <p class="ins-lead">Door2Dock predicts bike and dock availability at 21 stations near Imperial College - so I know where to go before I leave.</p>
 
             <!-- Two directions -->
             <div class="ins-direction-cards">
@@ -68,12 +69,12 @@
                 <div class="ins-mode-card">
                     <div class="ins-mode-badge">NOW</div>
                     <div class="ins-mode-title">Leaving right now?</div>
-                    <div class="ins-mode-desc">Get a real-time recommendation — which station to head to, based on current availability and a 15-minute prediction.</div>
+                    <div class="ins-mode-desc">Get a real-time recommendation - which station to head to, based on current availability and a 15-minute prediction.</div>
                 </div>
                 <div class="ins-mode-card">
                     <div class="ins-mode-badge ins-mode-badge-plan">PLAN</div>
                     <div class="ins-mode-title">Need to arrive by 10:15?</div>
-                    <div class="ins-mode-desc">Plan ahead — find out which station will have space and when you should leave home.</div>
+                    <div class="ins-mode-desc">Plan ahead - find out which station will have space and when you should leave home.</div>
                 </div>
             </div>
 
@@ -93,7 +94,7 @@
                 <div class="ins-matrix-cell">
                     <div class="ins-matrix-q">"Where do I pick up a bike?"</div>
                     <div class="ins-matrix-model">No model needed</div>
-                    <div class="ins-matrix-detail">Live data from TfL API — shows current available bikes</div>
+                    <div class="ins-matrix-detail">Live data from TfL API - shows current available bikes</div>
                 </div>
 
                 <div class="ins-matrix-row-head">Plan trip</div>
@@ -111,7 +112,7 @@
 
             <!-- Motion sensor callout -->
             <div class="ins-callout">
-                <div class="ins-callout-text">When I walk out my front door, a PIR motion sensor detects my departure and sends a Telegram notification with the best station and predicted availability — before I even check my phone.</div>
+                <div class="ins-callout-text">When I walk out my front door, a PIR motion sensor detects my departure and sends a Telegram notification with the best station and predicted availability - before I even check my phone.</div>
                 <div class="ins-callout-flow">
                     <div class="ins-callout-step">
                         <span class="ins-callout-emoji">🚶</span>
@@ -158,7 +159,7 @@
                     <div class="ins-flow-num">4</div>
                     <div class="ins-flow-icon"><i class="bi bi-check-circle"></i></div>
                     <div class="ins-flow-title">Arrive with confidence</div>
-                    <div class="ins-flow-desc">Park or pick up your bike — no more cycling past full stations</div>
+                    <div class="ins-flow-desc">Park or pick up your bike - no more cycling past full stations</div>
                 </div>
             </div>
         </div>
@@ -308,9 +309,9 @@
 
             <!-- 3c: Infrastructure -->
             <div class="ins-infra">
-                <div class="ins-infra-item"><i class="bi bi-cloud"></i> <strong>Heroku</strong> — Worker dyno (data collection) + Web dyno (Flask app, Gunicorn)</div>
-                <div class="ins-infra-item"><i class="bi bi-database"></i> <strong>Supabase PostgreSQL</strong> — 6 tables, SSL required, ~650k+ rows</div>
-                <div class="ins-infra-item"><i class="bi bi-braces"></i> <strong>18 API endpoints</strong> — live data, forecasts, insights, sensor events, settings</div>
+                <div class="ins-infra-item"><i class="bi bi-cloud"></i> <strong>Heroku</strong> - Worker dyno (data collection) + Web dyno (Flask app, Gunicorn)</div>
+                <div class="ins-infra-item"><i class="bi bi-database"></i> <strong>Supabase PostgreSQL</strong> -6 tables, SSL required, ~650k+ rows</div>
+                <div class="ins-infra-item"><i class="bi bi-braces"></i> <strong>18 API endpoints</strong> - live data, forecasts, insights, sensor events, settings</div>
             </div>
         </div>
     </section>
@@ -345,7 +346,7 @@
                 <div class="ins-chart-wrap">
                     <div class="ins-chart-title">Empty docks by hour and day of week (preferred stations)</div>
                     <div class="ins-heatmap-container" id="heatmap-docks"></div>
-                    <div class="ins-chart-takeaway">Weekday mornings are consistently the tightest window — the red band from 8 AM to 11 AM on Mon–Fri shows near-zero dock availability.</div>
+                    <div class="ins-chart-takeaway">Weekday mornings are consistently the tightest window - the red band from 8 AM to 11 AM on Mon–Fri shows near-zero dock availability.</div>
                 </div>
             </div>
 
@@ -365,7 +366,7 @@
                 <div class="ins-chart-wrap">
                     <div class="ins-chart-title">Available bikes by hour and day of week (preferred stations)</div>
                     <div class="ins-heatmap-container" id="heatmap-bikes"></div>
-                    <div class="ins-chart-takeaway">Weekday evenings show the lowest bike availability — the mirror image of the morning dock shortage.</div>
+                    <div class="ins-chart-takeaway">Weekday evenings show the lowest bike availability - the mirror image of the morning dock shortage.</div>
                 </div>
             </div>
 
@@ -375,7 +376,7 @@
                 <p class="ins-body" id="weather-intro">Loading weather comparison...</p>
 
                 <div class="ins-chart-wrap">
-                    <div class="ins-chart-title">Dry vs rainy weekdays — empty docks at preferred stations (6 AM – 8 PM)</div>
+                    <div class="ins-chart-title">Dry vs rainy weekdays - empty docks at preferred stations (6 AM – 8 PM)</div>
                     <canvas id="chart-weather-compare" height="260"></canvas>
                     <div class="ins-chart-takeaway" id="weather-takeaway">Loading...</div>
                 </div>
@@ -389,14 +390,14 @@
     <section class="ins-section" id="s-models">
         <div class="ins-section-inner">
             <div class="ins-section-label">Prediction Models</div>
-            <p class="ins-lead">Two models serve different use cases — one reacts to what's happening now, the other plans ahead using historical patterns.</p>
+            <p class="ins-lead">Two models serve different use cases - one reacts to what's happening now, the other plans ahead using historical patterns.</p>
 
             <!-- Model cards side by side -->
             <div class="ins-model-cards">
                 <!-- Nowcast card -->
                 <div class="ins-model-card">
                     <div class="ins-model-family">Nowcast</div>
-                    <div class="ins-model-usecase">Now mode — predicts 15 minutes ahead using live data</div>
+                    <div class="ins-model-usecase">Now mode - predicts 15 minutes ahead using live data</div>
                     <div class="ins-model-name" id="model-nc-name">Loading...</div>
                     <div class="ins-model-metrics">
                         <div class="ins-model-metric">
@@ -427,7 +428,7 @@
                 <!-- Forecast card -->
                 <div class="ins-model-card">
                     <div class="ins-model-family ins-model-family-plan">Forecast</div>
-                    <div class="ins-model-usecase">Plan mode — predicts hours ahead from time and weather patterns</div>
+                    <div class="ins-model-usecase">Plan mode - predicts hours ahead from time and weather patterns</div>
                     <div class="ins-model-name" id="model-fc-name">Loading...</div>
                     <div class="ins-model-metrics">
                         <div class="ins-model-metric">
@@ -458,7 +459,7 @@
 
             <!-- Model comparison bar chart -->
             <div class="ins-chart-wrap">
-                <div class="ins-chart-title">Model comparison — MAE across all benchmarked models</div>
+                <div class="ins-chart-title">Model comparison - MAE across all benchmarked models</div>
                 <canvas id="chart-model-compare" height="240"></canvas>
                 <div class="ins-chart-takeaway">Models validated with TimeSeriesSplit (3-fold expanding window) to prevent data leakage and confirm stability across time periods.</div>
             </div>
@@ -471,14 +472,14 @@
     <section class="ins-section ins-section-alt" id="s-features">
         <div class="ins-section-inner">
             <div class="ins-section-label">Feature Analysis</div>
-            <p class="ins-lead">What drives each prediction? Understanding feature importance reveals what the models actually learn — and what they can't.</p>
+            <p class="ins-lead">What drives each prediction? Understanding feature importance reveals what the models actually learn - and what they can't.</p>
 
             <!-- 6a: Nowcast Feature Importance -->
             <h2 class="ins-h2">Nowcast feature importance</h2>
             <p class="ins-body" id="feat-nc-intro">Loading feature analysis...</p>
 
             <div class="ins-chart-wrap">
-                <div class="ins-chart-title" id="feat-nc-chart-title">Feature importance — Nowcast model</div>
+                <div class="ins-chart-title" id="feat-nc-chart-title">Feature importance - Nowcast model</div>
                 <canvas id="chart-feat-nc" height="300"></canvas>
                 <div class="ins-chart-takeaway" id="feat-nc-takeaway">Loading...</div>
             </div>
@@ -488,7 +489,7 @@
             <p class="ins-body" id="feat-fc-intro">Loading...</p>
 
             <div class="ins-chart-wrap" id="feat-fc-wrap">
-                <div class="ins-chart-title" id="feat-fc-chart-title">Feature breakdown — Forecast model</div>
+                <div class="ins-chart-title" id="feat-fc-chart-title">Feature breakdown - Forecast model</div>
                 <div id="feat-fc-content"></div>
                 <div class="ins-chart-takeaway" id="feat-fc-takeaway">Loading...</div>
             </div>
@@ -498,7 +499,7 @@
             <p class="ins-body">Pearson correlation coefficients measure the linear relationship between each weather variable and dock availability across all stations.</p>
 
             <div class="ins-chart-wrap">
-                <div class="ins-chart-title">Pearson r — weather variables vs. empty docks</div>
+                <div class="ins-chart-title">Pearson r - weather variables vs. empty docks</div>
                 <canvas id="chart-corr" height="180"></canvas>
                 <div class="ins-chart-takeaway" id="corr-takeaway">Loading...</div>
             </div>
@@ -527,7 +528,7 @@
             <div class="ins-limit-cards">
                 <div class="ins-limit-card ins-limit-card-red">
                     <div class="ins-limit-icon"><i class="bi bi-calendar3"></i></div>
-                    <div class="ins-limit-text"><strong>24 days of training data.</strong> Limits weather diversity, seasonal pattern detection, and ML model performance. The forecast model is particularly bottlenecked — more data would likely improve tree-based models over the baseline.</div>
+                    <div class="ins-limit-text"><strong>24 days of training data.</strong> Limits weather diversity, seasonal pattern detection, and ML model performance. The forecast model is particularly bottlenecked - more data would likely improve tree-based models over the baseline.</div>
                 </div>
                 <div class="ins-limit-card ins-limit-card-red">
                     <div class="ins-limit-icon"><i class="bi bi-cloud-rain"></i></div>
@@ -535,7 +536,7 @@
                 </div>
                 <div class="ins-limit-card ins-limit-card-yellow">
                     <div class="ins-limit-icon"><i class="bi bi-thermometer-half"></i></div>
-                    <div class="ins-limit-text"><strong>Sensor active for 16 of 24 days.</strong> The KY-028 temperature sensor validated the API data source and was retired — the model uses API temperature for production reliability.</div>
+                    <div class="ins-limit-text"><strong>Sensor active for 16 of 24 days.</strong> The KY-028 temperature sensor validated the API data source and was retired - the model uses API temperature for production reliability.</div>
                 </div>
                 <div class="ins-limit-card ins-limit-card-yellow">
                     <div class="ins-limit-icon"><i class="bi bi-graph-down"></i></div>
@@ -571,7 +572,7 @@
                 <div class="ins-decision-card">
                     <div class="ins-decision-label">Hosting</div>
                     <div class="ins-decision-choice">Heroku (not Raspberry Pi)</div>
-                    <div class="ins-decision-reason">24/7 uptime with student credits. Worker dyno collects data, web dyno serves the dashboard — independent scaling.</div>
+                    <div class="ins-decision-reason">24/7 uptime with student credits. Worker dyno collects data, web dyno serves the dashboard - independent scaling.</div>
                 </div>
                 <div class="ins-decision-card">
                     <div class="ins-decision-label">Temperature source</div>
@@ -586,12 +587,12 @@
                 <div class="ins-assess-card">
                     <div class="ins-assess-badge" style="background: var(--info);">Nowcast</div>
                     <div class="ins-assess-title" id="assess-nc-name">Loading...</div>
-                    <div class="ins-assess-body">High accuracy (<span id="assess-nc-mae">--</span> MAE), but dominated by the lag feature — the current dock count is the strongest predictor. The model's practical value isn't the raw prediction number. It's the <strong>automated pipeline</strong>: sensor detects departure, model predicts, Telegram delivers a ranked station recommendation — all before checking the phone.</div>
+                    <div class="ins-assess-body">High accuracy (<span id="assess-nc-mae">--</span> MAE), but dominated by the lag feature - the current dock count is the strongest predictor. The model's practical value isn't the raw prediction number. It's the <strong>automated pipeline</strong>: sensor detects departure, model predicts, Telegram delivers a ranked station recommendation - all before checking the phone.</div>
                 </div>
                 <div class="ins-assess-card">
                     <div class="ins-assess-badge" style="background: var(--warning);">Forecast</div>
                     <div class="ins-assess-title" id="assess-fc-name">Loading...</div>
-                    <div class="ins-assess-body">Approximate accuracy (<span id="assess-fc-mae">--</span> MAE). Without live data, the model relies on historical patterns — which means it captures the predictable commuter rhythm but misses one-off events. The system communicates this uncertainty through confidence indicators and always shows alternatives.</div>
+                    <div class="ins-assess-body">Approximate accuracy (<span id="assess-fc-mae">--</span> MAE). Without live data, the model relies on historical patterns - which means it captures the predictable commuter rhythm but misses one-off events. The system communicates this uncertainty through confidence indicators and always shows alternatives.</div>
                 </div>
             </div>
         </div>
@@ -603,7 +604,7 @@
 {% block head %}
 <style>
 /* ================================================================
-   INSIGHTS PAGE — Complete Styles
+   INSIGHTS PAGE - Complete Styles
    ================================================================ */
 
 /* ── Sticky section nav ── */
@@ -619,9 +620,8 @@
 }
 .ins-nav::-webkit-scrollbar { display: none; }
 
-@media (min-width: 768px) {
-    .ins-nav { top: var(--topbar-height); }
-}
+/* On desktop the topbar is outside .app-content's scroll container,
+   so the sticky nav still sticks at top: 0 of the scrollable area. */
 
 .ins-nav-inner {
     max-width: 900px;
@@ -680,7 +680,6 @@
     color: var(--text-primary);
     line-height: 1.6;
     margin: 0 0 32px 0;
-    max-width: 700px;
 }
 
 .ins-h2 {
@@ -695,7 +694,6 @@
     color: var(--text-secondary);
     line-height: 1.65;
     margin: 0 0 24px 0;
-    max-width: 700px;
 }
 
 /* ================================================================
@@ -728,7 +726,6 @@
     color: var(--text-primary);
     line-height: 1.25;
     margin: 0 0 16px 0;
-    max-width: 680px;
 }
 
 @media (min-width: 640px) {
@@ -740,7 +737,6 @@
     color: var(--text-secondary);
     line-height: 1.7;
     margin: 0 0 40px 0;
-    max-width: 640px;
 }
 
 .ins-hero-stats {
@@ -774,6 +770,14 @@
     color: var(--text-tertiary);
     margin-top: 4px;
     line-height: 1.4;
+}
+
+.ins-hero-footnote {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    margin-top: 20px;
+    max-width: 640px;
 }
 
 /* ================================================================
@@ -1986,7 +1990,7 @@ async function loadSection4() {
         const allMin = stations.flatMap(s => s.data.filter(d => d.t >= 9 && d.t <= 10));
         const minVal = allMin.length > 0 ? Math.min(...allMin.map(d => d.v)) : 0;
         setText('morning-takeaway',
-            `Docks drop sharply between 8:00 and 9:30 AM. The lowest average across preferred stations hits ${minVal.toFixed(1)} docks — making late arrivals a gamble.`
+            `Docks drop sharply between 8:00 and 9:30 AM. The lowest average across preferred stations hits ${minVal.toFixed(1)} docks - making late arrivals a gamble.`
         );
     }
 
@@ -2181,7 +2185,7 @@ async function loadSection4() {
             const direction = avgDiff > 0 ? 'more' : 'fewer';
 
             setText('weather-takeaway',
-                `On rainy days, stations average ${Math.abs(avgDiff).toFixed(1)} ${direction} empty docks — weather effects are modest compared to time-of-day patterns, confirming that commuter schedules dominate dock dynamics. Longer data collection will reveal stronger seasonal patterns.`
+                `On rainy days, stations average ${Math.abs(avgDiff).toFixed(1)} ${direction} empty docks - weather effects are modest compared to time-of-day patterns, confirming that commuter schedules dominate dock dynamics. Longer data collection will reveal stronger seasonal patterns.`
             );
         }
     }
@@ -2286,7 +2290,7 @@ async function loadSection5() {
             setText('model-nc-r2', nc.r2.toFixed(3));
             setText('model-nc-features', nc.features?.length || '--');
             setText('model-nc-why',
-                `Wins on accuracy (lowest MAE) because it uses the current dock count as its strongest input — the best predictor of where docks will be in 15 minutes is where they are right now.`
+                `Wins on accuracy (lowest MAE) because it uses the current dock count as its strongest input - the best predictor of where docks will be in 15 minutes is where they are right now.`
             );
 
             // Runner-ups
@@ -2307,7 +2311,7 @@ async function loadSection5() {
             setText('model-fc-r2', fc.r2.toFixed(3));
             setText('model-fc-features', fc.features?.length || '--');
             setText('model-fc-why',
-                `Without live dock counts, tree models overfit to noise in temporal features. The baseline — averaging historical patterns by station, hour, and weekday — proves most robust for planning ahead.`
+                `Without live dock counts, tree models overfit to noise in temporal features. The baseline - averaging historical patterns by station, hour, and weekday - proves most robust for planning ahead.`
             );
 
             if (data.all_forecast) {
@@ -2389,7 +2393,7 @@ async function loadSection6() {
     // --- 6a: Nowcast feature importance ---
     if (ch5 && ch5.feature_importance && ch5.feature_importance.length > 0) {
         const ncName = ch5.nowcast?.name || 'Nowcast';
-        setText('feat-nc-chart-title', `Feature importance — ${ncName} model`);
+        setText('feat-nc-chart-title', `Feature importance -${ncName} model`);
 
         const feats = ch5.feature_importance;
         const topFeat = feats[0];
@@ -2448,7 +2452,7 @@ async function loadSection6() {
         if (isLagDominant) {
             const pct = (topFeat.importance * 100).toFixed(0);
             setText('feat-nc-takeaway',
-                `The lag feature (current empty docks) accounts for ${pct}% of model importance. Temporal and weather features make the critical difference in edge cases — predicting the transition from "space available" to "full" 15 minutes before it happens.`
+                `The lag feature (current empty docks) accounts for ${pct}% of model importance. Temporal and weather features make the critical difference in edge cases - predicting the transition from "space available" to "full" 15 minutes before it happens.`
             );
         } else {
             setText('feat-nc-takeaway',
@@ -2460,13 +2464,13 @@ async function loadSection6() {
     // --- 6b: Forecast feature importance ---
     if (ch5 && ch5.forecast) {
         const fcName = ch5.forecast?.name || 'Forecast';
-        setText('feat-fc-chart-title', `Feature breakdown — ${fcName} model`);
+        setText('feat-fc-chart-title', `Feature breakdown -${fcName} model`);
 
         const isBaseline = fcName.toLowerCase().includes('baseline') || fcName.toLowerCase().includes('historical') || fcName.toLowerCase().includes('average');
 
         if (isBaseline) {
             setText('feat-fc-intro',
-                `The ${fcName} model groups historical observations by station, hour, and weekday — then predicts the mean of each group. No weather features are used, because with 24 days of data the historical average outperforms tree-based models that try to learn weather effects.`
+                `The ${fcName} model groups historical observations by station, hour, and weekday - then predicts the mean of each group. No weather features are used, because with 24 days of data the historical average outperforms tree-based models that try to learn weather effects.`
             );
 
             setHtml('feat-fc-content', `
@@ -2494,10 +2498,10 @@ async function loadSection6() {
             `);
 
             setText('feat-fc-takeaway',
-                `3,528 lookup groups (21 × 24 × 7). Simple but effective — commuter patterns are highly regular, and the historical average captures this structure with zero risk of overfitting.`
+                `3,528 lookup groups (21 × 24 × 7). Simple but effective - commuter patterns are highly regular, and the historical average captures this structure with zero risk of overfitting.`
             );
         } else if (ch5.forecast_importance && ch5.forecast_importance.length > 0) {
-            // Tree-based model — show actual importances
+            // Tree-based model - show actual importances
             const feats = ch5.forecast_importance;
             const labels = feats.map(f => f.feature.replace(/_/g, ' '));
             const values = feats.map(f => f.importance);
@@ -2586,7 +2590,7 @@ async function loadSection6() {
 
         const maxR = Math.max(...values.map(Math.abs));
         setText('corr-takeaway',
-            `All correlations are weak (|r| < ${(maxR + 0.05).toFixed(1)}). Time-of-day and station location dominate dock availability far more than weather — confirmed by both correlation analysis and SHAP feature importance. With 24 days of data and limited weather diversity, this is expected. Longer collection periods spanning multiple seasons would reveal clearer weather effects.`
+            `All correlations are weak (|r| < ${(maxR + 0.05).toFixed(1)}). Time-of-day and station location dominate dock availability far more than weather - confirmed by both correlation analysis and SHAP feature importance. With 24 days of data and limited weather diversity, this is expected. Longer collection periods spanning multiple seasons would reveal clearer weather effects.`
         );
     }
 
@@ -2637,7 +2641,7 @@ async function loadSection6() {
         const r = ch3.sensor_corr;
         if (r != null) {
             setText('sensor-takeaway',
-                `The IoT sensor validated the weather API data source with r = ${r.toFixed(2)}, confirming the API is reliable for model training. The sensor was retired after 16 days — the model uses API temperature for production reliability.`
+                `The IoT sensor validated the weather API data source with r = ${r.toFixed(2)}, confirming the API is reliable for model training. The sensor was retired after 16 days - the model uses API temperature for production reliability.`
             );
         }
     } else {
