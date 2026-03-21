@@ -68,45 +68,13 @@
             <div class="ins-mode-cards">
                 <div class="ins-mode-card">
                     <div class="ins-mode-badge">NOW</div>
-                    <div class="ins-mode-title">Leaving right now?</div>
-                    <div class="ins-mode-desc">Get a real-time recommendation - which station to head to, based on current availability and a 15-minute prediction.</div>
+                    <div class="ins-mode-title">Leaving now?</div>
+                    <div class="ins-mode-desc">Get an instant recommendation for the best station to head to, based on live availability and a 15-minute prediction.</div>
                 </div>
                 <div class="ins-mode-card">
                     <div class="ins-mode-badge ins-mode-badge-plan">PLAN</div>
-                    <div class="ins-mode-title">Need to arrive by 10:15?</div>
-                    <div class="ins-mode-desc">Plan ahead - find out which station will have space and when you should leave home.</div>
-                </div>
-            </div>
-
-            <!-- 2×2 Mode Matrix -->
-            <div class="ins-matrix-label">The 4 app modes</div>
-            <div class="ins-matrix">
-                <div class="ins-matrix-corner"></div>
-                <div class="ins-matrix-col-head">To Imperial (dock bike)</div>
-                <div class="ins-matrix-col-head">From Imperial (pick up bike)</div>
-
-                <div class="ins-matrix-row-head">Now</div>
-                <div class="ins-matrix-cell">
-                    <div class="ins-matrix-q">"Where do I dock my bike?"</div>
-                    <div class="ins-matrix-model" id="matrix-now-to-model">Loading...</div>
-                    <div class="ins-matrix-detail">Predicts empty docks in 15 min using current count + weather</div>
-                </div>
-                <div class="ins-matrix-cell">
-                    <div class="ins-matrix-q">"Where do I pick up a bike?"</div>
-                    <div class="ins-matrix-model">No model needed</div>
-                    <div class="ins-matrix-detail">Live data from TfL API - shows current available bikes</div>
-                </div>
-
-                <div class="ins-matrix-row-head">Plan trip</div>
-                <div class="ins-matrix-cell">
-                    <div class="ins-matrix-q">"When should I leave to arrive by 10:15?"</div>
-                    <div class="ins-matrix-model" id="matrix-plan-to-model">Loading...</div>
-                    <div class="ins-matrix-detail">Predicts empty docks at arrival time using time patterns + weather forecast</div>
-                </div>
-                <div class="ins-matrix-cell">
-                    <div class="ins-matrix-q">"Which station will have bikes at 4 PM?"</div>
-                    <div class="ins-matrix-model" id="matrix-plan-from-model">Loading...</div>
-                    <div class="ins-matrix-detail">Predicts available bikes at departure using time patterns + weather forecast</div>
+                    <div class="ins-mode-title">Planning ahead?</div>
+                    <div class="ins-mode-desc">Set your arrival time and find out which station will have space when you get there.</div>
                 </div>
             </div>
 
@@ -174,11 +142,11 @@
 
             <!-- 3a: Sensing Pipeline -->
             <h2 class="ins-h2">Sensing pipeline</h2>
-            <p class="ins-body">Three data sources feed into a cloud database. Machine learning models process the data and serve predictions through the dashboard and Telegram notifications.</p>
+            <p class="ins-body">Three data sources feed into a cloud database. The Flask app queries live data and loads pre-trained models to serve predictions. A separate offline pipeline handles model training.</p>
 
-            <div class="ins-pipeline">
-                <!-- Sources column -->
-                <div class="ins-pipe-col ins-pipe-sources">
+            <div class="ins-pipeline-v2">
+                <!-- Sources -->
+                <div class="ins-pv2-sources">
                     <div class="ins-pipe-node ins-pipe-node-blue">
                         <div class="ins-pipe-node-name">TfL Santander API</div>
                         <div class="ins-pipe-node-detail">bikes, docks, ebikes</div>
@@ -196,8 +164,8 @@
                     </div>
                 </div>
 
-                <!-- Connector -->
-                <div class="ins-pipe-arrows">
+                <!-- Arrow: sources → db -->
+                <div class="ins-pv2-arrow">
                     <svg viewBox="0 0 60 180" class="ins-pipe-svg">
                         <defs><marker id="ah1" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="7" markerHeight="5" orient="auto"><path d="M0 0L10 3.5L0 7z" fill="var(--text-tertiary)"/></marker></defs>
                         <line x1="0" y1="30" x2="55" y2="90" stroke="var(--text-tertiary)" stroke-width="1.5" marker-end="url(#ah1)"/>
@@ -207,7 +175,7 @@
                 </div>
 
                 <!-- Supabase -->
-                <div class="ins-pipe-col ins-pipe-center">
+                <div class="ins-pv2-db">
                     <div class="ins-pipe-node ins-pipe-node-db">
                         <div class="ins-pipe-node-name">Supabase</div>
                         <div class="ins-pipe-node-detail">PostgreSQL</div>
@@ -215,25 +183,42 @@
                     </div>
                 </div>
 
-                <!-- Connector -->
-                <div class="ins-pipe-arrows">
-                    <svg viewBox="0 0 60 180" class="ins-pipe-svg">
-                        <line x1="0" y1="90" x2="55" y2="60" stroke="var(--text-tertiary)" stroke-width="1.5" marker-end="url(#ah1)"/>
-                        <line x1="0" y1="90" x2="55" y2="120" stroke="var(--text-tertiary)" stroke-width="1.5" marker-end="url(#ah1)"/>
+                <!-- Arrow: db → outputs -->
+                <div class="ins-pv2-arrow">
+                    <svg viewBox="0 0 60 240" class="ins-pv2-svg-out">
+                        <defs><marker id="ah2" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="7" markerHeight="5" orient="auto"><path d="M0 0L10 3.5L0 7z" fill="var(--text-tertiary)"/></marker><marker id="ah3" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="7" markerHeight="5" orient="auto"><path d="M0 0L10 3.5L0 7z" fill="var(--text-tertiary)" opacity="0.4"/></marker></defs>
+                        <!-- Primary: live queries to Flask App -->
+                        <line x1="0" y1="120" x2="55" y2="70" stroke="var(--text-tertiary)" stroke-width="2" marker-end="url(#ah2)"/>
+                        <text x="30" y="80" font-size="8" fill="var(--text-tertiary)" text-anchor="middle" transform="rotate(-30, 30, 80)">live queries</text>
+                        <!-- Secondary: offline training -->
+                        <line x1="0" y1="120" x2="55" y2="185" stroke="var(--text-tertiary)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#ah3)" opacity="0.5"/>
+                        <text x="30" y="165" font-size="8" fill="var(--text-tertiary)" text-anchor="middle" opacity="0.6" transform="rotate(30, 30, 165)">historical</text>
                     </svg>
                 </div>
 
                 <!-- Outputs -->
-                <div class="ins-pipe-col ins-pipe-outputs">
-                    <div class="ins-pipe-node ins-pipe-node-purple">
-                        <div class="ins-pipe-node-name">ML Models</div>
+                <div class="ins-pv2-outputs">
+                    <!-- Path A: Flask App (primary) -->
+                    <div class="ins-pipe-node ins-pipe-node-blue ins-pv2-primary">
+                        <div class="ins-pipe-node-name">Flask App on Heroku</div>
                         <div class="ins-pipe-node-detail" id="arch-model-names">Loading...</div>
-                        <div class="ins-pipe-node-freq">Nowcast + Forecast</div>
+                        <div class="ins-pipe-node-detail">5 pages, 18 endpoints + Telegram alerts</div>
+                        <div class="ins-pipe-node-freq">loads trained .pkl models</div>
                     </div>
-                    <div class="ins-pipe-node ins-pipe-node-blue">
-                        <div class="ins-pipe-node-name">Dashboard</div>
-                        <div class="ins-pipe-node-detail">5 pages, 18 endpoints</div>
-                        <div class="ins-pipe-node-freq">+ Telegram alerts</div>
+                    <!-- Dotted return arrow: .pkl flows up -->
+                    <div class="ins-pv2-return-arrow">
+                        <svg viewBox="0 0 60 28" width="60" height="28">
+                            <defs><marker id="ah4" viewBox="0 0 10 7" refX="0" refY="3.5" markerWidth="7" markerHeight="5" orient="auto-start-reverse"><path d="M10 0L0 3.5L10 7z" fill="#7B61FF" opacity="0.7"/></marker></defs>
+                            <line x1="8" y1="14" x2="52" y2="14" stroke="#7B61FF" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.7"/>
+                            <polygon points="8,14 15,10 15,18" fill="#7B61FF" opacity="0.7"/>
+                        </svg>
+                        <span class="ins-pv2-return-label">.pkl models</span>
+                    </div>
+                    <!-- Path B: Training Pipeline (secondary) -->
+                    <div class="ins-pipe-node ins-pv2-training">
+                        <div class="ins-pipe-node-name">Training Pipeline</div>
+                        <div class="ins-pipe-node-detail">export_data.py + train_model.py</div>
+                        <div class="ins-pipe-node-freq">offline, produces .pkl models</div>
                     </div>
                 </div>
             </div>
@@ -307,10 +292,43 @@
                 </div>
             </div>
 
-            <!-- 3c: Infrastructure -->
+            <!-- 3c: App modes and model mapping -->
+            <h2 class="ins-h2" style="margin-top: 48px;">App modes and model mapping</h2>
+            <p class="ins-body">Two directions and two timing modes combine into four prediction scenarios, each with its own model strategy.</p>
+            <div class="ins-matrix">
+                <div class="ins-matrix-corner"></div>
+                <div class="ins-matrix-col-head">To Imperial (dock bike)</div>
+                <div class="ins-matrix-col-head">From Imperial (pick up bike)</div>
+
+                <div class="ins-matrix-row-head">Now</div>
+                <div class="ins-matrix-cell">
+                    <div class="ins-matrix-q">"Where do I dock my bike?"</div>
+                    <div class="ins-matrix-model" id="matrix-now-to-model">Loading...</div>
+                    <div class="ins-matrix-detail">Predicts empty docks in 15 min using current count + weather</div>
+                </div>
+                <div class="ins-matrix-cell">
+                    <div class="ins-matrix-q">"Where do I pick up a bike?"</div>
+                    <div class="ins-matrix-model">No model needed</div>
+                    <div class="ins-matrix-detail">Live data from TfL API - shows current available bikes</div>
+                </div>
+
+                <div class="ins-matrix-row-head">Plan trip</div>
+                <div class="ins-matrix-cell">
+                    <div class="ins-matrix-q">"When should I leave to arrive by 10:15?"</div>
+                    <div class="ins-matrix-model" id="matrix-plan-to-model">Loading...</div>
+                    <div class="ins-matrix-detail">Predicts empty docks at arrival time using time patterns + weather forecast</div>
+                </div>
+                <div class="ins-matrix-cell">
+                    <div class="ins-matrix-q">"Which station will have bikes at 4 PM?"</div>
+                    <div class="ins-matrix-model" id="matrix-plan-from-model">Loading...</div>
+                    <div class="ins-matrix-detail">Predicts available bikes at departure using time patterns + weather forecast</div>
+                </div>
+            </div>
+
+            <!-- 3d: Infrastructure -->
             <div class="ins-infra">
                 <div class="ins-infra-item"><i class="bi bi-cloud"></i> <strong>Heroku</strong> - Worker dyno (data collection) + Web dyno (Flask app, Gunicorn)</div>
-                <div class="ins-infra-item"><i class="bi bi-database"></i> <strong>Supabase PostgreSQL</strong> -6 tables, SSL required, ~650k+ rows</div>
+                <div class="ins-infra-item"><i class="bi bi-database"></i> <strong>Supabase PostgreSQL</strong> - 6 tables, SSL required, ~650k+ rows</div>
                 <div class="ins-infra-item"><i class="bi bi-braces"></i> <strong>18 API endpoints</strong> - live data, forecasts, insights, sensor events, settings</div>
             </div>
         </div>
@@ -1118,8 +1136,8 @@
    SECTION 3: SYSTEM ARCHITECTURE
    ================================================================ */
 
-/* Sensing pipeline */
-.ins-pipeline {
+/* Sensing pipeline v2 */
+.ins-pipeline-v2 {
     display: flex;
     align-items: center;
     gap: 0;
@@ -1129,18 +1147,20 @@
     padding: 8px 0;
 }
 
-.ins-pipe-col {
+.ins-pv2-sources,
+.ins-pv2-db,
+.ins-pv2-outputs {
     display: flex;
     flex-direction: column;
     gap: 12px;
     flex-shrink: 0;
 }
 
-.ins-pipe-sources { min-width: 200px; }
-.ins-pipe-center { min-width: 130px; }
-.ins-pipe-outputs { min-width: 180px; }
+.ins-pv2-sources { min-width: 200px; }
+.ins-pv2-db { min-width: 130px; }
+.ins-pv2-outputs { min-width: 220px; }
 
-.ins-pipe-arrows {
+.ins-pv2-arrow {
     flex-shrink: 0;
     width: 60px;
 }
@@ -1148,6 +1168,37 @@
 .ins-pipe-svg {
     width: 60px;
     height: 180px;
+}
+
+.ins-pv2-svg-out {
+    width: 60px;
+    height: 240px;
+}
+
+.ins-pv2-primary {
+    border-left-width: 3px;
+    border-left-color: var(--info);
+}
+
+.ins-pv2-training {
+    border-left: 3px solid var(--text-tertiary);
+    opacity: 0.65;
+}
+
+.ins-pv2-return-arrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 4px;
+}
+
+.ins-pv2-return-label {
+    font-size: 9px;
+    color: #7B61FF;
+    font-weight: 600;
+    opacity: 0.7;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
 .ins-pipe-node {
