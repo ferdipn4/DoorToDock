@@ -391,7 +391,7 @@
             <!-- Weather effect -->
             <div class="ins-subsection ins-subsection-neutral">
                 <h2 class="ins-h2">Does weather change the pattern?</h2>
-                <p class="ins-body" id="weather-intro">Loading weather comparison...</p>
+                <p class="ins-body" id="weather-intro">Commuter schedules dominate dock dynamics far more than weather. Here's how dry and rainy days compare.</p>
 
                 <div class="ins-chart-wrap">
                     <div class="ins-chart-title">Dry vs rainy weekdays - empty docks at preferred stations (6 AM – 8 PM)</div>
@@ -497,7 +497,7 @@
 
             <!-- 6a: Nowcast Feature Importance -->
             <h2 class="ins-h2">Nowcast feature importance</h2>
-            <p class="ins-body" id="feat-nc-intro">Loading feature analysis...</p>
+            <p class="ins-body" id="feat-nc-intro">Which features matter most for the nowcast model's 15-minute predictions?</p>
 
             <div class="ins-chart-wrap">
                 <div class="ins-chart-title" id="feat-nc-chart-title">Feature importance - Nowcast model</div>
@@ -507,7 +507,7 @@
 
             <!-- 6b: Forecast Feature Importance -->
             <h2 class="ins-h2" style="margin-top: 40px;">Forecast feature importance</h2>
-            <p class="ins-body" id="feat-fc-intro">Loading...</p>
+            <p class="ins-body" id="feat-fc-intro">How does the forecast model make predictions without live dock data?</p>
 
             <div class="ins-chart-wrap" id="feat-fc-wrap">
                 <div class="ins-chart-title" id="feat-fc-chart-title">Feature breakdown - Forecast model</div>
@@ -678,7 +678,7 @@
 
 /* ── Common section styles ── */
 .ins-section {
-    padding: 64px 24px;
+    padding: 80px 24px;
 }
 
 .ins-section-inner {
@@ -721,19 +721,30 @@
    SECTION 1: HERO
    ================================================================ */
 .ins-hero {
-    background: var(--bg-tertiary);
+    background: #1a1a2e;
     padding: 80px 24px 64px;
 }
 
-[data-bs-theme="dark"] .ins-hero,
-:root:not([data-bs-theme="light"]) .ins-hero {
-    background: #141414;
+.ins-hero .ins-hero-headline,
+.ins-hero .ins-hero-stat-value {
+    color: #f0f0f0;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root:not([data-bs-theme="light"]) .ins-hero {
-        background: #141414;
-    }
+.ins-hero .ins-hero-sub,
+.ins-hero .ins-hero-footnote {
+    color: #a0a0b0;
+}
+
+.ins-hero .ins-hero-stat-label {
+    color: #8888a0;
+}
+
+.ins-hero .ins-hero-stat {
+    background: rgba(255,255,255,0.05);
+}
+
+.ins-hero .ins-hero-stats {
+    background: rgba(255,255,255,0.08);
 }
 
 .ins-hero-inner {
@@ -863,7 +874,7 @@
 }
 
 .ins-mode-card {
-    background: var(--bg-primary);
+    background: var(--bg-secondary);
     border-radius: 14px;
     padding: 24px;
     border: 1px solid var(--border);
@@ -1250,7 +1261,7 @@
 }
 
 .ins-source-card {
-    background: var(--bg-primary);
+    background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 20px;
@@ -2461,7 +2472,7 @@ async function loadSection6() {
     // --- 6a: Nowcast feature importance ---
     if (ch5 && ch5.feature_importance && ch5.feature_importance.length > 0) {
         const ncName = ch5.nowcast?.name || 'Nowcast';
-        setText('feat-nc-chart-title', `Feature importance -${ncName} model`);
+        setText('feat-nc-chart-title', `Feature importance - ${ncName} model`);
 
         const feats = ch5.feature_importance;
         const topFeat = feats[0];
@@ -2532,7 +2543,7 @@ async function loadSection6() {
     // --- 6b: Forecast feature importance ---
     if (ch5 && ch5.forecast) {
         const fcName = ch5.forecast?.name || 'Forecast';
-        setText('feat-fc-chart-title', `Feature breakdown -${fcName} model`);
+        setText('feat-fc-chart-title', `Feature breakdown - ${fcName} model`);
 
         const isBaseline = fcName.toLowerCase().includes('baseline') || fcName.toLowerCase().includes('historical') || fcName.toLowerCase().includes('average');
 
