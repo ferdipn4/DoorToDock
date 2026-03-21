@@ -93,8 +93,6 @@ def main():
         ORDER BY timestamp
     """, "weather_data")
 
-    conn.close()
-
     # ---- Round timestamps to nearest minute for joining ----
     print("\nRounding timestamps to nearest minute...")
 
@@ -118,16 +116,42 @@ def main():
         wind_speed=("wind_speed", "mean"),
     ).reset_index()
 
+    # ---- Also fetch API temperature for fallback ----
+    weather_temp = fetch_table(conn, """
+        SELECT timestamp, temperature AS api_temperature
+        FROM weather_data
+        ORDER BY timestamp
+    """, "weather_data (temperature)")
+
+    weather_temp["timestamp"] = pd.to_datetime(weather_temp["timestamp"], utc=True)
+    weather_temp["ts_minute"] = weather_temp["timestamp"].dt.round("min")
+    weather_temp_agg = weather_temp.groupby("ts_minute").agg(
+        api_temperature=("api_temperature", "mean"),
+    ).reset_index()
+    weather_temp_agg["api_temperature"] = weather_temp_agg["api_temperature"].round(2)
+
+    conn.close()
+
     # ---- Merge ----
     print("\nMerging datasets...")
 
-    # Bike + sensor temperature (inner join: only rows where sensor data exists)
-    merged = bike.merge(sensor_agg, on="ts_minute", how="inner")
-    print(f"  After bike + sensor join: {len(merged):,} rows")
+    # Bike + weather (inner: we need humidity, precip, wind for all rows)
+    merged = bike.merge(weather_agg, on="ts_minute", how="inner")
+    print(f"  After bike + weather join: {len(merged):,} rows")
 
-    # + weather (humidity, precip, wind)
-    merged = merged.merge(weather_agg, on="ts_minute", how="inner")
-    print(f"  After + weather join: {len(merged):,} rows")
+    # + API temperature
+    merged = merged.merge(weather_temp_agg, on="ts_minute", how="left")
+    print(f"  After + API temperature join: {len(merged):,} rows")
+
+    # + sensor temperature (LEFT join: only available for ~16 days)
+    merged = merged.merge(sensor_agg, on="ts_minute", how="left")
+    print(f"  After + sensor join: {len(merged):,} rows")
+    sensor_coverage = merged["temperature"].notna().sum()
+    print(f"  Sensor coverage: {sensor_coverage:,} / {len(merged):,} rows ({100*sensor_coverage/len(merged):.1f}%)")
+
+    # Use sensor temperature where available, fall back to API temperature
+    merged["temperature"] = merged["temperature"].fillna(merged["api_temperature"])
+    merged = merged.drop(columns=["api_temperature"])
 
     # ---- Clean up ----
     merged = merged.drop(columns=["ts_minute"])
