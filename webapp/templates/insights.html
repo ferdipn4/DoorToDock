@@ -396,6 +396,7 @@
                 <div class="ins-chart-wrap">
                     <div class="ins-chart-title">Dry vs rainy weekdays - empty docks at preferred stations (6 AM – 8 PM)</div>
                     <canvas id="chart-weather-compare" height="260"></canvas>
+                    <div class="ins-chart-note">Note: Lines may appear incomplete due to limited rainy days in the 24-day collection period. Only days with measurable precipitation (&gt; 0.1mm) are classified as rainy.</div>
                     <div class="ins-chart-takeaway" id="weather-takeaway">Loading...</div>
                 </div>
             </div>
@@ -491,6 +492,8 @@
         <div class="ins-section-inner">
             <div class="ins-section-label">Feature Analysis</div>
             <p class="ins-lead">What drives each prediction? Understanding feature importance reveals what the models actually learn - and what they can't.</p>
+
+            <div class="ins-chart-note" style="margin-bottom: 24px;">Feature analysis is shown for empty dock predictions (morning commute). Available bike patterns are the inverse - as empty docks decrease, available bikes increase by the same amount, so feature importance and correlations apply equally to both directions.</div>
 
             <!-- 6a: Nowcast Feature Importance -->
             <h2 class="ins-h2">Nowcast feature importance</h2>
@@ -1423,6 +1426,18 @@
     line-height: 1.5;
 }
 
+.ins-chart-note {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-tertiary);
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    border-left: 3px solid var(--text-tertiary);
+    line-height: 1.4;
+}
+
 /* Heatmap (CSS grid) */
 .ins-heatmap-container {
     overflow-x: auto;
@@ -2028,6 +2043,7 @@ async function loadSection4() {
                 plugins: {
                     legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 }, color: cc.text } },
                     tooltip: {
+                        itemSort: (a, b) => b.parsed.y - a.parsed.y,
                         callbacks: {
                             title: items => timeLabel(items[0].parsed.x),
                             label: item => `${item.dataset.label}: ${item.parsed.y.toFixed(1)} docks`,
@@ -2143,6 +2159,7 @@ async function loadSection4() {
                 plugins: {
                     legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 }, color: cc.text } },
                     tooltip: {
+                        itemSort: (a, b) => b.parsed.y - a.parsed.y,
                         callbacks: {
                             title: items => timeLabel(items[0].parsed.x),
                             label: item => `${item.dataset.label}: ${item.parsed.y.toFixed(1)} bikes`,
