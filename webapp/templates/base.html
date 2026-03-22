@@ -55,25 +55,27 @@
     </div>
 
     <!-- Mobile Bottom Nav -->
-    <nav class="bottom-nav" aria-label="Main navigation">
-        <a href="/go?timing=now" class="bottom-nav-item {% if active_tab == 'go' and active_timing|default('now') == 'now' %}active{% endif %}">
-            <i class="bi bi-cursor-fill"></i>
-            <span>Now</span>
-        </a>
-        <a href="/go?timing=plan" class="bottom-nav-item {% if active_tab == 'go' and active_timing|default('now') == 'plan' %}active{% endif %}">
-            <i class="bi bi-calendar-check"></i>
-            <span>Plan trip</span>
-        </a>
-        <span class="bottom-nav-clock" id="nav-clock-mobile"></span>
-        <a href="/insights" class="bottom-nav-item {% if active_tab == 'insights' %}active{% endif %}">
-            <i class="bi bi-bar-chart"></i>
-            <span>Insights</span>
-        </a>
-        <a href="/settings" class="bottom-nav-item {% if active_tab == 'settings' %}active{% endif %}">
-            <i class="bi bi-gear"></i>
-            <span>Settings</span>
-        </a>
-    </nav>
+    <div class="bottom-nav-wrap">
+        <div class="bottom-nav-clock-bar" id="nav-clock-mobile"></div>
+        <nav class="bottom-nav" aria-label="Main navigation">
+            <a href="/go?timing=now" class="bottom-nav-item {% if active_tab == 'go' and active_timing|default('now') == 'now' %}active{% endif %}">
+                <i class="bi bi-cursor-fill"></i>
+                <span>Now</span>
+            </a>
+            <a href="/go?timing=plan" class="bottom-nav-item {% if active_tab == 'go' and active_timing|default('now') == 'plan' %}active{% endif %}">
+                <i class="bi bi-calendar-check"></i>
+                <span>Plan</span>
+            </a>
+            <a href="/insights" class="bottom-nav-item {% if active_tab == 'insights' %}active{% endif %}">
+                <i class="bi bi-bar-chart"></i>
+                <span>Insights</span>
+            </a>
+            <a href="/settings" class="bottom-nav-item {% if active_tab == 'settings' %}active{% endif %}">
+                <i class="bi bi-gear"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
