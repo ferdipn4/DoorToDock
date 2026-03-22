@@ -242,14 +242,16 @@ async function loadToNow() {
         if (!stationsData.length) stationsData = stns;
         skeleton.style.display = 'none';
 
-        if (!pred.available) {
+        // Check if genuinely all stations are predicted full
+        const allPredictedFull = !pred.recommended ||
+            pred.stations.every(s => s.predicted_empty_docks <= 0);
+
+        if (allPredictedFull) {
             allFull.style.display = '';
-            renderToNowStations(pred, stns);
-            updateMapMarkers();
-            return;
+        } else {
+            renderToNowHero(pred);
         }
 
-        renderToNowHero(pred);
         renderToNowWeather(pred.weather);
         renderToNowStations(pred, stns);
         updateMapMarkers();
@@ -280,8 +282,15 @@ function renderToNowWeather(w) {
     const icon = weatherIcon(w.description);
     const stripIcon = document.querySelector('#to-now-weather i');
     if (stripIcon) stripIcon.className = `bi bi-${icon}`;
-    document.getElementById('to-now-weather-text').textContent =
-        `${w.temperature}\u00B0C, ${w.description} \u00B7 ${w.precipitation_mm}mm rain \u00B7 ${w.wind_speed} m/s`;
+    // Prediction weather has {temperature, description, effect}
+    // Plan weather has {temperature, description, precipitation_mm, wind_speed}
+    let text = `${w.temperature}\u00B0C, ${w.description}`;
+    if (w.precipitation_mm !== undefined) {
+        text += ` \u00B7 ${w.precipitation_mm}mm rain \u00B7 ${w.wind_speed} m/s wind`;
+    } else if (w.effect) {
+        text += ` \u00B7 ${w.effect}`;
+    }
+    document.getElementById('to-now-weather-text').textContent = text;
 }
 
 function renderToNowStations(pred, stns) {
