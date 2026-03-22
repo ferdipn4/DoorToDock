@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPlanForms();
     setupSortButtons();
     setupMobileViewToggle();
+    startClock();
     switchState();
     initDesktopMap();
     window.addEventListener('resize', onResize);
@@ -77,6 +78,18 @@ function handleDeepLink() {
     // Keep timing param in URL for nav active state
 
     syncToggleUI();
+}
+
+// -- Clock --
+function startClock() {
+    const el = document.getElementById('go-clock');
+    if (!el) return;
+    const tick = () => {
+        const now = new Date();
+        el.textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    };
+    tick();
+    setInterval(tick, 10000);
 }
 
 // -- Auto-detect direction: before noon -> To Imperial, after -> From Imperial --
