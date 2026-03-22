@@ -59,6 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMapExpand();
     switchState();
     initMap();
+    window.addEventListener('resize', () => {
+        if (map) map.invalidateSize();
+    });
 });
 
 // -- Deep link --

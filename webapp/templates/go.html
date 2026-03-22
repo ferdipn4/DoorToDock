@@ -3,297 +3,268 @@
 
 {% block content %}
 <div class="go-layout">
-    <div class="go-col">
 
-        <!-- Direction toggle -->
-        <div class="go-toggles">
-            <div class="ds-segmented">
-                <button class="ds-segmented-btn active" id="btn-to">To Imperial</button>
-                <button class="ds-segmented-btn" id="btn-from">From Imperial</button>
-            </div>
+    <!-- Direction toggle (spans full width) -->
+    <div class="go-toggles">
+        <div class="ds-segmented">
+            <button class="ds-segmented-btn active" id="btn-to">To Imperial</button>
+            <button class="ds-segmented-btn" id="btn-from">From Imperial</button>
         </div>
+    </div>
 
-        <!-- ════════════════════════════════════════════ -->
-        <!-- STATE 1: To Imperial + Now                  -->
-        <!-- ════════════════════════════════════════════ -->
-        <div id="state-to-now">
+    <!-- Two-column body -->
+    <div class="go-body">
 
-            <!-- Skeleton hero -->
-            <div class="hero-card hero-blue" id="to-now-skeleton">
-                <div class="skeleton skeleton-text" style="width: 120px;"></div>
-                <div class="skeleton skeleton-text-xl" style="width: 200px;"></div>
-                <div class="hero-metrics">
-                    <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
-                    <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
-                </div>
-                <div class="skeleton" style="height: 28px; border-radius: var(--radius-sm);"></div>
-            </div>
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- LEFT COLUMN: recommendation + map          -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="go-left">
 
-            <!-- Hero card -->
-            <div class="hero-card hero-blue" id="to-now-hero" style="display: none;">
-                <div class="hero-label">DOCK YOUR BIKE AT</div>
-                <div class="hero-station-name" id="to-now-name">--</div>
-                <div class="hero-metrics">
-                    <div class="hero-metric">
-                        <span class="hero-metric-value text-ds-info" id="to-now-docks">--</span>
-                        <span class="hero-metric-label">empty docks in 15 min</span>
+            <!-- STATE 1: To Imperial + Now -->
+            <div id="state-to-now">
+                <div class="hero-card hero-blue" id="to-now-skeleton">
+                    <div class="skeleton skeleton-text" style="width: 120px;"></div>
+                    <div class="skeleton skeleton-text-xl" style="width: 200px;"></div>
+                    <div class="hero-metrics">
+                        <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
+                        <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
                     </div>
-                    <div class="hero-metric">
-                        <span class="hero-metric-value" id="to-now-walk">--</span>
-                        <span class="hero-metric-label">walk to uni</span>
-                    </div>
+                    <div class="skeleton" style="height: 28px; border-radius: var(--radius-sm);"></div>
                 </div>
-                <div class="hero-trip" id="to-now-trip">--</div>
-            </div>
-
-            <!-- Error state -->
-            <div id="to-now-error" style="display: none;">
-                <div class="ds-error-state">
-                    <i class="bi bi-cloud-slash"></i>
-                    <p class="ds-error-title">Couldn't load predictions</p>
-                    <p class="ds-error-desc">Check your connection and try again</p>
-                    <button class="ds-retry-btn" id="to-now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
-                </div>
-            </div>
-
-            <!-- All-full warning -->
-            <div id="to-now-all-full" class="ds-empty-state" style="display: none;">
-                <i class="bi bi-exclamation-triangle"></i>
-                <p class="ds-empty-title">All nearby stations are predicted full</p>
-                <p class="ds-empty-desc">Consider leaving 10 minutes earlier or trying an alternative route</p>
-            </div>
-
-            <!-- Weather strip -->
-            <div class="weather-strip" id="to-now-weather">
-                <i class="bi bi-cloud-rain"></i>
-                <span id="to-now-weather-text">--</span>
-            </div>
-        </div>
-
-        <!-- ════════════════════════════════════════════ -->
-        <!-- STATE 2: From Imperial + Now                -->
-        <!-- ════════════════════════════════════════════ -->
-        <div id="state-from-now" style="display: none;">
-
-            <!-- Skeleton hero -->
-            <div class="hero-card hero-green" id="from-now-skeleton">
-                <div class="skeleton skeleton-text" style="width: 120px;"></div>
-                <div class="skeleton skeleton-text-xl" style="width: 200px;"></div>
-                <div class="hero-metrics">
-                    <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
-                    <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
-                </div>
-                <div class="skeleton" style="height: 28px; border-radius: var(--radius-sm);"></div>
-            </div>
-
-            <!-- Hero card -->
-            <div class="hero-card hero-green" id="from-now-hero" style="display: none;">
-                <div class="hero-label">PICK UP A BIKE AT</div>
-                <div class="hero-station-name" id="from-now-name">--</div>
-                <div class="hero-metrics">
-                    <div class="hero-metric">
-                        <span class="hero-metric-value text-ds-success" id="from-now-bikes">--</span>
-                        <span class="hero-metric-label">bikes available now</span>
-                    </div>
-                    <div class="hero-metric">
-                        <span class="hero-metric-value" id="from-now-walk">--</span>
-                        <span class="hero-metric-label">walk from uni</span>
-                    </div>
-                </div>
-                <div class="hero-trip hero-trip-live">Live data, no prediction needed</div>
-            </div>
-
-            <!-- Error state -->
-            <div id="from-now-error" style="display: none;">
-                <div class="ds-error-state">
-                    <i class="bi bi-cloud-slash"></i>
-                    <p class="ds-error-title">Couldn't load station data</p>
-                    <p class="ds-error-desc">Check your connection and try again</p>
-                    <button class="ds-retry-btn" id="from-now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ════════════════════════════════════════════ -->
-        <!-- STATE 3: To Imperial + Plan trip            -->
-        <!-- ════════════════════════════════════════════ -->
-        <div id="state-to-plan" style="display: none;">
-
-            <!-- Plan form -->
-            <div class="plan-form">
-                <div class="plan-field">
-                    <label class="plan-field-label">I NEED TO ARRIVE BY</label>
-                    <div class="plan-time-row">
-                        <div class="plan-time-picker">
-                            <select class="plan-select" id="to-plan-hour"></select>
-                            <span class="plan-time-sep">:</span>
-                            <select class="plan-select" id="to-plan-minute"></select>
-                        </div>
-                    </div>
-                    <div class="plan-day-selector" id="to-plan-days"></div>
-                </div>
-                <div class="plan-field">
-                    <label class="plan-field-label">WEATHER FORECAST</label>
-                    <div class="weather-strip" id="to-plan-weather">
-                        <i class="bi bi-cloud"></i>
-                        <span id="to-plan-weather-text">Select a time to see forecast</span>
-                    </div>
-                </div>
-                <button class="plan-scan-btn" id="to-plan-scan-btn">
-                    <i class="bi bi-search"></i> Get recommendation
-                </button>
-            </div>
-
-            <!-- Empty state -->
-            <div class="ds-empty-state" id="to-plan-empty">
-                <i class="bi bi-clock-history"></i>
-                <p class="ds-empty-title">Set your arrival time and tap the button</p>
-                <p class="ds-empty-desc">Select when you need to arrive at Imperial</p>
-            </div>
-
-            <!-- Result -->
-            <div id="to-plan-result" style="display: none;">
-                <div class="hero-card hero-blue" id="to-plan-hero">
-                    <div class="hero-label">LEAVE HOME BY</div>
-                    <div class="plan-hero-leave" id="to-plan-leave-by">--</div>
-                    <div class="plan-hero-subtitle" id="to-plan-subtitle">--</div>
-                    <div class="plan-timeline">
-                        <div class="plan-timeline-bar">
-                            <div class="plan-tl-seg plan-tl-cycle" id="to-plan-tl-cycle"></div>
-                            <div class="plan-tl-seg plan-tl-dock" id="to-plan-tl-dock"></div>
-                            <div class="plan-tl-seg plan-tl-walk" id="to-plan-tl-walk"></div>
-                        </div>
-                        <div class="plan-timeline-labels" id="to-plan-tl-labels"></div>
-                    </div>
-                    <div class="hero-trip" id="to-plan-arrival-strip">--</div>
-                </div>
-
-                <!-- Why not closer -->
-                <div class="plan-why-card" id="to-plan-why" style="display: none;">
-                    <div class="plan-why-label">WHY NOT CLOSER?</div>
-                    <div class="plan-why-text" id="to-plan-why-text"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ════════════════════════════════════════════ -->
-        <!-- STATE 4: From Imperial + Plan trip          -->
-        <!-- ════════════════════════════════════════════ -->
-        <div id="state-from-plan" style="display: none;">
-
-            <!-- Plan form -->
-            <div class="plan-form">
-                <div class="plan-field">
-                    <label class="plan-field-label">I WANT TO LEAVE UNI AT</label>
-                    <div class="plan-time-row">
-                        <div class="plan-time-picker">
-                            <select class="plan-select" id="from-plan-hour"></select>
-                            <span class="plan-time-sep">:</span>
-                            <select class="plan-select" id="from-plan-minute"></select>
-                        </div>
-                    </div>
-                    <div class="plan-day-selector" id="from-plan-days"></div>
-                </div>
-                <div class="plan-field">
-                    <label class="plan-field-label">WEATHER FORECAST</label>
-                    <div class="weather-strip" id="from-plan-weather">
-                        <i class="bi bi-cloud"></i>
-                        <span id="from-plan-weather-text">Select a time to see forecast</span>
-                    </div>
-                </div>
-                <button class="plan-scan-btn" id="from-plan-scan-btn">
-                    <i class="bi bi-search"></i> Get recommendation
-                </button>
-            </div>
-
-            <!-- Empty state -->
-            <div class="ds-empty-state" id="from-plan-empty">
-                <i class="bi bi-clock-history"></i>
-                <p class="ds-empty-title">Set your departure time and tap the button</p>
-                <p class="ds-empty-desc">Select when you want to leave Imperial</p>
-            </div>
-
-            <!-- Result -->
-            <div id="from-plan-result" style="display: none;">
-                <div class="hero-card hero-green" id="from-plan-hero">
-                    <div class="hero-label">PICK UP A BIKE AT</div>
-                    <div class="hero-station-name" id="from-plan-name">--</div>
+                <div class="hero-card hero-blue" id="to-now-hero" style="display: none;">
+                    <div class="hero-label">DOCK YOUR BIKE AT</div>
+                    <div class="hero-station-name" id="to-now-name">--</div>
                     <div class="hero-metrics">
                         <div class="hero-metric">
-                            <span class="hero-metric-value text-ds-success" id="from-plan-bikes">--</span>
-                            <span class="hero-metric-label" id="from-plan-bikes-label">predicted bikes</span>
+                            <span class="hero-metric-value text-ds-info" id="to-now-docks">--</span>
+                            <span class="hero-metric-label">empty docks in 15 min</span>
                         </div>
                         <div class="hero-metric">
-                            <span class="hero-metric-value" id="from-plan-walk">--</span>
+                            <span class="hero-metric-value" id="to-now-walk">--</span>
+                            <span class="hero-metric-label">walk to uni</span>
+                        </div>
+                    </div>
+                    <div class="hero-trip" id="to-now-trip">--</div>
+                </div>
+                <div id="to-now-error" style="display: none;">
+                    <div class="ds-error-state">
+                        <i class="bi bi-cloud-slash"></i>
+                        <p class="ds-error-title">Couldn't load predictions</p>
+                        <p class="ds-error-desc">Check your connection and try again</p>
+                        <button class="ds-retry-btn" id="to-now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
+                    </div>
+                </div>
+                <div id="to-now-all-full" class="ds-empty-state" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p class="ds-empty-title">All nearby stations are predicted full</p>
+                    <p class="ds-empty-desc">Consider leaving 10 minutes earlier or trying an alternative route</p>
+                </div>
+                <div class="weather-strip" id="to-now-weather">
+                    <i class="bi bi-cloud-rain"></i>
+                    <span id="to-now-weather-text">--</span>
+                </div>
+            </div>
+
+            <!-- STATE 2: From Imperial + Now -->
+            <div id="state-from-now" style="display: none;">
+                <div class="hero-card hero-green" id="from-now-skeleton">
+                    <div class="skeleton skeleton-text" style="width: 120px;"></div>
+                    <div class="skeleton skeleton-text-xl" style="width: 200px;"></div>
+                    <div class="hero-metrics">
+                        <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
+                        <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
+                    </div>
+                    <div class="skeleton" style="height: 28px; border-radius: var(--radius-sm);"></div>
+                </div>
+                <div class="hero-card hero-green" id="from-now-hero" style="display: none;">
+                    <div class="hero-label">PICK UP A BIKE AT</div>
+                    <div class="hero-station-name" id="from-now-name">--</div>
+                    <div class="hero-metrics">
+                        <div class="hero-metric">
+                            <span class="hero-metric-value text-ds-success" id="from-now-bikes">--</span>
+                            <span class="hero-metric-label">bikes available now</span>
+                        </div>
+                        <div class="hero-metric">
+                            <span class="hero-metric-value" id="from-now-walk">--</span>
                             <span class="hero-metric-label">walk from uni</span>
                         </div>
                     </div>
-                    <div class="hero-trip">Walk to station only, no cycle time</div>
+                    <div class="hero-trip hero-trip-live">Live data, no prediction needed</div>
+                </div>
+                <div id="from-now-error" style="display: none;">
+                    <div class="ds-error-state">
+                        <i class="bi bi-cloud-slash"></i>
+                        <p class="ds-error-title">Couldn't load station data</p>
+                        <p class="ds-error-desc">Check your connection and try again</p>
+                        <button class="ds-retry-btn" id="from-now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
+                    </div>
                 </div>
             </div>
+
+            <!-- STATE 3: To Imperial + Plan -->
+            <div id="state-to-plan" style="display: none;">
+                <div class="plan-form">
+                    <div class="plan-field">
+                        <label class="plan-field-label">I NEED TO ARRIVE BY</label>
+                        <div class="plan-time-row">
+                            <div class="plan-time-picker">
+                                <select class="plan-select" id="to-plan-hour"></select>
+                                <span class="plan-time-sep">:</span>
+                                <select class="plan-select" id="to-plan-minute"></select>
+                            </div>
+                        </div>
+                        <div class="plan-day-selector" id="to-plan-days"></div>
+                    </div>
+                    <div class="plan-field">
+                        <label class="plan-field-label">WEATHER FORECAST</label>
+                        <div class="weather-strip" id="to-plan-weather">
+                            <i class="bi bi-cloud"></i>
+                            <span id="to-plan-weather-text">Select a time to see forecast</span>
+                        </div>
+                    </div>
+                    <button class="plan-scan-btn" id="to-plan-scan-btn">
+                        <i class="bi bi-search"></i> Get recommendation
+                    </button>
+                </div>
+                <div class="ds-empty-state" id="to-plan-empty">
+                    <i class="bi bi-clock-history"></i>
+                    <p class="ds-empty-title">Set your arrival time and tap the button</p>
+                    <p class="ds-empty-desc">Select when you need to arrive at Imperial</p>
+                </div>
+                <div id="to-plan-result" style="display: none;">
+                    <div class="hero-card hero-blue" id="to-plan-hero">
+                        <div class="hero-label">LEAVE HOME BY</div>
+                        <div class="plan-hero-leave" id="to-plan-leave-by">--</div>
+                        <div class="plan-hero-subtitle" id="to-plan-subtitle">--</div>
+                        <div class="plan-timeline">
+                            <div class="plan-timeline-bar">
+                                <div class="plan-tl-seg plan-tl-cycle" id="to-plan-tl-cycle"></div>
+                                <div class="plan-tl-seg plan-tl-dock" id="to-plan-tl-dock"></div>
+                                <div class="plan-tl-seg plan-tl-walk" id="to-plan-tl-walk"></div>
+                            </div>
+                            <div class="plan-timeline-labels" id="to-plan-tl-labels"></div>
+                        </div>
+                        <div class="hero-trip" id="to-plan-arrival-strip">--</div>
+                    </div>
+                    <div class="plan-why-card" id="to-plan-why" style="display: none;">
+                        <div class="plan-why-label">WHY NOT CLOSER?</div>
+                        <div class="plan-why-text" id="to-plan-why-text"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE 4: From Imperial + Plan -->
+            <div id="state-from-plan" style="display: none;">
+                <div class="plan-form">
+                    <div class="plan-field">
+                        <label class="plan-field-label">I WANT TO LEAVE UNI AT</label>
+                        <div class="plan-time-row">
+                            <div class="plan-time-picker">
+                                <select class="plan-select" id="from-plan-hour"></select>
+                                <span class="plan-time-sep">:</span>
+                                <select class="plan-select" id="from-plan-minute"></select>
+                            </div>
+                        </div>
+                        <div class="plan-day-selector" id="from-plan-days"></div>
+                    </div>
+                    <div class="plan-field">
+                        <label class="plan-field-label">WEATHER FORECAST</label>
+                        <div class="weather-strip" id="from-plan-weather">
+                            <i class="bi bi-cloud"></i>
+                            <span id="from-plan-weather-text">Select a time to see forecast</span>
+                        </div>
+                    </div>
+                    <button class="plan-scan-btn" id="from-plan-scan-btn">
+                        <i class="bi bi-search"></i> Get recommendation
+                    </button>
+                </div>
+                <div class="ds-empty-state" id="from-plan-empty">
+                    <i class="bi bi-clock-history"></i>
+                    <p class="ds-empty-title">Set your departure time and tap the button</p>
+                    <p class="ds-empty-desc">Select when you want to leave Imperial</p>
+                </div>
+                <div id="from-plan-result" style="display: none;">
+                    <div class="hero-card hero-green" id="from-plan-hero">
+                        <div class="hero-label">PICK UP A BIKE AT</div>
+                        <div class="hero-station-name" id="from-plan-name">--</div>
+                        <div class="hero-metrics">
+                            <div class="hero-metric">
+                                <span class="hero-metric-value text-ds-success" id="from-plan-bikes">--</span>
+                                <span class="hero-metric-label" id="from-plan-bikes-label">predicted bikes</span>
+                            </div>
+                            <div class="hero-metric">
+                                <span class="hero-metric-value" id="from-plan-walk">--</span>
+                                <span class="hero-metric-label">walk from uni</span>
+                            </div>
+                        </div>
+                        <div class="hero-trip">Walk to station only, no cycle time</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAP (fills remaining left column height) -->
+            <div class="go-map-wrap" id="minimap-wrap">
+                <div class="go-map" id="go-minimap"></div>
+                <button class="minimap-expand-btn" id="minimap-expand" title="Expand map">
+                    <i class="bi bi-arrows-angle-expand"></i>
+                </button>
+                <div class="map-legend" id="map-legend">
+                    <div class="map-legend-item">
+                        <span class="map-legend-dot" style="background: var(--danger);"></span>Full
+                    </div>
+                    <div class="map-legend-item">
+                        <span class="map-legend-dot" style="background: var(--warning);"></span>Low
+                    </div>
+                    <div class="map-legend-item">
+                        <span class="map-legend-dot" style="background: var(--success);"></span>Available
+                    </div>
+                    <div class="map-legend-item">
+                        <span class="map-legend-dot map-legend-dot-rec"></span>Recommended
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <!-- ════════════════════════════════════════════ -->
-        <!-- MINI MAP (shared across all states)         -->
-        <!-- ════════════════════════════════════════════ -->
-        <div class="go-minimap-wrap" id="minimap-wrap">
-            <div class="go-minimap" id="go-minimap"></div>
-            <button class="minimap-expand-btn" id="minimap-expand" title="Expand map">
-                <i class="bi bi-arrows-angle-expand"></i>
-            </button>
-            <div class="map-legend" id="map-legend">
-                <div class="map-legend-item">
-                    <span class="map-legend-dot" style="background: var(--danger);"></span>Full
-                </div>
-                <div class="map-legend-item">
-                    <span class="map-legend-dot" style="background: var(--warning);"></span>Low
-                </div>
-                <div class="map-legend-item">
-                    <span class="map-legend-dot" style="background: var(--success);"></span>Available
-                </div>
-                <div class="map-legend-item">
-                    <span class="map-legend-dot map-legend-dot-rec"></span>Recommended
-                </div>
-            </div>
-        </div>
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- RIGHT COLUMN: station list                 -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="go-right">
 
-        <!-- ════════════════════════════════════════════ -->
-        <!-- STATION LIST (shared across all states)     -->
-        <!-- ════════════════════════════════════════════ -->
-
-        <!-- Now mode stations -->
-        <div id="stations-now">
-            <div class="station-list-sort-row" id="to-now-sort-row">
-                <span class="station-list-header">ALTERNATIVES</span>
-                <div class="sort-toggle" id="to-now-sort">
-                    <button class="sort-btn active" data-sort="preference">By preference</button>
-                    <button class="sort-btn" data-sort="availability">By availability</button>
-                    <button class="sort-btn" data-sort="distance">By distance</button>
+            <!-- Now mode stations -->
+            <div id="stations-now">
+                <div class="station-list-sort-row" id="to-now-sort-row">
+                    <span class="station-list-header">ALTERNATIVES</span>
+                    <div class="sort-toggle" id="to-now-sort">
+                        <button class="sort-btn active" data-sort="preference">By preference</button>
+                        <button class="sort-btn" data-sort="availability">By availability</button>
+                        <button class="sort-btn" data-sort="distance">By distance</button>
+                    </div>
                 </div>
-            </div>
-            <div class="station-list" id="to-now-stations">
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+                <div class="station-list" id="to-now-stations">
+                    <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+                    <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+                    <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+                </div>
+                <div class="station-list-sort-row" id="from-now-sort-row" style="display: none;">
+                    <span class="station-list-header">OTHER STATIONS</span>
+                    <div class="sort-toggle" id="from-now-sort">
+                        <button class="sort-btn active" data-sort="preference">By preference</button>
+                        <button class="sort-btn" data-sort="availability">By availability</button>
+                        <button class="sort-btn" data-sort="distance">By distance</button>
+                    </div>
+                </div>
+                <div class="station-list" id="from-now-stations" style="display: none;"></div>
             </div>
 
-            <div class="station-list-sort-row" id="from-now-sort-row" style="display: none;">
-                <span class="station-list-header">OTHER STATIONS</span>
-                <div class="sort-toggle" id="from-now-sort">
-                    <button class="sort-btn active" data-sort="preference">By preference</button>
-                    <button class="sort-btn" data-sort="availability">By availability</button>
-                    <button class="sort-btn" data-sort="distance">By distance</button>
-                </div>
+            <!-- Plan mode stations -->
+            <div id="stations-plan" style="display: none;">
+                <div class="station-list-header" id="to-plan-alts-header">STATION COMPARISON</div>
+                <div class="station-list" id="to-plan-alternatives"></div>
+                <div class="station-list-header" id="from-plan-alts-header" style="display: none;">OTHER STATIONS AT THAT TIME</div>
+                <div class="station-list" id="from-plan-alternatives" style="display: none;"></div>
             </div>
-            <div class="station-list" id="from-now-stations" style="display: none;"></div>
-        </div>
 
-        <!-- Plan mode stations -->
-        <div id="stations-plan" style="display: none;">
-            <div class="station-list-header" id="to-plan-alts-header">STATION COMPARISON</div>
-            <div class="station-list" id="to-plan-alternatives"></div>
-            <div class="station-list-header" id="from-plan-alts-header" style="display: none;">OTHER STATIONS AT THAT TIME</div>
-            <div class="station-list" id="from-plan-alternatives" style="display: none;"></div>
         </div>
 
     </div>
@@ -303,34 +274,76 @@
 {% block head %}
 <style>
 /* ═══════════════════════════════════════════════════
-   GO PAGE — Single column, recommendation-first
+   GO PAGE — Two-column layout on desktop
    ═══════════════════════════════════════════════════ */
 
 .go-layout {
-    display: flex;
-    justify-content: center;
-    min-height: 100%;
-}
-
-.go-col {
-    width: 100%;
-    max-width: 700px;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 12px 16px;
-    overflow-y: auto;
 }
 
-@media (min-width: 768px) {
-    .go-col {
-        padding: 20px 24px;
+@media (min-width: 900px) {
+    .go-layout {
+        padding: 16px 24px;
+        height: calc(100vh - var(--topbar-height));
+        display: flex;
+        flex-direction: column;
     }
 }
 
 /* -- Direction toggle -- */
 .go-toggles {
     margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
-/* -- Hero recommendation card -- */
+/* -- Two-column body -- */
+.go-body {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 900px) {
+    .go-body {
+        flex-direction: row;
+        gap: 24px;
+        flex: 1;
+        min-height: 0;
+    }
+}
+
+/* -- Left column -- */
+.go-left {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 900px) {
+    .go-left {
+        width: 55%;
+        min-width: 0;
+        overflow-y: auto;
+    }
+}
+
+/* -- Right column -- */
+.go-right {
+    margin-top: 16px;
+}
+
+@media (min-width: 900px) {
+    .go-right {
+        width: 45%;
+        min-width: 0;
+        margin-top: 0;
+        overflow-y: auto;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   HERO RECOMMENDATION CARD
+   ═══════════════════════════════════════════════ */
 .hero-card {
     border-radius: var(--radius-lg);
     padding: 16px 18px;
@@ -404,7 +417,9 @@
     font-style: italic;
 }
 
-/* -- Weather strip -- */
+/* ═══════════════════════════════════════════════
+   WEATHER STRIP
+   ═══════════════════════════════════════════════ */
 .weather-strip {
     display: flex;
     align-items: center;
@@ -424,34 +439,40 @@
 }
 
 /* ═══════════════════════════════════════════════
-   MINI MAP
+   MAP
    ═══════════════════════════════════════════════ */
-.go-minimap-wrap {
+.go-map-wrap {
     position: relative;
     width: 100%;
     border-radius: var(--radius-lg);
     overflow: hidden;
+    margin-top: 8px;
     margin-bottom: 16px;
     border: 0.5px solid var(--border);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
-.go-minimap {
+.go-map {
     width: 100%;
-    height: 200px;
+    height: 220px;
     transition: height 0.3s ease;
 }
 
-.go-minimap-wrap.expanded .go-minimap {
+.go-map-wrap.expanded .go-map {
     height: 420px;
 }
 
-@media (min-width: 768px) {
-    .go-minimap {
-        height: 250px;
+@media (min-width: 900px) {
+    .go-map-wrap {
+        flex: 1;
+        min-height: 350px;
+        margin-bottom: 0;
     }
-    .go-minimap-wrap.expanded .go-minimap {
-        height: 500px;
+    .go-map {
+        height: 100%;
+    }
+    .go-map-wrap.expanded .go-map {
+        height: 100%;
     }
 }
 
@@ -479,11 +500,14 @@
     background: var(--bg-secondary);
 }
 
-.go-minimap-wrap.expanded .minimap-expand-btn i::before {
-    content: "\F13A";  /* bi-arrows-angle-contract */
+/* Hide expand button on desktop — map already fills column */
+@media (min-width: 900px) {
+    .minimap-expand-btn {
+        display: none;
+    }
 }
 
-.go-minimap-wrap .map-legend {
+.go-map-wrap .map-legend {
     position: absolute;
     bottom: 8px;
     left: 50%;
@@ -503,7 +527,7 @@
     color: var(--text-secondary);
 }
 
-[data-bs-theme="dark"] .go-minimap-wrap .map-legend {
+[data-bs-theme="dark"] .go-map-wrap .map-legend {
     background-color: rgba(26, 26, 26, 0.92);
 }
 
@@ -680,7 +704,9 @@
     color: var(--text-tertiary);
 }
 
-/* -- Plan form -- */
+/* ═══════════════════════════════════════════════
+   PLAN FORM
+   ═══════════════════════════════════════════════ */
 .plan-form {
     display: flex;
     flex-direction: column;
@@ -789,7 +815,7 @@
     background-color: var(--bg-tertiary);
 }
 
-/* -- Plan hero card -- */
+/* -- Plan hero -- */
 .plan-hero-leave {
     font-size: 22px;
     font-weight: 500;
@@ -805,9 +831,7 @@
 }
 
 /* -- Timeline bar -- */
-.plan-timeline {
-    margin-bottom: 10px;
-}
+.plan-timeline { margin-bottom: 10px; }
 
 .plan-timeline-bar {
     display: flex;
@@ -818,11 +842,7 @@
     margin-bottom: 4px;
 }
 
-.plan-tl-seg {
-    border-radius: 3px;
-    min-width: 8px;
-}
-
+.plan-tl-seg { border-radius: 3px; min-width: 8px; }
 .plan-tl-cycle { background-color: var(--info); }
 .plan-tl-dock { background-color: var(--warning); }
 .plan-tl-walk { background-color: var(--success); }
@@ -847,7 +867,7 @@
     flex-shrink: 0;
 }
 
-/* -- Why not closer card -- */
+/* -- Why not closer -- */
 .plan-why-card {
     background-color: var(--bg-primary);
     border-radius: var(--radius-md);
@@ -871,7 +891,7 @@
     line-height: 1.4;
 }
 
-/* -- Plan alternatives list -- */
+/* -- Plan alternatives -- */
 .alt-row {
     display: flex;
     align-items: center;
@@ -886,15 +906,12 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.alt-row:hover {
-    background-color: var(--bg-secondary);
-}
+.alt-row:hover { background-color: var(--bg-secondary); }
 
 .alt-row.alt-recommended {
     background-color: var(--info-bg);
     border-left-color: var(--info);
 }
-
 .alt-row.alt-recommended:hover {
     background-color: var(--info-bg);
     filter: brightness(0.95);
@@ -904,7 +921,6 @@
     background-color: var(--success-bg);
     border-left-color: var(--success);
 }
-
 .alt-row.alt-recommended-green:hover {
     background-color: var(--success-bg);
     filter: brightness(0.95);
@@ -943,17 +959,10 @@
 }
 
 /* -- State transitions -- */
-#state-to-now,
-#state-from-now,
-#state-to-plan,
-#state-from-plan {
+#state-to-now, #state-from-now, #state-to-plan, #state-from-plan {
     transition: opacity 0.2s ease;
 }
-
-#state-to-now.fading,
-#state-from-now.fading,
-#state-to-plan.fading,
-#state-from-plan.fading {
+#state-to-now.fading, #state-from-now.fading, #state-to-plan.fading, #state-from-plan.fading {
     opacity: 0;
 }
 </style>
