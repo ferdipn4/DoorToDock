@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPlanForms();
     setupSortButtons();
     setupMapExpand();
+    renderSkeletonStationRows();
     switchState();
     initMap();
     window.addEventListener('resize', () => {
@@ -109,7 +110,7 @@ function wireToggle(btnId, dir) {
 function onDirectionSwitch() {
     if (timing === 'plan') {
         planData = null;
-        ['to-plan-result', 'from-plan-result'].forEach(id => {
+        ['to-plan-result', 'from-plan-result', 'to-plan-loading', 'from-plan-loading'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });
@@ -210,6 +211,14 @@ function switchState() {
         document.getElementById('to-plan-alternatives').style.display = direction === 'to' ? '' : 'none';
         document.getElementById('from-plan-alts-header').style.display = direction === 'from' ? '' : 'none';
         document.getElementById('from-plan-alternatives').style.display = direction === 'from' ? '' : 'none';
+
+        // Show static skeleton rows in plan alt containers if no results yet
+        const prefix = direction === 'to' ? 'to-plan' : 'from-plan';
+        const altContainer = document.getElementById(`${prefix}-alternatives`);
+        const resultEl = document.getElementById(`${prefix}-result`);
+        if (altContainer && resultEl && resultEl.style.display === 'none' && !altContainer.querySelector('.alt-row')) {
+            altContainer.innerHTML = Array(3).fill(buildSkeletonRow(false)).join('');
+        }
     }
 
     // Load data
@@ -229,12 +238,16 @@ async function loadToNow() {
     const hero = document.getElementById('to-now-hero');
     const error = document.getElementById('to-now-error');
     const allFull = document.getElementById('to-now-all-full');
+    const weatherSkel = document.getElementById('to-now-weather-skeleton');
     const weather = document.getElementById('to-now-weather');
 
     skeleton.style.display = '';
     hero.style.display = 'none';
     error.style.display = 'none';
     allFull.style.display = 'none';
+    weatherSkel.style.display = '';
+    weather.style.display = 'none';
+    showSkeletonStationRows('to-now-stations');
 
     try {
         const [pred, stns] = await Promise.all([
@@ -255,12 +268,15 @@ async function loadToNow() {
             renderToNowHero(pred);
         }
 
+        weatherSkel.style.display = 'none';
+        weather.style.display = '';
         renderToNowWeather(pred.weather);
         renderToNowStations(pred, stns);
         updateMapMarkers();
     } catch (e) {
         console.error('Failed to load predictions:', e);
         skeleton.style.display = 'none';
+        weatherSkel.style.display = 'none';
         error.style.display = '';
     }
 
@@ -366,10 +382,15 @@ async function loadFromNow() {
     const skeleton = document.getElementById('from-now-skeleton');
     const hero = document.getElementById('from-now-hero');
     const error = document.getElementById('from-now-error');
+    const weatherSkel = document.getElementById('from-now-weather-skeleton');
+    const weatherEl = document.getElementById('from-now-weather');
 
     skeleton.style.display = '';
     hero.style.display = 'none';
     error.style.display = 'none';
+    weatherSkel.style.display = '';
+    weatherEl.style.display = 'none';
+    showSkeletonStationRows('from-now-stations');
 
     try {
         const [stns, weather] = await Promise.all([
@@ -389,12 +410,15 @@ async function loadFromNow() {
         const walkMin = Math.round(best.walking_duration_s / 60);
         document.getElementById('from-now-walk').textContent = formatWalk(walkMin);
 
+        weatherSkel.style.display = 'none';
+        weatherEl.style.display = '';
         renderFromNowWeather(weather);
         renderFromNowStations(stns);
         updateMapMarkers();
     } catch (e) {
         console.error('Failed to load stations:', e);
         skeleton.style.display = 'none';
+        weatherSkel.style.display = 'none';
         error.style.display = '';
     }
 
@@ -491,25 +515,33 @@ function setupPlanFormFor(prefix) {
     const minSel = document.getElementById(`${prefix}-minute`);
     if (!hourSel || !minSel) return;
 
-    // Populate hours (0-23)
+    // Populate hours (0-23) — first option is placeholder
+    const hourPlaceholder = document.createElement('option');
+    hourPlaceholder.value = '';
+    hourPlaceholder.textContent = 'HH';
+    hourPlaceholder.disabled = true;
+    hourPlaceholder.selected = true;
+    hourSel.appendChild(hourPlaceholder);
     for (let h = 0; h < 24; h++) {
         const opt = document.createElement('option');
         opt.value = h;
         opt.textContent = String(h).padStart(2, '0');
         hourSel.appendChild(opt);
     }
-    // Populate minutes (0, 5, 10, ... 55)
+
+    // Populate minutes (0, 5, 10, ... 55) — first option is placeholder
+    const minPlaceholder = document.createElement('option');
+    minPlaceholder.value = '';
+    minPlaceholder.textContent = 'MM';
+    minPlaceholder.disabled = true;
+    minPlaceholder.selected = true;
+    minSel.appendChild(minPlaceholder);
     for (let m = 0; m < 60; m += 5) {
         const opt = document.createElement('option');
         opt.value = m;
         opt.textContent = String(m).padStart(2, '0');
         minSel.appendChild(opt);
     }
-
-    // Default: tomorrow 09:00 for "to", 17:00 for "from"
-    const defaultHour = prefix === 'to-plan' ? 9 : 17;
-    hourSel.value = defaultHour;
-    minSel.value = 0;
 
     // Day selector
     const daysContainer = document.getElementById(`${prefix}-days`);
@@ -518,7 +550,7 @@ function setupPlanFormFor(prefix) {
         const d = new Date(today);
         d.setDate(d.getDate() + i);
         const btn = document.createElement('button');
-        btn.className = 'plan-day-btn' + (i === 1 ? ' active' : '');
+        btn.className = 'plan-day-btn';
         btn.dataset.offset = i;
         const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow'
             : d.toLocaleDateString('en-GB', { weekday: 'short' });
@@ -526,26 +558,42 @@ function setupPlanFormFor(prefix) {
         btn.addEventListener('click', () => {
             daysContainer.querySelectorAll('.plan-day-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            updatePlanBtnState(prefix);
         });
         daysContainer.appendChild(btn);
     }
 
-    // Scan button
+    // Scan button — starts disabled
     const scanBtn = document.getElementById(`${prefix}-scan-btn`);
+    scanBtn.disabled = true;
     scanBtn.addEventListener('click', () => {
         if (prefix === 'to-plan') loadToPlan();
         else loadFromPlan();
     });
+
+    // Enable button when time + day are selected
+    hourSel.addEventListener('change', () => updatePlanBtnState(prefix));
+    minSel.addEventListener('change', () => updatePlanBtnState(prefix));
+}
+
+function updatePlanBtnState(prefix) {
+    const hourSel = document.getElementById(`${prefix}-hour`);
+    const minSel = document.getElementById(`${prefix}-minute`);
+    const dayBtn = document.querySelector(`#${prefix}-days .plan-day-btn.active`);
+    const scanBtn = document.getElementById(`${prefix}-scan-btn`);
+    const hasTime = hourSel.value !== '' && minSel.value !== '';
+    const hasDay = !!dayBtn;
+    scanBtn.disabled = !(hasTime && hasDay);
 }
 
 function getSelectedTime(prefix) {
     const dayBtn = document.querySelector(`#${prefix}-days .plan-day-btn.active`);
-    const offset = dayBtn ? parseInt(dayBtn.dataset.offset) : 1;
+    const offset = dayBtn ? parseInt(dayBtn.dataset.offset) : 0;
     const d = new Date();
     d.setDate(d.getDate() + offset);
     const dateStr = d.toISOString().split('T')[0];
-    const h = parseInt(document.getElementById(`${prefix}-hour`).value);
-    const m = parseInt(document.getElementById(`${prefix}-minute`).value);
+    const h = parseInt(document.getElementById(`${prefix}-hour`).value) || 0;
+    const m = parseInt(document.getElementById(`${prefix}-minute`).value) || 0;
     return `${dateStr}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
@@ -562,11 +610,14 @@ function getSelectedTimeDisplay(prefix) {
 async function loadToPlan() {
     const btn = document.getElementById('to-plan-scan-btn');
     const emptyState = document.getElementById('to-plan-empty');
+    const loading = document.getElementById('to-plan-loading');
     const resultEl = document.getElementById('to-plan-result');
     btn.classList.add('loading');
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Calculating...';
     if (emptyState) emptyState.style.display = 'none';
     if (resultEl) resultEl.style.display = 'none';
+    if (loading) loading.style.display = '';
+    showSkeletonStationRows('to-plan-alternatives');
     try {
         const [data, stns] = await Promise.all([
             getPredictionPlan({ arriveBy: getSelectedTime('to-plan'), mode: 'arrive' }),
@@ -574,11 +625,14 @@ async function loadToPlan() {
         ]);
         planData = data;
         if (!stationsData.length) stationsData = stns;
+        if (loading) loading.style.display = 'none';
         renderToPlanResult(data);
         renderPlanWeather('to-plan', data.weather_forecast);
         updateMapMarkers();
     } catch (e) {
         console.error('Failed to load plan:', e);
+        if (loading) loading.style.display = 'none';
+        if (emptyState) emptyState.style.display = '';
     } finally {
         btn.classList.remove('loading');
         btn.innerHTML = '<i class="bi bi-search"></i> Get recommendation';
@@ -651,11 +705,14 @@ function renderToPlanResult(data) {
 async function loadFromPlan() {
     const btn = document.getElementById('from-plan-scan-btn');
     const emptyState = document.getElementById('from-plan-empty');
+    const loading = document.getElementById('from-plan-loading');
     const resultEl = document.getElementById('from-plan-result');
     btn.classList.add('loading');
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Calculating...';
     if (emptyState) emptyState.style.display = 'none';
     if (resultEl) resultEl.style.display = 'none';
+    if (loading) loading.style.display = '';
+    showSkeletonStationRows('from-plan-alternatives');
     try {
         const [data, stns] = await Promise.all([
             getPredictionPlan({ arriveBy: getSelectedTime('from-plan'), mode: 'depart' }),
@@ -663,11 +720,14 @@ async function loadFromPlan() {
         ]);
         planData = data;
         if (!stationsData.length) stationsData = stns;
+        if (loading) loading.style.display = 'none';
         renderFromPlanResult(data);
         renderPlanWeather('from-plan', data.weather_forecast);
         updateMapMarkers();
     } catch (e) {
         console.error('Failed to load from-plan:', e);
+        if (loading) loading.style.display = 'none';
+        if (emptyState) emptyState.style.display = '';
     } finally {
         btn.classList.remove('loading');
         btn.innerHTML = '<i class="bi bi-search"></i> Get recommendation';
@@ -996,6 +1056,42 @@ function unhighlightMarker(stationId) {
 
 window._goHighlight = (id) => highlightMarker(id);
 window._goUnhighlight = (id) => unhighlightMarker(id);
+
+// ====================================================
+// SKELETON HELPERS
+// ====================================================
+
+function buildSkeletonRow(animated) {
+    const cls = animated ? 'skel-bar' : 'skel-bar skel-static-bar';
+    return `
+    <div class="skel-station-row${animated ? '' : ' skel-station-row-static'}">
+        <div style="flex:1; min-width:0;">
+            <div class="${cls}" style="width: 120px; height: 12px; margin-bottom: 6px;"></div>
+            <div class="${cls}" style="width: 80px; height: 8px;"></div>
+        </div>
+        <div style="text-align:right;">
+            <div class="${cls}" style="width: 28px; height: 18px; margin-left: auto; margin-bottom: 4px;"></div>
+            <div class="${cls}" style="width: 36px; height: 8px; margin-left: auto;"></div>
+        </div>
+    </div>`;
+}
+
+function renderSkeletonStationRows() {
+    // Fill station list containers with static (non-animated) skeleton rows on page load
+    ['to-now-stations', 'from-now-stations'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.innerHTML.trim()) {
+            el.innerHTML = Array(5).fill(buildSkeletonRow(false)).join('');
+        }
+    });
+}
+
+function showSkeletonStationRows(containerId) {
+    const el = document.getElementById(containerId);
+    if (el) {
+        el.innerHTML = Array(5).fill(buildSkeletonRow(true)).join('');
+    }
+}
 
 // ====================================================
 // HELPERS

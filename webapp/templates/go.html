@@ -24,14 +24,14 @@
 
             <!-- STATE 1: To Imperial + Now -->
             <div id="state-to-now">
-                <div class="hero-card hero-blue" id="to-now-skeleton">
-                    <div class="skeleton skeleton-text" style="width: 120px;"></div>
-                    <div class="skeleton skeleton-text-xl" style="width: 200px;"></div>
-                    <div class="hero-metrics">
-                        <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
-                        <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
+                <div id="to-now-skeleton" class="skel-hero-card skel-hero-blue">
+                    <div class="skel-bar" style="width: 100px; height: 10px;"></div>
+                    <div class="skel-bar" style="width: 70%; height: 20px; margin: 8px 0 12px;"></div>
+                    <div style="display: flex; gap: 16px; margin-bottom: 10px;">
+                        <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                        <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
                     </div>
-                    <div class="skeleton" style="height: 28px; border-radius: var(--radius-sm);"></div>
+                    <div class="skel-bar" style="width: 100%; height: 28px;"></div>
                 </div>
                 <div class="hero-card hero-blue" id="to-now-hero" style="display: none;">
                     <div class="hero-label">DOCK YOUR BIKE AT</div>
@@ -61,7 +61,8 @@
                     <p class="ds-empty-title">All nearby stations are predicted full</p>
                     <p class="ds-empty-desc">Consider leaving 10 minutes earlier or trying an alternative route</p>
                 </div>
-                <div class="weather-strip" id="to-now-weather">
+                <div id="to-now-weather-skeleton" class="weather-strip"><i class="bi bi-cloud"></i><span><span class="skel-bar-inline" style="width: 180px;"></span></span></div>
+                <div class="weather-strip" id="to-now-weather" style="display: none;">
                     <i class="bi bi-cloud-rain"></i>
                     <span id="to-now-weather-text">--</span>
                 </div>
@@ -69,14 +70,14 @@
 
             <!-- STATE 2: From Imperial + Now -->
             <div id="state-from-now" style="display: none;">
-                <div class="hero-card hero-green" id="from-now-skeleton">
-                    <div class="skeleton skeleton-text" style="width: 120px;"></div>
-                    <div class="skeleton skeleton-text-xl" style="width: 200px;"></div>
-                    <div class="hero-metrics">
-                        <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
-                        <div class="hero-metric"><div class="skeleton skeleton-text-xl" style="width: 40px; margin: 0 auto;"></div><div class="skeleton skeleton-text" style="width: 60px; margin: 0 auto;"></div></div>
+                <div id="from-now-skeleton" class="skel-hero-card skel-hero-green">
+                    <div class="skel-bar" style="width: 100px; height: 10px;"></div>
+                    <div class="skel-bar" style="width: 70%; height: 20px; margin: 8px 0 12px;"></div>
+                    <div style="display: flex; gap: 16px; margin-bottom: 10px;">
+                        <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                        <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
                     </div>
-                    <div class="skeleton" style="height: 28px; border-radius: var(--radius-sm);"></div>
+                    <div class="skel-bar" style="width: 100%; height: 28px;"></div>
                 </div>
                 <div class="hero-card hero-green" id="from-now-hero" style="display: none;">
                     <div class="hero-label">PICK UP A BIKE AT</div>
@@ -101,7 +102,8 @@
                         <button class="ds-retry-btn" id="from-now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
                     </div>
                 </div>
-                <div class="weather-strip" id="from-now-weather">
+                <div id="from-now-weather-skeleton" class="weather-strip"><i class="bi bi-cloud"></i><span><span class="skel-bar-inline" style="width: 180px;"></span></span></div>
+                <div class="weather-strip" id="from-now-weather" style="display: none;">
                     <i class="bi bi-cloud"></i>
                     <span id="from-now-weather-text">--</span>
                 </div>
@@ -132,10 +134,24 @@
                         <i class="bi bi-search"></i> Get recommendation
                     </button>
                 </div>
-                <div class="ds-empty-state" id="to-plan-empty">
-                    <i class="bi bi-clock-history"></i>
-                    <p class="ds-empty-title">Set your arrival time and tap the button</p>
-                    <p class="ds-empty-desc">Select when you need to arrive at Imperial</p>
+                <!-- Plan skeleton / empty state (static grey placeholders) -->
+                <div id="to-plan-empty" class="skel-hero-card skel-hero-blue skel-static">
+                    <div class="skel-bar skel-static-bar" style="width: 100px; height: 10px;"></div>
+                    <div class="skel-bar skel-static-bar" style="width: 60%; height: 20px; margin: 8px 0 6px;"></div>
+                    <div class="skel-bar skel-static-bar" style="width: 80%; height: 12px; margin-bottom: 12px;"></div>
+                    <div class="skel-bar skel-static-bar" style="width: 100%; height: 8px; margin-bottom: 4px; border-radius: 4px;"></div>
+                    <div class="skel-bar skel-static-bar" style="width: 100%; height: 28px;"></div>
+                    <p class="skel-hint">Set your time and tap Get recommendation</p>
+                </div>
+                <!-- Plan loading skeleton (animated) -->
+                <div id="to-plan-loading" style="display: none;">
+                    <div class="skel-hero-card skel-hero-blue">
+                        <div class="skel-bar" style="width: 100px; height: 10px;"></div>
+                        <div class="skel-bar" style="width: 60%; height: 20px; margin: 8px 0 6px;"></div>
+                        <div class="skel-bar" style="width: 80%; height: 12px; margin-bottom: 12px;"></div>
+                        <div class="skel-bar" style="width: 100%; height: 8px; margin-bottom: 4px; border-radius: 4px;"></div>
+                        <div class="skel-bar" style="width: 100%; height: 28px;"></div>
+                    </div>
                 </div>
                 <div id="to-plan-result" style="display: none;">
                     <div class="hero-card hero-blue" id="to-plan-hero">
@@ -184,10 +200,26 @@
                         <i class="bi bi-search"></i> Get recommendation
                     </button>
                 </div>
-                <div class="ds-empty-state" id="from-plan-empty">
-                    <i class="bi bi-clock-history"></i>
-                    <p class="ds-empty-title">Set your departure time and tap the button</p>
-                    <p class="ds-empty-desc">Select when you want to leave Imperial</p>
+                <div id="from-plan-empty" class="skel-hero-card skel-hero-green skel-static">
+                    <div class="skel-bar skel-static-bar" style="width: 100px; height: 10px;"></div>
+                    <div class="skel-bar skel-static-bar" style="width: 60%; height: 20px; margin: 8px 0 12px;"></div>
+                    <div style="display: flex; gap: 16px; margin-bottom: 10px;">
+                        <div style="flex:1; text-align:center;"><div class="skel-bar skel-static-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar skel-static-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                        <div style="flex:1; text-align:center;"><div class="skel-bar skel-static-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar skel-static-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                    </div>
+                    <div class="skel-bar skel-static-bar" style="width: 100%; height: 28px;"></div>
+                    <p class="skel-hint">Set your time and tap Get recommendation</p>
+                </div>
+                <div id="from-plan-loading" style="display: none;">
+                    <div class="skel-hero-card skel-hero-green">
+                        <div class="skel-bar" style="width: 100px; height: 10px;"></div>
+                        <div class="skel-bar" style="width: 60%; height: 20px; margin: 8px 0 12px;"></div>
+                        <div style="display: flex; gap: 16px; margin-bottom: 10px;">
+                            <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                            <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                        </div>
+                        <div class="skel-bar" style="width: 100%; height: 28px;"></div>
+                    </div>
                 </div>
                 <div id="from-plan-result" style="display: none;">
                     <div class="hero-card hero-green" id="from-plan-hero">
@@ -247,11 +279,7 @@
                         <button class="sort-btn" data-sort="distance">By distance</button>
                     </div>
                 </div>
-                <div class="station-list" id="to-now-stations">
-                    <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                    <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                    <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                </div>
+                <div class="station-list" id="to-now-stations"></div>
                 <div class="station-list-sort-row" id="from-now-sort-row" style="display: none;">
                     <span class="station-list-header">ALTERNATIVE STATIONS</span>
                     <div class="sort-toggle" id="from-now-sort">
@@ -384,20 +412,10 @@
     }
 }
 
-/* Webkit scrollbar for left column */
-.go-left::-webkit-scrollbar {
-    width: 4px;
-}
-.go-left::-webkit-scrollbar-track {
-    background: transparent;
-}
-.go-left::-webkit-scrollbar-thumb {
-    background: transparent;
-    border-radius: 4px;
-}
-.go-left:hover::-webkit-scrollbar-thumb {
-    background: var(--border);
-}
+.go-left::-webkit-scrollbar { width: 4px; }
+.go-left::-webkit-scrollbar-track { background: transparent; }
+.go-left::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+.go-left:hover::-webkit-scrollbar-thumb { background: var(--border); }
 
 /* -- Right column -- */
 .go-right {
@@ -418,19 +436,94 @@
     }
 }
 
-/* Webkit scrollbar for right column */
-.go-right::-webkit-scrollbar {
-    width: 4px;
+.go-right::-webkit-scrollbar { width: 4px; }
+.go-right::-webkit-scrollbar-track { background: transparent; }
+.go-right::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+.go-right:hover::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* ═══════════════════════════════════════════════
+   SKELETON LOADING
+   ═══════════════════════════════════════════════ */
+@keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
 }
-.go-right::-webkit-scrollbar-track {
-    background: transparent;
-}
-.go-right::-webkit-scrollbar-thumb {
-    background: transparent;
+
+.skel-bar {
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite linear;
     border-radius: 4px;
 }
-.go-right:hover::-webkit-scrollbar-thumb {
-    background: var(--border);
+
+.skel-bar-inline {
+    display: inline-block;
+    height: 10px;
+    vertical-align: middle;
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 4px;
+}
+
+[data-bs-theme="dark"] .skel-bar,
+[data-bs-theme="dark"] .skel-bar-inline {
+    background: linear-gradient(90deg, #2c2c2c 25%, #3a3a3a 50%, #2c2c2c 75%);
+    background-size: 800px 100%;
+}
+
+/* Static skeleton bars (no animation) */
+.skel-static-bar {
+    background: #e5e7eb !important;
+    animation: none !important;
+}
+
+[data-bs-theme="dark"] .skel-static-bar {
+    background: #2c2c2c !important;
+}
+
+/* Skeleton hero card */
+.skel-hero-card {
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-top: 3px solid transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    background: var(--bg-primary);
+}
+
+.skel-hero-blue { border-top-color: #2563eb; }
+.skel-hero-green { border-top-color: #0d9488; }
+
+.skel-hint {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin: 12px 0 0;
+}
+
+/* Skeleton station rows */
+.skel-station-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    min-height: 56px;
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-md);
+    gap: 10px;
+    border-left: 3px solid transparent;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.skel-station-row-static .skel-bar {
+    background: #e5e7eb !important;
+    animation: none !important;
+}
+
+[data-bs-theme="dark"] .skel-station-row-static .skel-bar {
+    background: #2c2c2c !important;
 }
 
 /* ═══════════════════════════════════════════════
@@ -604,7 +697,6 @@
     background: var(--bg-secondary);
 }
 
-/* Hide expand button on desktop — map already fills column */
 @media (min-width: 900px) {
     .minimap-expand-btn {
         display: none;
@@ -834,12 +926,23 @@
     font-weight: 500;
     font-family: inherit;
     cursor: pointer;
-    transition: opacity 0.12s, background-color 0.12s;
+    transition: opacity 0.3s ease, background-color 0.3s ease;
 }
 
-.plan-scan-btn:hover { opacity: 0.9; }
-.plan-scan-btn:active { opacity: 0.8; }
+.plan-scan-btn:hover:not(:disabled):not(.loading) { opacity: 0.9; }
+.plan-scan-btn:active:not(:disabled):not(.loading) { opacity: 0.8; }
 .plan-scan-btn.loading { opacity: 0.6; pointer-events: none; }
+
+.plan-scan-btn:disabled {
+    background-color: #d1d5db;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+[data-bs-theme="dark"] .plan-scan-btn:disabled {
+    background-color: #374151;
+    color: #6b7280;
+}
 
 .plan-field {
     display: flex;
