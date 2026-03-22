@@ -425,9 +425,15 @@ function renderFromNowStations(stns) {
     _fromNowStationsCache = stns;
     const container = document.getElementById('from-now-stations');
 
+    // Find the best station (closest with bikes) to mark as recommended
+    const sortedByDist = [...stns].sort((a, b) => a.walking_distance_m - b.walking_distance_m);
+    const bestStation = sortedByDist.find(s => s.available_bikes > 0) || sortedByDist[0];
+    const bestId = bestStation ? bestStation.station_id : null;
+
     let list = stns.map(s => ({
         ...s,
         walkMin: Math.round(s.walking_duration_s / 60),
+        isRec: s.station_id === bestId,
     }));
 
     // Sort
@@ -436,8 +442,9 @@ function renderFromNowStations(stns) {
     } else if (fromNowSort === 'distance') {
         list.sort((a, b) => a.walking_distance_m - b.walking_distance_m);
     } else {
-        // preference: by preference, then distance
+        // preference: recommended first, then by preference, then distance
         list.sort((a, b) => {
+            if (a.isRec !== b.isRec) return a.isRec ? -1 : 1;
             const pa = preferenceIndex(a.station_id);
             const pb = preferenceIndex(b.station_id);
             if (pa !== pb) return pa - pb;
@@ -448,8 +455,9 @@ function renderFromNowStations(stns) {
     container.innerHTML = list.map(s => {
         const bikes = s.available_bikes;
         const colorCls = bikeColorClass(bikes);
+        const recCls = s.isRec ? ' recommended-green' : '';
         return `
-        <div class="station-row" data-station="${s.station_id}"
+        <div class="station-row${recCls}" data-station="${s.station_id}"
              onmouseenter="window._goHighlight('${s.station_id}')"
              onmouseleave="window._goUnhighlight('${s.station_id}')">
             <div class="station-row-left">

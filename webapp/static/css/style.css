@@ -27,7 +27,7 @@
   --radius-xl: 16px;
 
   /* Layout */
-  --topbar-height: 56px;
+  --topbar-height: 60px;
   --bottomnav-height: 56px;
 }
 
@@ -113,33 +113,35 @@ body {
 /* ── Top Bar (desktop, >= 768px) ── */
 .topbar {
   display: none;
-  height: var(--topbar-height);
+  height: 60px;
   background-color: var(--bg-primary);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   align-items: center;
-  padding: 0 24px;
+  padding: 0 28px;
   flex-shrink: 0;
 }
 
 .topbar-brand {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  letter-spacing: -0.3px;
 }
 
 .topbar-brand i {
-  font-size: 20px;
-  color: var(--info);
+  font-size: 22px;
+  color: #2563eb;
 }
 
 .topbar-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   margin-left: auto;
 }
 
@@ -147,21 +149,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 0 14px;
+  gap: 7px;
+  padding: 8px 16px;
   text-decoration: none;
   font-size: 13px;
-  font-weight: 400;
-  color: var(--text-secondary);
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-md);
+  transition: color 0.2s, background-color 0.2s;
   white-space: nowrap;
-  height: calc(var(--topbar-height) - 2px);
-  box-sizing: border-box;
 }
 
 .topbar-item i {
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .topbar-item:hover {
@@ -170,24 +170,17 @@ body {
 }
 
 .topbar-item.active {
-  color: var(--info);
-  font-weight: 500;
-  border-bottom-color: var(--info);
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.08);
 }
 
-/* Nav clock – desktop */
-.nav-clock {
-  margin-left: 20px;
-  padding-left: 20px;
-  border-left: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  height: 24px;
-  display: flex;
-  align-items: center;
+[data-bs-theme="dark"] .topbar-item.active {
+  color: #60a5fa;
+  background-color: rgba(96, 165, 250, 0.1);
+}
+
+[data-bs-theme="dark"] .topbar-brand i {
+  color: #60a5fa;
 }
 
 @media (min-width: 768px) {

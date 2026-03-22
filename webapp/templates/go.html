@@ -341,12 +341,12 @@
 }
 
 .go-dir-btn.go-dir-to.active {
-    background: #2B6CB0;
+    background: #2563eb;
     color: #fff;
 }
 
 .go-dir-btn.go-dir-from.active {
-    background: #3B9BBF;
+    background: #0d9488;
     color: #fff;
 }
 
@@ -441,15 +441,27 @@
     padding: 16px 18px;
     margin-bottom: 12px;
     background: var(--bg-primary);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border);
+    border-top: 3px solid transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .hero-blue {
-    border-left: 4px solid var(--info);
+    border-top-color: #2563eb;
+    background: #f0f5ff;
 }
 
 .hero-green {
-    border-left: 4px solid var(--success);
+    border-top-color: #0d9488;
+    background: #f0fdfa;
+}
+
+[data-bs-theme="dark"] .hero-blue {
+    background: rgba(37, 99, 235, 0.08);
+}
+
+[data-bs-theme="dark"] .hero-green {
+    background: rgba(13, 148, 136, 0.08);
 }
 
 .hero-label {

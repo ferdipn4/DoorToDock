@@ -33,19 +33,18 @@
             <span class="topbar-brand"><i class="bi bi-bicycle"></i> Door2Dock</span>
             <div class="topbar-nav">
                 <a href="/go?timing=now" class="topbar-item {% if active_tab == 'go' and active_timing|default('now') == 'now' %}active{% endif %}">
-                    <i class="bi bi-cursor-fill"></i> Now
+                    <i class="bi bi-cursor-fill"></i><span>Now</span>
                 </a>
                 <a href="/go?timing=plan" class="topbar-item {% if active_tab == 'go' and active_timing|default('now') == 'plan' %}active{% endif %}">
-                    <i class="bi bi-calendar-check"></i> Plan trip
+                    <i class="bi bi-calendar-check"></i><span>Plan trip</span>
                 </a>
                 <a href="/insights" class="topbar-item {% if active_tab == 'insights' %}active{% endif %}">
-                    <i class="bi bi-bar-chart"></i> Insights
+                    <i class="bi bi-bar-chart-line"></i><span>Insights</span>
                 </a>
                 <a href="/settings" class="topbar-item {% if active_tab == 'settings' %}active{% endif %}">
-                    <i class="bi bi-gear"></i> Settings
+                    <i class="bi bi-gear"></i><span>Settings</span>
                 </a>
             </div>
-            <span class="nav-clock" id="nav-clock-desktop"></span>
         </nav>
 
         <!-- Main Content -->
@@ -79,13 +78,13 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Nav clock -->
+    <!-- Mobile nav clock -->
     <script>
     (function() {
-        var els = [document.getElementById('nav-clock-desktop'), document.getElementById('nav-clock-mobile')];
+        var el = document.getElementById('nav-clock-mobile');
         function tick() {
             var t = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            els.forEach(function(el) { if (el) el.textContent = t; });
+            if (el) el.textContent = t;
         }
         tick();
         setInterval(tick, 10000);
