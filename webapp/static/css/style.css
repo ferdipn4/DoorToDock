@@ -138,6 +138,14 @@ body {
   color: #2563eb;
 }
 
+.topbar-clock {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin-left: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
 .topbar-nav {
   display: flex;
   align-items: center;
