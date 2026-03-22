@@ -45,6 +45,7 @@
                     <i class="bi bi-gear"></i> Settings
                 </a>
             </div>
+            <span class="nav-clock" id="nav-clock-desktop"></span>
         </nav>
 
         <!-- Main Content -->
@@ -63,6 +64,7 @@
             <i class="bi bi-calendar-check"></i>
             <span>Plan trip</span>
         </a>
+        <span class="bottom-nav-clock" id="nav-clock-mobile"></span>
         <a href="/insights" class="bottom-nav-item {% if active_tab == 'insights' %}active{% endif %}">
             <i class="bi bi-bar-chart"></i>
             <span>Insights</span>
@@ -75,6 +77,18 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Nav clock -->
+    <script>
+    (function() {
+        var els = [document.getElementById('nav-clock-desktop'), document.getElementById('nav-clock-mobile')];
+        function tick() {
+            var t = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            els.forEach(function(el) { if (el) el.textContent = t; });
+        }
+        tick();
+        setInterval(tick, 10000);
+    })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
