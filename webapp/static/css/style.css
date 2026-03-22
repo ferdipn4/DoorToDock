@@ -138,19 +138,26 @@ body {
   color: #2563eb;
 }
 
-.topbar-clock {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  margin-left: 16px;
-  font-variant-numeric: tabular-nums;
-}
-
 .topbar-nav {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-left: auto;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border);
+  margin-left: 12px;
+}
+
+.topbar-clock {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin-left: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .topbar-item {

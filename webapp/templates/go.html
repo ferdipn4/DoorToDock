@@ -84,7 +84,7 @@
                     <div class="hero-station-name" id="from-now-name">--</div>
                     <div class="hero-metrics">
                         <div class="hero-metric">
-                            <span class="hero-metric-value text-ds-success" id="from-now-bikes">--</span>
+                            <span class="hero-metric-value text-ds-info" id="from-now-bikes">--</span>
                             <span class="hero-metric-label">bikes available now</span>
                         </div>
                         <div class="hero-metric">
@@ -227,7 +227,7 @@
                         <div class="hero-station-name" id="from-plan-name">--</div>
                         <div class="hero-metrics">
                             <div class="hero-metric">
-                                <span class="hero-metric-value text-ds-success" id="from-plan-bikes">--</span>
+                                <span class="hero-metric-value text-ds-info" id="from-plan-bikes">--</span>
                                 <span class="hero-metric-label" id="from-plan-bikes-label">predicted bikes</span>
                             </div>
                             <div class="hero-metric">
@@ -489,7 +489,7 @@
 }
 
 .skel-hero-blue { border-top-color: #2563eb; }
-.skel-hero-green { border-top-color: #0d9488; }
+.skel-hero-green { border-top-color: #2563eb; }
 
 .skel-hint {
     font-size: 12px;
@@ -540,8 +540,8 @@
 }
 
 .hero-green {
-    border-top-color: #0d9488;
-    background: #f0fdfa;
+    border-top-color: #2563eb;
+    background: #f0f5ff;
 }
 
 [data-bs-theme="dark"] .hero-blue {
@@ -549,7 +549,7 @@
 }
 
 [data-bs-theme="dark"] .hero-green {
-    background: rgba(13, 148, 136, 0.08);
+    background: rgba(37, 99, 235, 0.08);
 }
 
 .hero-label {
@@ -831,12 +831,12 @@
 }
 
 .station-row.recommended-green {
-    background-color: var(--success-bg);
-    border-left-color: var(--success);
+    background-color: var(--info-bg);
+    border-left-color: var(--info);
 }
 
 .station-row.recommended-green:hover {
-    background-color: var(--success-bg);
+    background-color: var(--info-bg);
     filter: brightness(0.95);
 }
 
@@ -1127,11 +1127,11 @@
 }
 
 .alt-row.alt-recommended-green {
-    background-color: var(--success-bg);
-    border-left-color: var(--success);
+    background-color: var(--info-bg);
+    border-left-color: var(--info);
 }
 .alt-row.alt-recommended-green:hover {
-    background-color: var(--success-bg);
+    background-color: var(--info-bg);
     filter: brightness(0.95);
 }
 
