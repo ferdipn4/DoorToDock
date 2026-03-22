@@ -3,27 +3,13 @@
 
 {% block content %}
 <div class="go-layout">
+    <div class="go-col">
 
-    <!-- Left panel (controls + stations) -->
-    <div class="go-panel">
-
-        <!-- Toggle row -->
+        <!-- Direction toggle -->
         <div class="go-toggles">
             <div class="ds-segmented">
                 <button class="ds-segmented-btn active" id="btn-to">To Imperial</button>
                 <button class="ds-segmented-btn" id="btn-from">From Imperial</button>
-            </div>
-        </div>
-
-        <!-- Mobile: list/map view toggle (Now mode only) -->
-        <div class="go-view-toggle" id="view-toggle" style="display: none;">
-            <div class="ds-segmented" style="width: 100%;">
-                <button class="ds-segmented-btn active" id="btn-list-view" style="flex:1; text-align:center;">
-                    <i class="bi bi-list-ul"></i> Show list
-                </button>
-                <button class="ds-segmented-btn" id="btn-map-view" style="flex:1; text-align:center;">
-                    <i class="bi bi-geo-alt"></i> Show on map
-                </button>
             </div>
         </div>
 
@@ -82,22 +68,6 @@
                 <i class="bi bi-cloud-rain"></i>
                 <span id="to-now-weather-text">--</span>
             </div>
-
-            <!-- Alternatives -->
-            <div class="station-list-sort-row">
-                <span class="station-list-header">ALTERNATIVES</span>
-                <div class="sort-toggle" id="to-now-sort">
-                    <button class="sort-btn active" data-sort="preference">By preference</button>
-                    <button class="sort-btn" data-sort="availability">By availability</button>
-                    <button class="sort-btn" data-sort="distance">By distance</button>
-                </div>
-            </div>
-            <div class="station-list" id="to-now-stations">
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-            </div>
         </div>
 
         <!-- ════════════════════════════════════════════ -->
@@ -141,22 +111,6 @@
                     <p class="ds-error-desc">Check your connection and try again</p>
                     <button class="ds-retry-btn" id="from-now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
                 </div>
-            </div>
-
-            <!-- Other stations -->
-            <div class="station-list-sort-row">
-                <span class="station-list-header">OTHER STATIONS</span>
-                <div class="sort-toggle" id="from-now-sort">
-                    <button class="sort-btn active" data-sort="preference">By preference</button>
-                    <button class="sort-btn" data-sort="availability">By availability</button>
-                    <button class="sort-btn" data-sort="distance">By distance</button>
-                </div>
-            </div>
-            <div class="station-list" id="from-now-stations">
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
-                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
             </div>
         </div>
 
@@ -219,10 +173,6 @@
                     <div class="plan-why-label">WHY NOT CLOSER?</div>
                     <div class="plan-why-text" id="to-plan-why-text"></div>
                 </div>
-
-                <!-- Station comparison -->
-                <div class="station-list-header">STATION COMPARISON</div>
-                <div class="station-list" id="to-plan-alternatives"></div>
             </div>
         </div>
 
@@ -280,38 +230,17 @@
                     </div>
                     <div class="hero-trip">Walk to station only, no cycle time</div>
                 </div>
-
-                <!-- Other stations at future time -->
-                <div class="station-list-header">OTHER STATIONS AT THAT TIME</div>
-                <div class="station-list" id="from-plan-alternatives"></div>
             </div>
         </div>
 
-        <!-- Mobile map (Now mode, "Show on map" view) -->
-        <div id="mobile-map-container" style="display: none;">
-            <div id="mobile-map" class="mobile-map-canvas"></div>
-            <div class="map-legend" id="mobile-map-legend">
-                <div class="map-legend-item">
-                    <span class="map-legend-dot" style="background: var(--danger);"></span>Full
-                </div>
-                <div class="map-legend-item">
-                    <span class="map-legend-dot" style="background: var(--warning);"></span>Low
-                </div>
-                <div class="map-legend-item">
-                    <span class="map-legend-dot" style="background: var(--success);"></span>Available
-                </div>
-                <div class="map-legend-item">
-                    <span class="map-legend-dot map-legend-dot-rec"></span>Recommended
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Right panel: map (desktop only) -->
-    <div class="go-map-panel" id="go-map-panel">
-        <div id="go-right-map" class="go-right-view">
-            <div id="go-map" class="go-map"></div>
+        <!-- ════════════════════════════════════════════ -->
+        <!-- MINI MAP (shared across all states)         -->
+        <!-- ════════════════════════════════════════════ -->
+        <div class="go-minimap-wrap" id="minimap-wrap">
+            <div class="go-minimap" id="go-minimap"></div>
+            <button class="minimap-expand-btn" id="minimap-expand" title="Expand map">
+                <i class="bi bi-arrows-angle-expand"></i>
+            </button>
             <div class="map-legend" id="map-legend">
                 <div class="map-legend-item">
                     <span class="map-legend-dot" style="background: var(--danger);"></span>Full
@@ -327,141 +256,95 @@
                 </div>
             </div>
         </div>
-        <!-- Plan mode: map overlay (shown over go-right-map) -->
-        <div id="plan-map-overlay" class="plan-map-overlay" style="display: none;">
-            <div class="plan-map-overlay-inner">
-                <i class="bi bi-calendar3"></i>
-                <p>Select a date and time to see station predictions</p>
-            </div>
-        </div>
-    </div>
 
+        <!-- ════════════════════════════════════════════ -->
+        <!-- STATION LIST (shared across all states)     -->
+        <!-- ════════════════════════════════════════════ -->
+
+        <!-- Now mode stations -->
+        <div id="stations-now">
+            <div class="station-list-sort-row" id="to-now-sort-row">
+                <span class="station-list-header">ALTERNATIVES</span>
+                <div class="sort-toggle" id="to-now-sort">
+                    <button class="sort-btn active" data-sort="preference">By preference</button>
+                    <button class="sort-btn" data-sort="availability">By availability</button>
+                    <button class="sort-btn" data-sort="distance">By distance</button>
+                </div>
+            </div>
+            <div class="station-list" id="to-now-stations">
+                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+                <div class="station-row"><div class="skeleton" style="height: 14px; width: 100%; border-radius: 4px;"></div></div>
+            </div>
+
+            <div class="station-list-sort-row" id="from-now-sort-row" style="display: none;">
+                <span class="station-list-header">OTHER STATIONS</span>
+                <div class="sort-toggle" id="from-now-sort">
+                    <button class="sort-btn active" data-sort="preference">By preference</button>
+                    <button class="sort-btn" data-sort="availability">By availability</button>
+                    <button class="sort-btn" data-sort="distance">By distance</button>
+                </div>
+            </div>
+            <div class="station-list" id="from-now-stations" style="display: none;"></div>
+        </div>
+
+        <!-- Plan mode stations -->
+        <div id="stations-plan" style="display: none;">
+            <div class="station-list-header" id="to-plan-alts-header">STATION COMPARISON</div>
+            <div class="station-list" id="to-plan-alternatives"></div>
+            <div class="station-list-header" id="from-plan-alts-header" style="display: none;">OTHER STATIONS AT THAT TIME</div>
+            <div class="station-list" id="from-plan-alternatives" style="display: none;"></div>
+        </div>
+
+    </div>
 </div>
 {% endblock %}
 
 {% block head %}
 <style>
-/* -- Go layout: mobile = single column, desktop = split panel -- */
+/* ═══════════════════════════════════════════════════
+   GO PAGE — Single column, recommendation-first
+   ═══════════════════════════════════════════════════ */
+
 .go-layout {
     display: flex;
-    height: 100%;
+    justify-content: center;
+    min-height: 100%;
 }
 
-/* Left panel */
-.go-panel {
-    padding: 12px 16px;
-    max-width: 480px;
-    margin: 0 auto;
+.go-col {
     width: 100%;
+    max-width: 700px;
+    padding: 12px 16px;
     overflow-y: auto;
 }
 
-/* Right map panel: hidden on mobile */
-.go-map-panel {
-    display: none;
-}
-
-@media (min-width: 1024px) {
-    .go-layout {
-        height: calc(100vh - var(--topbar-height));
-    }
-
-    .go-panel {
-        width: 58%;
-        min-width: 380px;
-        margin: 0;
-        padding: 16px 20px;
-        border-right: 0.5px solid var(--border);
-        overflow-y: auto;
-    }
-
-    .go-map-panel {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        position: relative;
-    }
-
-    .go-map {
-        flex: 1;
-        width: 100%;
-        min-height: 0;
+@media (min-width: 768px) {
+    .go-col {
+        padding: 20px 24px;
     }
 }
 
-/* -- Toggles row -- */
+/* -- Direction toggle -- */
 .go-toggles {
-    display: flex;
-    gap: 8px;
     margin-bottom: 12px;
-}
-
-/* Mobile list/map view toggle */
-.go-view-toggle {
-    margin-bottom: 12px;
-}
-
-@media (min-width: 1024px) {
-    .go-view-toggle { display: none !important; }
-}
-
-/* Mobile map container */
-#mobile-map-container {
-    position: relative;
-    width: 100%;
-    height: calc(100vh - 160px);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-}
-
-.mobile-map-canvas {
-    width: 100%;
-    height: 100%;
-}
-
-#mobile-map-container .map-legend {
-    position: absolute;
-    bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1001;
-    border-radius: var(--radius-lg);
-    padding: 8px 14px;
-    background-color: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 0.5px solid var(--border);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    font-size: 11px;
-    color: var(--text-secondary);
-}
-
-[data-bs-theme="dark"] #mobile-map-container .map-legend {
-    background-color: rgba(26, 26, 26, 0.92);
-}
-
-@media (min-width: 1024px) {
-    #mobile-map-container { display: none !important; }
 }
 
 /* -- Hero recommendation card -- */
 .hero-card {
     border-radius: var(--radius-lg);
-    padding: 14px 16px;
-    margin-bottom: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    background: var(--bg-primary);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .hero-blue {
-    background-color: var(--info-bg);
-    border: 0.5px solid var(--info);
+    border-left: 4px solid var(--info);
 }
 
 .hero-green {
-    background-color: var(--success-bg);
-    border: 0.5px solid var(--success);
+    border-left: 4px solid var(--success);
 }
 
 .hero-label {
@@ -474,7 +357,7 @@
 }
 
 .hero-station-name {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 12px;
@@ -497,7 +380,7 @@
 }
 
 .hero-metric-value {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 600;
     line-height: 1;
 }
@@ -509,7 +392,7 @@
 }
 
 .hero-trip {
-    background-color: var(--bg-primary);
+    background-color: var(--bg-secondary);
     border-radius: var(--radius-sm);
     padding: 6px 10px;
     font-size: 12px;
@@ -531,7 +414,7 @@
     padding: 8px 12px;
     font-size: 12px;
     color: var(--text-secondary);
-    margin-bottom: 16px;
+    margin-bottom: 4px;
 }
 
 .weather-strip i {
@@ -540,7 +423,111 @@
     flex-shrink: 0;
 }
 
-/* -- Station list -- */
+/* ═══════════════════════════════════════════════
+   MINI MAP
+   ═══════════════════════════════════════════════ */
+.go-minimap-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 16px;
+    border: 0.5px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.go-minimap {
+    width: 100%;
+    height: 200px;
+    transition: height 0.3s ease;
+}
+
+.go-minimap-wrap.expanded .go-minimap {
+    height: 420px;
+}
+
+@media (min-width: 768px) {
+    .go-minimap {
+        height: 250px;
+    }
+    .go-minimap-wrap.expanded .go-minimap {
+        height: 500px;
+    }
+}
+
+.minimap-expand-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1001;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    transition: background-color 0.12s;
+}
+
+.minimap-expand-btn:hover {
+    background: var(--bg-secondary);
+}
+
+.go-minimap-wrap.expanded .minimap-expand-btn i::before {
+    content: "\F13A";  /* bi-arrows-angle-contract */
+}
+
+.go-minimap-wrap .map-legend {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    border-radius: var(--radius-lg);
+    padding: 6px 12px;
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 0.5px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+[data-bs-theme="dark"] .go-minimap-wrap .map-legend {
+    background-color: rgba(26, 26, 26, 0.92);
+}
+
+.map-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.map-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.map-legend-dot-rec {
+    background: var(--info);
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 3.5px var(--info);
+}
+
+/* ═══════════════════════════════════════════════
+   STATION LIST
+   ═══════════════════════════════════════════════ */
 .station-list-sort-row {
     display: flex;
     align-items: center;
@@ -599,16 +586,17 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-primary);
     border-radius: var(--radius-md);
     gap: 10px;
     border-left: 3px solid transparent;
     transition: background-color 0.12s;
     cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .station-row:hover {
-    background-color: var(--bg-tertiary);
+    background-color: var(--bg-secondary);
 }
 
 .station-row.recommended {
@@ -692,46 +680,6 @@
     color: var(--text-tertiary);
 }
 
-
-/* -- Map legend -- */
-.map-legend {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 8px 16px;
-    background-color: var(--bg-primary);
-    border-top: 0.5px solid var(--border);
-    font-size: 11px;
-    color: var(--text-secondary);
-}
-
-.map-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.map-legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.map-legend-dot-rec {
-    background: var(--info);
-    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 3.5px var(--info);
-}
-
-/* -- Right panel view switching -- */
-.go-right-view {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-}
-
 /* -- Plan form -- */
 .plan-form {
     display: flex;
@@ -758,18 +706,9 @@
     transition: opacity 0.12s, background-color 0.12s;
 }
 
-.plan-scan-btn:hover {
-    opacity: 0.9;
-}
-
-.plan-scan-btn:active {
-    opacity: 0.8;
-}
-
-.plan-scan-btn.loading {
-    opacity: 0.6;
-    pointer-events: none;
-}
+.plan-scan-btn:hover { opacity: 0.9; }
+.plan-scan-btn:active { opacity: 0.8; }
+.plan-scan-btn.loading { opacity: 0.6; pointer-events: none; }
 
 .plan-field {
     display: flex;
@@ -852,7 +791,7 @@
 
 /* -- Plan hero card -- */
 .plan-hero-leave {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 2px;
@@ -884,17 +823,9 @@
     min-width: 8px;
 }
 
-.plan-tl-cycle {
-    background-color: var(--info);
-}
-
-.plan-tl-dock {
-    background-color: var(--warning);
-}
-
-.plan-tl-walk {
-    background-color: var(--success);
-}
+.plan-tl-cycle { background-color: var(--info); }
+.plan-tl-dock { background-color: var(--warning); }
+.plan-tl-walk { background-color: var(--success); }
 
 .plan-timeline-labels {
     display: flex;
@@ -918,10 +849,11 @@
 
 /* -- Why not closer card -- */
 .plan-why-card {
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-primary);
     border-radius: var(--radius-md);
     padding: 12px 14px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .plan-why-label {
@@ -945,16 +877,17 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-primary);
     border-radius: var(--radius-md);
     gap: 10px;
     border-left: 3px solid transparent;
     transition: background-color 0.12s;
     cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .alt-row:hover {
-    background-color: var(--bg-tertiary);
+    background-color: var(--bg-secondary);
 }
 
 .alt-row.alt-recommended {
@@ -1007,43 +940,6 @@
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
-}
-
-
-/* -- Plan map overlay (empty state over map) -- */
-.plan-map-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(245, 245, 240, 0.85);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
-
-[data-bs-theme="dark"] .plan-map-overlay {
-    background-color: rgba(26, 26, 26, 0.85);
-}
-
-.plan-map-overlay-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    color: var(--text-tertiary);
-}
-
-.plan-map-overlay-inner i {
-    font-size: 48px;
-    opacity: 0.3;
-}
-
-.plan-map-overlay-inner p {
-    font-size: 14px;
-    margin: 0;
-    opacity: 0.6;
 }
 
 /* -- State transitions -- */
