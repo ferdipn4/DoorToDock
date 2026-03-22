@@ -1,6 +1,6 @@
 /* Door2Dock -- Go Tab (single-column, recommendation-first layout) */
 
-import { getPredictionNow, getPredictionPlan, getStations } from './api/client.js';
+import { getPredictionNow, getPredictionPlan, getStations, getWeatherCurrent } from './api/client.js';
 
 // -- State --
 let direction = 'to';   // 'to' | 'from'
@@ -275,7 +275,7 @@ function renderToNowHero(pred) {
     const rec = pred.recommended;
     document.getElementById('to-now-name').textContent = shortName(rec.station_name);
     document.getElementById('to-now-docks').textContent = Math.round(rec.predicted_empty_docks);
-    document.getElementById('to-now-walk').textContent = formatWalk(rec.walk_to_destination_min, rec.walking_distance_m);
+    document.getElementById('to-now-walk').textContent = formatWalk(rec.walk_to_destination_min);
     document.getElementById('to-now-trip').textContent =
         `Prediction: ${pred.prediction_horizon_min || 15} min ahead`;
 }
@@ -345,7 +345,7 @@ function renderToNowStations(pred, stns) {
                 <div class="station-row-name">${shortName(s.station_name)}</div>
                 <div class="station-row-meta">
                     <i class="bi bi-person-walking"></i>
-                    ${formatWalk(s.walk_to_destination_min, s.walking_distance_m)} to uni
+                    ${formatWalk(s.walk_to_destination_min)} to uni
                 </div>
             </div>
             <div class="station-row-right">
@@ -372,7 +372,10 @@ async function loadFromNow() {
     error.style.display = 'none';
 
     try {
-        const stns = stationsData.length ? stationsData : await getStations();
+        const [stns, weather] = await Promise.all([
+            stationsData.length ? Promise.resolve(stationsData) : getStations(),
+            getWeatherCurrent().catch(() => null),
+        ]);
         if (!stationsData.length) stationsData = stns;
         skeleton.style.display = 'none';
 
@@ -384,8 +387,9 @@ async function loadFromNow() {
         document.getElementById('from-now-name').textContent = shortName(best.station_name);
         document.getElementById('from-now-bikes').textContent = best.available_bikes;
         const walkMin = Math.round(best.walking_duration_s / 60);
-        document.getElementById('from-now-walk').textContent = formatWalk(walkMin, best.walking_distance_m);
+        document.getElementById('from-now-walk').textContent = formatWalk(walkMin);
 
+        renderFromNowWeather(weather);
         renderFromNowStations(stns);
         updateMapMarkers();
     } catch (e) {
@@ -396,6 +400,25 @@ async function loadFromNow() {
 
     const retryBtn = document.getElementById('from-now-retry-btn');
     retryBtn.onclick = () => loadFromNow();
+}
+
+function renderFromNowWeather(w) {
+    if (!w) return;
+    const icon = weatherIcon(w.description || '');
+    const stripIcon = document.querySelector('#from-now-weather i');
+    if (stripIcon) stripIcon.className = `bi bi-${icon}`;
+    let text = `${w.temperature}\u00B0C, ${w.description || 'unknown'}`;
+    if (w.effect) {
+        text += ` \u00B7 ${w.effect}`;
+    } else {
+        // from weather/current: estimate cycling context
+        const temp = w.temperature;
+        const desc = (w.description || '').toLowerCase();
+        if (desc.includes('rain')) text += ' \u00B7 reduced bike demand';
+        else if (temp >= 15) text += ' \u00B7 good cycling weather';
+        else text += ' \u00B7 typical bike demand';
+    }
+    document.getElementById('from-now-weather-text').textContent = text;
 }
 
 function renderFromNowStations(stns) {
@@ -433,7 +456,7 @@ function renderFromNowStations(stns) {
                 <div class="station-row-name">${shortName(s.station_name)}</div>
                 <div class="station-row-meta">
                     <i class="bi bi-person-walking"></i>
-                    ${formatWalk(s.walkMin, s.walking_distance_m)} from uni
+                    ${formatWalk(s.walkMin)} from uni
                 </div>
             </div>
             <div class="station-row-right">
@@ -569,7 +592,7 @@ function renderToPlanResult(data) {
     // Subtitle
     const stn = shortName(data.recommended_station.station_name);
     document.getElementById('to-plan-subtitle').textContent =
-        `Dock at ${stn} \u00B7 ${formatWalk(data.recommended_station.walk_to_destination_min, data.recommended_station.walking_distance_m)} walk to uni`;
+        `Dock at ${stn} \u00B7 ${formatWalk(data.recommended_station.walk_to_destination_min)} walk to uni`;
 
     // Timeline bar
     const bd = data.breakdown;
@@ -656,7 +679,7 @@ function renderFromPlanResult(data) {
     const targetStr = getSelectedTimeDisplay('from-plan');
     document.getElementById('from-plan-bikes-label').textContent = `predicted bikes at ${targetStr}`;
 
-    document.getElementById('from-plan-walk').textContent = formatWalk(rec.walk_to_destination_min, rec.walking_distance_m);
+    document.getElementById('from-plan-walk').textContent = formatWalk(rec.walk_to_destination_min);
 
     // Alternatives
     renderAlternatives('from-plan-alternatives', data.alternatives_at_target_time, 'green');
@@ -678,7 +701,7 @@ function renderAlternatives(containerId, alts, theme) {
         const unitLabel = isFrom ? 'bikes' : 'docks';
         const walkLabel = isFrom ? 'from uni' : 'to uni';
         const walkText = a.walking_distance_m
-            ? formatWalk(a.walk_to_destination_min, a.walking_distance_m) + ' ' + walkLabel
+            ? formatWalk(a.walk_to_destination_min) + ' ' + walkLabel
             : a.reason;
         return `
         <div class="alt-row${isRec ? ' ' + recClass : ''}" data-station="${a.station_id}"
@@ -786,7 +809,7 @@ function renderMapMarkersToNow() {
         marker.bindPopup(
             `<strong>${shortName(st.station_name)}</strong><br>` +
             `<span style="color:${color}; font-size:1.3em; font-weight:500;">${docks}</span> predicted docks<br>` +
-            `<small>${formatWalk(pred.walk_to_destination_min, pred.walking_distance_m)} walk to uni</small>`
+            `<small>${formatWalk(pred.walk_to_destination_min)} walk to uni</small>`
         );
 
         marker._baseRadius = radius;
@@ -827,7 +850,7 @@ function renderMapMarkersFromNow(stations, bestId) {
         marker.bindPopup(
             `<strong>${shortName(st.station_name)}</strong><br>` +
             `<span style="color:${color}; font-size:1.3em; font-weight:500;">${bikes}</span> bikes available<br>` +
-            `<small>${formatWalk(walkMinMap, st.walking_distance_m)} walk from uni</small>`
+            `<small>${formatWalk(walkMinMap)} walk from uni</small>`
         );
 
         marker._baseRadius = radius;
@@ -879,7 +902,7 @@ function renderMapMarkersPlan() {
         const unit = isFrom ? 'bikes' : 'empty docks';
         const walkLabel = isFrom ? 'from uni' : 'to uni';
         const walkText = a.walking_distance_m
-            ? formatWalk(a.walk_to_destination_min, a.walking_distance_m)
+            ? formatWalk(a.walk_to_destination_min)
             : '';
 
         marker.bindPopup(
@@ -974,12 +997,8 @@ function shortName(name) {
     return name.split(',')[0];
 }
 
-function formatWalk(walkMin, distanceM) {
-    const min = walkMin || 0;
-    const dist = (distanceM || 0) >= 1000
-        ? ((distanceM || 0) / 1000).toFixed(1) + 'km'
-        : Math.round(distanceM || 0) + 'm';
-    return `${min} min (${dist})`;
+function formatWalk(walkMin) {
+    return `${walkMin || 0} min`;
 }
 
 function weatherIcon(desc) {

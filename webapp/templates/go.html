@@ -101,6 +101,10 @@
                         <button class="ds-retry-btn" id="from-now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
                     </div>
                 </div>
+                <div class="weather-strip" id="from-now-weather">
+                    <i class="bi bi-cloud"></i>
+                    <span id="from-now-weather-text">--</span>
+                </div>
             </div>
 
             <!-- STATE 3: To Imperial + Plan -->
@@ -261,9 +265,13 @@
 
             <!-- Plan mode stations -->
             <div id="stations-plan" style="display: none;">
-                <div class="station-list-header" id="to-plan-alts-header">ALTERNATIVE STATIONS</div>
+                <div class="station-list-sort-row" id="to-plan-alts-header">
+                    <span class="station-list-header">ALTERNATIVE STATIONS</span>
+                </div>
                 <div class="station-list" id="to-plan-alternatives"></div>
-                <div class="station-list-header" id="from-plan-alts-header" style="display: none;">ALTERNATIVE STATIONS</div>
+                <div class="station-list-sort-row" id="from-plan-alts-header" style="display: none;">
+                    <span class="station-list-header">ALTERNATIVE STATIONS</span>
+                </div>
                 <div class="station-list" id="from-plan-alternatives" style="display: none;"></div>
             </div>
 
@@ -288,9 +296,7 @@
 @media (min-width: 900px) {
     .go-layout {
         padding: 16px 24px;
-        height: calc(100vh - var(--topbar-height));
-        display: flex;
-        flex-direction: column;
+        min-height: calc(100vh - var(--topbar-height));
     }
 }
 
@@ -352,8 +358,6 @@
     .go-body {
         flex-direction: row;
         gap: 24px;
-        flex: 1;
-        min-height: 0;
     }
 }
 
@@ -367,7 +371,7 @@
     .go-left {
         width: 55%;
         min-width: 0;
-        overflow-y: auto;
+        overflow: visible;
     }
 }
 
@@ -382,7 +386,27 @@
         min-width: 0;
         margin-top: 0;
         overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
     }
+    .go-right:hover {
+        scrollbar-color: var(--border) transparent;
+    }
+}
+
+/* Webkit scrollbar for right column */
+.go-right::-webkit-scrollbar {
+    width: 4px;
+}
+.go-right::-webkit-scrollbar-track {
+    background: transparent;
+}
+.go-right::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+}
+.go-right:hover::-webkit-scrollbar-thumb {
+    background: var(--border);
 }
 
 /* ═══════════════════════════════════════════════
@@ -645,7 +669,7 @@
 .station-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
 }
 
 /* -- Station row -- */
@@ -653,7 +677,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: 12px 14px;
+    min-height: 56px;
     background-color: var(--bg-primary);
     border-radius: var(--radius-md);
     gap: 10px;
@@ -940,7 +965,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: 12px 14px;
+    min-height: 56px;
     background-color: var(--bg-primary);
     border-radius: var(--radius-md);
     gap: 10px;
