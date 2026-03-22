@@ -135,7 +135,7 @@ body {
 
 .topbar-brand i {
   font-size: 22px;
-  color: #2563eb;
+  color: var(--info);
 }
 
 .topbar-nav {
@@ -185,8 +185,8 @@ body {
 }
 
 .topbar-item.active {
-  color: #2563eb;
-  background-color: rgba(37, 99, 235, 0.08);
+  color: var(--info);
+  background-color: rgba(55, 138, 221, 0.08);
 }
 
 [data-bs-theme="dark"] .topbar-item.active {
