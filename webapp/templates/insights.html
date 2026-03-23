@@ -140,71 +140,106 @@
         <div class="ins-section-inner">
             <div class="ins-section-label">System Architecture</div>
 
-            <!-- 3a: Sensing Pipeline -->
+            <!-- 3a: Sensing Pipeline (data collection only) -->
             <h2 class="ins-h2">Sensing pipeline</h2>
-            <p class="ins-body">Three data sources feed into a cloud database. The Flask app queries live data and loads pre-trained models to serve predictions. A separate offline pipeline handles model training.</p>
+            <p class="ins-body">Three data sources feed into a cloud database via automated collection scripts running on Heroku.</p>
 
-            <div class="ins-arch-grid">
-                <!-- LEFT: Data Sources -->
-                <div class="ins-arch-col ins-arch-sources">
-                    <div class="ins-arch-card ins-arch-card-blue">
-                        <div class="ins-arch-card-name">TfL Santander Cycles API</div>
-                        <div class="ins-arch-card-detail">bikes, docks, ebikes</div>
-                        <div class="ins-arch-card-freq">every 60s</div>
-                    </div>
-                    <div class="ins-arch-card ins-arch-card-green">
-                        <div class="ins-arch-card-name">Open-Meteo API</div>
-                        <div class="ins-arch-card-detail">temp, humidity, rain</div>
-                        <div class="ins-arch-card-freq">every 60s</div>
-                    </div>
-                    <div class="ins-arch-card ins-arch-card-amber">
-                        <div class="ins-arch-card-name">KY-028 via ESP32</div>
-                        <div class="ins-arch-card-detail">temperature_c</div>
-                        <div class="ins-arch-card-freq">training only</div>
-                    </div>
+            <div class="ins-sense-grid">
+                <!-- Row 1: TfL → Supabase -->
+                <div class="ins-arch-card ins-arch-card-blue">
+                    <div class="ins-arch-card-name">TfL Santander Cycles API</div>
+                    <div class="ins-arch-card-detail">bikes, docks, ebikes</div>
                 </div>
-                <!-- ARROWS: sources → db -->
-                <div class="ins-arch-arrows">
-                    <div class="ins-arch-arrow-line"></div>
-                    <div class="ins-arch-arrow-label">INSERT</div>
-                    <div class="ins-arch-arrow-line"></div>
+                <div class="ins-sense-arrow">
+                    <span class="ins-sense-arrow-line"></span>
+                    <span class="ins-sense-arrow-label">every 60s</span>
                 </div>
-                <!-- CENTRE: Database -->
-                <div class="ins-arch-col ins-arch-db-col">
+                <!-- Row 2: Open-Meteo → Supabase -->
+                <div class="ins-arch-card ins-arch-card-green">
+                    <div class="ins-arch-card-name">Open-Meteo API</div>
+                    <div class="ins-arch-card-detail">temp, humidity, rain, wind</div>
+                </div>
+                <div class="ins-sense-arrow">
+                    <span class="ins-sense-arrow-line"></span>
+                    <span class="ins-sense-arrow-label">every 60s</span>
+                </div>
+                <!-- Row 3: KY-028 → Supabase -->
+                <div class="ins-arch-card ins-arch-card-amber">
+                    <div class="ins-arch-card-name">KY-028 via ESP32</div>
+                    <div class="ins-arch-card-detail">temperature_c (training only)</div>
+                </div>
+                <div class="ins-sense-arrow">
+                    <span class="ins-sense-arrow-line"></span>
+                    <span class="ins-sense-arrow-label">HTTPS POST</span>
+                </div>
+                <!-- Supabase spans all 3 rows -->
+                <div class="ins-sense-db">
                     <div class="ins-arch-card ins-arch-card-db">
                         <div class="ins-arch-card-icon"><i class="bi bi-database"></i></div>
-                        <div class="ins-arch-card-name">Supabase</div>
-                        <div class="ins-arch-card-detail">PostgreSQL</div>
+                        <div class="ins-arch-card-name">Supabase PostgreSQL</div>
+                        <div class="ins-arch-card-detail">6 tables, SSL</div>
                         <div class="ins-arch-card-freq" id="arch-total-rows">Loading...</div>
                     </div>
                 </div>
-                <!-- ARROWS: db → outputs -->
-                <div class="ins-arch-arrows ins-arch-arrows-out">
-                    <div class="ins-arch-arrow-out-row">
-                        <div class="ins-arch-arrow-line"></div>
-                        <div class="ins-arch-arrow-label">live queries</div>
-                    </div>
-                    <div class="ins-arch-arrow-out-row">
-                        <div class="ins-arch-arrow-line ins-arch-arrow-dashed"></div>
-                        <div class="ins-arch-arrow-label">historical data</div>
-                    </div>
+            </div>
+
+            <!-- 3a-2: Processing and serving -->
+            <h2 class="ins-h2" style="margin-top: 40px;">Processing and serving</h2>
+            <p class="ins-body">The collected data feeds two paths: an offline training pipeline that produces prediction models, and a live Flask app that serves recommendations.</p>
+
+            <div class="ins-serve-grid">
+                <!-- Row 1: offline training -->
+                <div class="ins-arch-card ins-arch-card-db ins-serve-db-top">
+                    <div class="ins-arch-card-name">Supabase</div>
+                    <div class="ins-arch-card-detail">historical data</div>
                 </div>
-                <!-- RIGHT: Outputs -->
-                <div class="ins-arch-col ins-arch-outputs">
-                    <div class="ins-arch-card ins-arch-card-blue">
-                        <div class="ins-arch-card-name">Flask App on Heroku</div>
-                        <div class="ins-arch-card-detail">5 pages, 18 endpoints</div>
-                        <div class="ins-arch-card-detail">loads .pkl models + Telegram alerts</div>
-                    </div>
-                    <div class="ins-arch-pkl-arrow">
-                        <span class="ins-arch-pkl-line"></span>
-                        <span class="ins-arch-pkl-label">.pkl models</span>
-                    </div>
-                    <div class="ins-arch-card ins-arch-card-muted">
-                        <div class="ins-arch-card-name">Training Pipeline</div>
-                        <div class="ins-arch-card-detail">export_data + train_model</div>
-                        <div class="ins-arch-card-freq">offline</div>
-                    </div>
+                <div class="ins-sense-arrow">
+                    <span class="ins-sense-arrow-line"></span>
+                    <span class="ins-sense-arrow-label">export</span>
+                </div>
+                <div class="ins-arch-card ins-arch-card-muted">
+                    <div class="ins-arch-card-name">Training Pipeline</div>
+                    <div class="ins-arch-card-detail">export_data.py</div>
+                    <div class="ins-arch-card-detail">train_model.py</div>
+                </div>
+                <div class="ins-sense-arrow">
+                    <span class="ins-sense-arrow-line"></span>
+                    <span class="ins-sense-arrow-label">produces</span>
+                </div>
+                <div class="ins-arch-card ins-serve-pkl">
+                    <div class="ins-arch-card-name">.pkl models</div>
+                    <div class="ins-arch-card-detail">model_nowcast.pkl</div>
+                    <div class="ins-arch-card-detail">model_forecast.pkl</div>
+                </div>
+
+                <!-- Vertical dotted arrow: pkl → Flask -->
+                <div class="ins-serve-vert-arrow">
+                    <span class="ins-serve-vert-line"></span>
+                    <span class="ins-serve-vert-label">loaded on startup</span>
+                </div>
+
+                <!-- Row 2: live serving -->
+                <div class="ins-arch-card ins-arch-card-db ins-serve-db-bot">
+                    <div class="ins-arch-card-name">Supabase</div>
+                    <div class="ins-arch-card-detail">live queries</div>
+                </div>
+                <div class="ins-sense-arrow ins-serve-arrow-bot">
+                    <span class="ins-sense-arrow-line"></span>
+                    <span class="ins-sense-arrow-label">SELECT</span>
+                </div>
+                <div class="ins-arch-card ins-arch-card-blue ins-serve-flask">
+                    <div class="ins-arch-card-name">Flask App on Heroku</div>
+                    <div class="ins-arch-card-detail">Gunicorn, 2 workers</div>
+                </div>
+                <div class="ins-sense-arrow ins-serve-arrow-bot2">
+                    <span class="ins-sense-arrow-line"></span>
+                    <span class="ins-sense-arrow-label">serves</span>
+                </div>
+                <div class="ins-arch-card ins-arch-card-blue ins-serve-outputs">
+                    <div class="ins-arch-card-name">Outputs</div>
+                    <div class="ins-arch-card-detail">Dashboard (5 pages)</div>
+                    <div class="ins-arch-card-detail">18 API endpoints</div>
+                    <div class="ins-arch-card-detail">Telegram alerts</div>
                 </div>
             </div>
 
@@ -1059,24 +1094,7 @@
    SECTION 3: SYSTEM ARCHITECTURE
    ================================================================ */
 
-/* ── Sensing pipeline grid ── */
-.ins-arch-grid {
-    display: grid;
-    grid-template-columns: 32% 8% 20% 8% 32%;
-    align-items: center;
-    gap: 0;
-    margin-bottom: 32px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 8px 0;
-}
-
-.ins-arch-col {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
+/* ── Shared architecture card styles ── */
 .ins-arch-card {
     background: var(--bg-primary);
     border: 1px solid var(--border);
@@ -1094,7 +1112,7 @@
 }
 .ins-arch-card-muted {
     border-left-color: var(--text-tertiary);
-    opacity: 0.7;
+    opacity: 0.75;
 }
 
 .ins-arch-card-icon {
@@ -1122,24 +1140,25 @@
     margin-top: 2px;
 }
 
-/* Arrows between columns */
-.ins-arch-arrows {
+/* ── Shared horizontal arrow connector ── */
+.ins-sense-arrow {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 0 4px;
+    gap: 3px;
+    padding: 0 2px;
 }
 
-.ins-arch-arrow-line {
+.ins-sense-arrow-line {
+    display: block;
     width: 100%;
     height: 2px;
     background: var(--text-tertiary);
     position: relative;
 }
 
-.ins-arch-arrow-line::after {
+.ins-sense-arrow-line::after {
     content: '';
     position: absolute;
     right: -1px;
@@ -1148,84 +1167,149 @@
     border-left: 6px solid var(--text-tertiary);
 }
 
-.ins-arch-arrow-dashed {
-    background: repeating-linear-gradient(
-        90deg,
-        var(--text-tertiary) 0, var(--text-tertiary) 6px,
-        transparent 6px, transparent 10px
-    );
-    height: 2px;
-}
-
-.ins-arch-arrow-dashed::after {
-    content: '';
-    position: absolute;
-    right: -1px;
-    top: -4px;
-    border: 5px solid transparent;
-    border-left: 6px solid var(--text-tertiary);
-}
-
-.ins-arch-arrow-label {
-    font-size: 9px;
+.ins-sense-arrow-label {
+    font-size: 10px;
     color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     white-space: nowrap;
 }
 
-/* Out-arrows (db → outputs) */
-.ins-arch-arrows-out {
-    gap: 20px;
+/* ── Diagram 1: Sensing pipeline ── */
+.ins-sense-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    gap: 10px 0;
+    margin-bottom: 32px;
+    padding: 8px 0;
 }
 
-.ins-arch-arrow-out-row {
+/* Source cards: column 1 */
+.ins-sense-grid > .ins-arch-card:nth-child(1) { grid-area: 1 / 1; }
+.ins-sense-grid > .ins-arch-card:nth-child(3) { grid-area: 2 / 1; }
+.ins-sense-grid > .ins-arch-card:nth-child(5) { grid-area: 3 / 1; }
+
+/* Arrows: column 2 */
+.ins-sense-grid > .ins-sense-arrow:nth-child(2) { grid-area: 1 / 2; min-width: 90px; padding: 0 10px; }
+.ins-sense-grid > .ins-sense-arrow:nth-child(4) { grid-area: 2 / 2; min-width: 90px; padding: 0 10px; }
+.ins-sense-grid > .ins-sense-arrow:nth-child(6) { grid-area: 3 / 2; min-width: 90px; padding: 0 10px; }
+
+/* Supabase: column 3, spans all 3 rows */
+.ins-sense-db {
+    grid-area: 1 / 3 / 4 / 4;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.ins-sense-db .ins-arch-card {
+    width: 100%;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    width: 100%;
+    justify-content: center;
+    padding: 20px 14px;
 }
 
-/* pkl arrow between flask and training */
-.ins-arch-pkl-arrow {
+@media (max-width: 579px) {
+    .ins-sense-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 0;
+    }
+    .ins-sense-grid > .ins-arch-card:nth-child(1),
+    .ins-sense-grid > .ins-arch-card:nth-child(3),
+    .ins-sense-grid > .ins-arch-card:nth-child(5) { grid-area: auto; }
+    .ins-sense-grid > .ins-sense-arrow { min-width: 0; padding: 6px 0; flex-direction: row; gap: 6px; }
+    .ins-sense-grid > .ins-sense-arrow:nth-child(2),
+    .ins-sense-grid > .ins-sense-arrow:nth-child(4),
+    .ins-sense-grid > .ins-sense-arrow:nth-child(6) { grid-area: auto; min-width: 0; padding: 6px 20px; }
+    .ins-sense-arrow-line { width: 40px; }
+    .ins-sense-db { grid-area: auto; }
+    .ins-sense-db .ins-arch-card { min-height: 0; }
+}
+
+/* ── Diagram 2: Processing and serving ── */
+.ins-serve-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    gap: 10px 0;
+    margin-bottom: 32px;
+    padding: 8px 0;
+}
+
+/* Row 1: training path */
+.ins-serve-db-top   { grid-area: 1 / 1; }
+.ins-serve-grid > .ins-sense-arrow:nth-child(2) { grid-area: 1 / 2; min-width: 60px; padding: 0 6px; }
+.ins-serve-grid > .ins-arch-card-muted { grid-area: 1 / 3; }
+.ins-serve-grid > .ins-sense-arrow:nth-child(4) { grid-area: 1 / 4; min-width: 60px; padding: 0 6px; }
+.ins-serve-pkl { grid-area: 1 / 5; border-left-color: #7B61FF; }
+
+/* Vertical arrow: row 2, column 5 → column 3 */
+.ins-serve-vert-arrow {
+    grid-area: 2 / 3 / 3 / 6;
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 0;
 }
 
-.ins-arch-pkl-line {
-    flex: 1;
-    height: 1px;
+.ins-serve-vert-line {
+    display: block;
+    width: 2px;
+    height: 28px;
     background: repeating-linear-gradient(
-        90deg,
+        180deg,
         var(--text-tertiary) 0, var(--text-tertiary) 4px,
         transparent 4px, transparent 7px
     );
+    position: relative;
 }
 
-.ins-arch-pkl-label {
-    font-size: 9px;
+.ins-serve-vert-line::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: -4px;
+    border: 5px solid transparent;
+    border-top: 6px solid var(--text-tertiary);
+}
+
+.ins-serve-vert-label {
+    font-size: 10px;
     color: var(--text-tertiary);
     white-space: nowrap;
 }
 
-@media (max-width: 639px) {
-    .ins-arch-grid {
+/* Row 3: live serving path */
+.ins-serve-db-bot    { grid-area: 3 / 1; }
+.ins-serve-arrow-bot { grid-area: 3 / 2; min-width: 60px; padding: 0 6px; }
+.ins-serve-flask     { grid-area: 3 / 3; }
+.ins-serve-arrow-bot2 { grid-area: 3 / 4; min-width: 60px; padding: 0 6px; }
+.ins-serve-outputs   { grid-area: 3 / 5; }
+
+@media (max-width: 579px) {
+    .ins-serve-grid {
         grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-rows: auto;
+        gap: 0;
     }
-    .ins-arch-arrows {
-        flex-direction: row;
-        padding: 4px 0;
+    .ins-serve-grid > * { grid-area: auto !important; }
+    .ins-serve-grid > .ins-sense-arrow { min-width: 0; padding: 6px 20px; flex-direction: row; gap: 6px; }
+    .ins-sense-arrow-line { width: 40px; }
+    .ins-serve-vert-arrow { flex-direction: row; padding: 6px 20px; }
+    .ins-serve-vert-line { width: 40px; height: 2px;
+        background: repeating-linear-gradient(90deg, var(--text-tertiary) 0, var(--text-tertiary) 4px, transparent 4px, transparent 7px);
     }
-    .ins-arch-arrow-line {
-        width: 40px;
-        height: 2px;
+    .ins-serve-vert-line::after {
+        bottom: auto; left: auto;
+        right: -1px; top: -4px;
+        border: 5px solid transparent;
+        border-left: 6px solid var(--text-tertiary);
     }
-    .ins-arch-arrows-out { gap: 8px; }
-    .ins-arch-arrow-out-row { flex-direction: row; }
 }
 
 /* ── Actuation pipeline (horizontal flow) ── */
