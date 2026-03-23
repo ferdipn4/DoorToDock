@@ -123,6 +123,12 @@
                         </div>
                         <div class="plan-day-selector" id="to-plan-days"></div>
                     </div>
+                    <div class="plan-helper" id="to-plan-helper">
+                        <i class="bi bi-info-circle"></i> Select a time and day to get your recommendation
+                    </div>
+                    <button class="plan-scan-btn" id="to-plan-scan-btn">
+                        <i class="bi bi-search"></i> Get recommendation
+                    </button>
                     <div class="plan-field">
                         <label class="plan-field-label">WEATHER FORECAST</label>
                         <div class="weather-strip" id="to-plan-weather">
@@ -130,9 +136,6 @@
                             <span id="to-plan-weather-text">Select a time to see forecast</span>
                         </div>
                     </div>
-                    <button class="plan-scan-btn" id="to-plan-scan-btn">
-                        <i class="bi bi-search"></i> Get recommendation
-                    </button>
                 </div>
                 <!-- Plan skeleton / empty state (static grey placeholders) -->
                 <div id="to-plan-empty" class="skel-hero-card skel-hero-blue skel-static">
@@ -189,6 +192,12 @@
                         </div>
                         <div class="plan-day-selector" id="from-plan-days"></div>
                     </div>
+                    <div class="plan-helper" id="from-plan-helper">
+                        <i class="bi bi-info-circle"></i> Select a time and day to get your recommendation
+                    </div>
+                    <button class="plan-scan-btn" id="from-plan-scan-btn">
+                        <i class="bi bi-search"></i> Get recommendation
+                    </button>
                     <div class="plan-field">
                         <label class="plan-field-label">WEATHER FORECAST</label>
                         <div class="weather-strip" id="from-plan-weather">
@@ -196,9 +205,6 @@
                             <span id="from-plan-weather-text">Select a time to see forecast</span>
                         </div>
                     </div>
-                    <button class="plan-scan-btn" id="from-plan-scan-btn">
-                        <i class="bi bi-search"></i> Get recommendation
-                    </button>
                 </div>
                 <div id="from-plan-empty" class="skel-hero-card skel-hero-green skel-static">
                     <div class="skel-bar skel-static-bar" style="width: 100px; height: 10px;"></div>
@@ -909,6 +915,20 @@
     flex-direction: column;
     gap: 12px;
     margin-bottom: 16px;
+}
+
+.plan-helper {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: -4px 0 0;
+}
+
+.plan-helper i {
+    font-size: 13px;
+    flex-shrink: 0;
 }
 
 .plan-scan-btn {

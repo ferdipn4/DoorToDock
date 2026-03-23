@@ -581,9 +581,12 @@ function updatePlanBtnState(prefix) {
     const minSel = document.getElementById(`${prefix}-minute`);
     const dayBtn = document.querySelector(`#${prefix}-days .plan-day-btn.active`);
     const scanBtn = document.getElementById(`${prefix}-scan-btn`);
+    const helper = document.getElementById(`${prefix}-helper`);
     const hasTime = hourSel.value !== '' && minSel.value !== '';
     const hasDay = !!dayBtn;
-    scanBtn.disabled = !(hasTime && hasDay);
+    const ready = hasTime && hasDay;
+    scanBtn.disabled = !ready;
+    if (helper) helper.style.display = ready ? 'none' : '';
 }
 
 function getSelectedTime(prefix) {
