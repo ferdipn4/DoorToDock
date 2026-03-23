@@ -144,81 +144,66 @@
             <h2 class="ins-h2">Sensing pipeline</h2>
             <p class="ins-body">Three data sources feed into a cloud database. The Flask app queries live data and loads pre-trained models to serve predictions. A separate offline pipeline handles model training.</p>
 
-            <div class="ins-pipeline-v2">
-                <!-- Sources -->
-                <div class="ins-pv2-sources">
-                    <div class="ins-pipe-node ins-pipe-node-blue">
-                        <div class="ins-pipe-node-name">TfL Santander API</div>
-                        <div class="ins-pipe-node-detail">bikes, docks, ebikes</div>
-                        <div class="ins-pipe-node-freq">every 60s</div>
+            <div class="ins-arch-grid">
+                <!-- LEFT: Data Sources -->
+                <div class="ins-arch-col ins-arch-sources">
+                    <div class="ins-arch-card ins-arch-card-blue">
+                        <div class="ins-arch-card-name">TfL Santander API</div>
+                        <div class="ins-arch-card-detail">bikes, docks, ebikes</div>
+                        <div class="ins-arch-card-freq">every 60s</div>
                     </div>
-                    <div class="ins-pipe-node ins-pipe-node-green">
-                        <div class="ins-pipe-node-name">Open-Meteo API</div>
-                        <div class="ins-pipe-node-detail">temp, humidity, rain, wind</div>
-                        <div class="ins-pipe-node-freq">every 60s</div>
+                    <div class="ins-arch-card ins-arch-card-green">
+                        <div class="ins-arch-card-name">Open-Meteo API</div>
+                        <div class="ins-arch-card-detail">temp, humidity, rain</div>
+                        <div class="ins-arch-card-freq">every 60s</div>
                     </div>
-                    <div class="ins-pipe-node ins-pipe-node-amber">
-                        <div class="ins-pipe-node-name">KY-028 via ESP32</div>
-                        <div class="ins-pipe-node-detail">temperature_c</div>
-                        <div class="ins-pipe-node-freq">training only</div>
-                    </div>
-                </div>
-
-                <!-- Arrow: sources → db -->
-                <div class="ins-pv2-arrow">
-                    <svg viewBox="0 0 60 180" class="ins-pipe-svg">
-                        <defs><marker id="ah1" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="7" markerHeight="5" orient="auto"><path d="M0 0L10 3.5L0 7z" fill="var(--text-tertiary)"/></marker></defs>
-                        <line x1="0" y1="30" x2="55" y2="90" stroke="var(--text-tertiary)" stroke-width="1.5" marker-end="url(#ah1)"/>
-                        <line x1="0" y1="90" x2="55" y2="90" stroke="var(--text-tertiary)" stroke-width="1.5" marker-end="url(#ah1)"/>
-                        <line x1="0" y1="150" x2="55" y2="90" stroke="var(--text-tertiary)" stroke-width="1.5" marker-end="url(#ah1)"/>
-                    </svg>
-                </div>
-
-                <!-- Supabase -->
-                <div class="ins-pv2-db">
-                    <div class="ins-pipe-node ins-pipe-node-db">
-                        <div class="ins-pipe-node-name">Supabase</div>
-                        <div class="ins-pipe-node-detail">PostgreSQL</div>
-                        <div class="ins-pipe-node-freq" id="arch-total-rows">Loading...</div>
+                    <div class="ins-arch-card ins-arch-card-amber">
+                        <div class="ins-arch-card-name">KY-028 via ESP32</div>
+                        <div class="ins-arch-card-detail">temperature_c</div>
+                        <div class="ins-arch-card-freq">training only</div>
                     </div>
                 </div>
-
-                <!-- Arrow: db → outputs -->
-                <div class="ins-pv2-arrow">
-                    <svg viewBox="0 0 60 240" class="ins-pv2-svg-out">
-                        <defs><marker id="ah2" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="7" markerHeight="5" orient="auto"><path d="M0 0L10 3.5L0 7z" fill="var(--text-tertiary)"/></marker><marker id="ah3" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="7" markerHeight="5" orient="auto"><path d="M0 0L10 3.5L0 7z" fill="var(--text-tertiary)" opacity="0.4"/></marker></defs>
-                        <!-- Primary: live queries to Flask App -->
-                        <line x1="0" y1="120" x2="55" y2="70" stroke="var(--text-tertiary)" stroke-width="2" marker-end="url(#ah2)"/>
-                        <text x="30" y="80" font-size="8" fill="var(--text-tertiary)" text-anchor="middle" transform="rotate(-30, 30, 80)">live queries</text>
-                        <!-- Secondary: offline training -->
-                        <line x1="0" y1="120" x2="55" y2="185" stroke="var(--text-tertiary)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#ah3)" opacity="0.5"/>
-                        <text x="30" y="165" font-size="8" fill="var(--text-tertiary)" text-anchor="middle" opacity="0.6" transform="rotate(30, 30, 165)">historical</text>
-                    </svg>
+                <!-- ARROWS: sources → db -->
+                <div class="ins-arch-arrows">
+                    <div class="ins-arch-arrow-line"></div>
+                    <div class="ins-arch-arrow-label">INSERT</div>
+                    <div class="ins-arch-arrow-line"></div>
                 </div>
-
-                <!-- Outputs -->
-                <div class="ins-pv2-outputs">
-                    <!-- Path A: Flask App (primary) -->
-                    <div class="ins-pipe-node ins-pipe-node-blue ins-pv2-primary">
-                        <div class="ins-pipe-node-name">Flask App on Heroku</div>
-                        <div class="ins-pipe-node-detail" id="arch-model-names">Loading...</div>
-                        <div class="ins-pipe-node-detail">5 pages, 18 endpoints + Telegram alerts</div>
-                        <div class="ins-pipe-node-freq">loads trained .pkl models</div>
+                <!-- CENTRE: Database -->
+                <div class="ins-arch-col ins-arch-db-col">
+                    <div class="ins-arch-card ins-arch-card-db">
+                        <div class="ins-arch-card-icon"><i class="bi bi-database"></i></div>
+                        <div class="ins-arch-card-name">Supabase</div>
+                        <div class="ins-arch-card-detail">PostgreSQL</div>
+                        <div class="ins-arch-card-freq" id="arch-total-rows">Loading...</div>
                     </div>
-                    <!-- Dotted return arrow: .pkl flows up -->
-                    <div class="ins-pv2-return-arrow">
-                        <svg viewBox="0 0 60 28" width="60" height="28">
-                            <defs><marker id="ah4" viewBox="0 0 10 7" refX="0" refY="3.5" markerWidth="7" markerHeight="5" orient="auto-start-reverse"><path d="M10 0L0 3.5L10 7z" fill="#7B61FF" opacity="0.7"/></marker></defs>
-                            <line x1="8" y1="14" x2="52" y2="14" stroke="#7B61FF" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.7"/>
-                            <polygon points="8,14 15,10 15,18" fill="#7B61FF" opacity="0.7"/>
-                        </svg>
-                        <span class="ins-pv2-return-label">.pkl models</span>
+                </div>
+                <!-- ARROWS: db → outputs -->
+                <div class="ins-arch-arrows ins-arch-arrows-out">
+                    <div class="ins-arch-arrow-out-row">
+                        <div class="ins-arch-arrow-line"></div>
+                        <div class="ins-arch-arrow-label">live queries</div>
                     </div>
-                    <!-- Path B: Training Pipeline (secondary) -->
-                    <div class="ins-pipe-node ins-pv2-training">
-                        <div class="ins-pipe-node-name">Training Pipeline</div>
-                        <div class="ins-pipe-node-detail">export_data.py + train_model.py</div>
-                        <div class="ins-pipe-node-freq">offline, produces .pkl models</div>
+                    <div class="ins-arch-arrow-out-row">
+                        <div class="ins-arch-arrow-line ins-arch-arrow-dashed"></div>
+                        <div class="ins-arch-arrow-label">historical data</div>
+                    </div>
+                </div>
+                <!-- RIGHT: Outputs -->
+                <div class="ins-arch-col ins-arch-outputs">
+                    <div class="ins-arch-card ins-arch-card-blue">
+                        <div class="ins-arch-card-name">Flask App on Heroku</div>
+                        <div class="ins-arch-card-detail">5 pages, 18 endpoints</div>
+                        <div class="ins-arch-card-detail">loads .pkl models + Telegram alerts</div>
+                    </div>
+                    <div class="ins-arch-pkl-arrow">
+                        <span class="ins-arch-pkl-line"></span>
+                        <span class="ins-arch-pkl-label">.pkl models</span>
+                    </div>
+                    <div class="ins-arch-card ins-arch-card-muted">
+                        <div class="ins-arch-card-name">Training Pipeline</div>
+                        <div class="ins-arch-card-detail">export_data + train_model</div>
+                        <div class="ins-arch-card-freq">offline</div>
                     </div>
                 </div>
             </div>
@@ -258,70 +243,68 @@
             <h2 class="ins-h2" style="margin-top: 48px;">Actuation pipeline</h2>
             <p class="ins-body">When the PIR sensor detects departure, the system triggers a real-time prediction and sends a Telegram notification with the best station.</p>
 
-            <div class="ins-act-pipeline">
-                <div class="ins-act-step">
-                    <div class="ins-act-node ins-pipe-node-amber">
-                        <div class="ins-pipe-node-name">PIR sensor</div>
-                        <div class="ins-pipe-node-detail">HC-SR501 + ESP32</div>
-                    </div>
-                    <div class="ins-act-label">departure event</div>
+            <div class="ins-act-flow">
+                <div class="ins-act-card">
+                    <div class="ins-act-card-icon ins-act-card-icon-amber"><i class="bi bi-broadcast"></i></div>
+                    <div class="ins-act-card-name">PIR sensor</div>
+                    <div class="ins-act-card-detail">HC-SR501 + ESP32</div>
                 </div>
-                <div class="ins-act-arrow"><i class="bi bi-arrow-right"></i></div>
-                <div class="ins-act-step">
-                    <div class="ins-act-node ins-pipe-node-db">
-                        <div class="ins-pipe-node-name">Supabase</div>
-                        <div class="ins-pipe-node-detail">sensor_events</div>
-                    </div>
-                    <div class="ins-act-label">triggers prediction</div>
+                <div class="ins-act-connector">
+                    <div class="ins-act-conn-line"></div>
+                    <div class="ins-act-conn-label">departure event</div>
                 </div>
-                <div class="ins-act-arrow"><i class="bi bi-arrow-right"></i></div>
-                <div class="ins-act-step">
-                    <div class="ins-act-node ins-pipe-node-purple">
-                        <div class="ins-pipe-node-name" id="act-model-name">Nowcast model</div>
-                        <div class="ins-pipe-node-detail">T+15 min</div>
-                    </div>
-                    <div class="ins-act-label">sends notification</div>
+                <div class="ins-act-card">
+                    <div class="ins-act-card-icon ins-act-card-icon-green"><i class="bi bi-database"></i></div>
+                    <div class="ins-act-card-name">Supabase</div>
+                    <div class="ins-act-card-detail">sensor_events table</div>
                 </div>
-                <div class="ins-act-arrow"><i class="bi bi-arrow-right"></i></div>
-                <div class="ins-act-step">
-                    <div class="ins-act-node ins-pipe-node-blue">
-                        <div class="ins-pipe-node-name">Telegram</div>
-                        <div class="ins-pipe-node-detail">push notification</div>
-                    </div>
-                    <div class="ins-act-label">&nbsp;</div>
+                <div class="ins-act-connector">
+                    <div class="ins-act-conn-line"></div>
+                    <div class="ins-act-conn-label">triggers prediction</div>
+                </div>
+                <div class="ins-act-card">
+                    <div class="ins-act-card-icon ins-act-card-icon-purple"><i class="bi bi-cpu"></i></div>
+                    <div class="ins-act-card-name" id="act-model-name">Nowcast model</div>
+                    <div class="ins-act-card-detail">T+15 min forecast</div>
+                </div>
+                <div class="ins-act-connector">
+                    <div class="ins-act-conn-line"></div>
+                    <div class="ins-act-conn-label">sends notification</div>
+                </div>
+                <div class="ins-act-card">
+                    <div class="ins-act-card-icon ins-act-card-icon-blue"><i class="bi bi-telegram"></i></div>
+                    <div class="ins-act-card-name">Telegram</div>
+                    <div class="ins-act-card-detail">push notification</div>
                 </div>
             </div>
 
             <!-- 3c: App modes and model mapping -->
             <h2 class="ins-h2" style="margin-top: 48px;">App modes and model mapping</h2>
             <p class="ins-body">Two directions and two timing modes combine into four prediction scenarios, each with its own model strategy.</p>
-            <div class="ins-matrix">
-                <div class="ins-matrix-corner"></div>
-                <div class="ins-matrix-col-head">To Imperial (dock bike)</div>
-                <div class="ins-matrix-col-head">From Imperial (pick up bike)</div>
-
-                <div class="ins-matrix-row-head">Now</div>
-                <div class="ins-matrix-cell">
-                    <div class="ins-matrix-q">"Where do I dock my bike?"</div>
-                    <div class="ins-matrix-model" id="matrix-now-to-model">Loading...</div>
-                    <div class="ins-matrix-detail">Predicts empty docks in 15 min using current count + weather</div>
+            <div class="ins-modes-grid">
+                <div class="ins-mode-card ins-mode-card-dock">
+                    <div class="ins-mode-badge ins-mode-badge-now">Now</div>
+                    <div class="ins-mode-q">"Where do I dock my bike?"</div>
+                    <div class="ins-mode-model" id="matrix-now-to-model">Loading...</div>
+                    <div class="ins-mode-detail">Predicts empty docks in 15 min using current count + weather</div>
                 </div>
-                <div class="ins-matrix-cell">
-                    <div class="ins-matrix-q">"Where do I pick up a bike?"</div>
-                    <div class="ins-matrix-model">No model needed</div>
-                    <div class="ins-matrix-detail">Live data from TfL API. Shows current available bikes</div>
+                <div class="ins-mode-card ins-mode-card-bike">
+                    <div class="ins-mode-badge ins-mode-badge-now">Now</div>
+                    <div class="ins-mode-q">"Where do I pick up a bike?"</div>
+                    <div class="ins-mode-model">No model needed</div>
+                    <div class="ins-mode-detail">Live data from TfL API. Shows current available bikes</div>
                 </div>
-
-                <div class="ins-matrix-row-head">Plan trip</div>
-                <div class="ins-matrix-cell">
-                    <div class="ins-matrix-q">"When should I leave to arrive by 10:15?"</div>
-                    <div class="ins-matrix-model" id="matrix-plan-to-model">Loading...</div>
-                    <div class="ins-matrix-detail">Predicts empty docks at arrival time using time patterns + weather forecast</div>
+                <div class="ins-mode-card ins-mode-card-dock">
+                    <div class="ins-mode-badge ins-mode-badge-plan">Plan</div>
+                    <div class="ins-mode-q">"When should I leave to arrive by 10:15?"</div>
+                    <div class="ins-mode-model" id="matrix-plan-to-model">Loading...</div>
+                    <div class="ins-mode-detail">Predicts empty docks at arrival time using time patterns + weather forecast</div>
                 </div>
-                <div class="ins-matrix-cell">
-                    <div class="ins-matrix-q">"Which station will have bikes at 4 PM?"</div>
-                    <div class="ins-matrix-model" id="matrix-plan-from-model">Loading...</div>
-                    <div class="ins-matrix-detail">Predicts available bikes at departure using time patterns + weather forecast</div>
+                <div class="ins-mode-card ins-mode-card-bike">
+                    <div class="ins-mode-badge ins-mode-badge-plan">Plan</div>
+                    <div class="ins-mode-q">"Which station will have bikes at 4 PM?"</div>
+                    <div class="ins-mode-model" id="matrix-plan-from-model">Loading...</div>
+                    <div class="ins-mode-detail">Predicts available bikes at departure using time patterns + weather forecast</div>
                 </div>
             </div>
 
@@ -687,9 +670,9 @@
 .ins-decision-card,
 .ins-assess-card,
 .ins-infra,
-.ins-matrix,
-.ins-pipe-node,
-.ins-act-node {
+.ins-arch-card,
+.ins-act-card,
+.ins-mode-card {
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
@@ -924,97 +907,7 @@
     line-height: 1.6;
 }
 
-/* 2×2 Matrix */
-.ins-matrix-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 12px;
-}
-
-.ins-matrix {
-    display: grid;
-    grid-template-columns: 90px 1fr 1fr;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 40px;
-}
-
-.ins-matrix-corner {
-    background: var(--bg-primary);
-    border-bottom: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-}
-
-.ins-matrix-col-head {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-align: center;
-    padding: 12px 16px;
-    background: var(--bg-primary);
-    border-bottom: 1px solid var(--border);
-}
-
-.ins-matrix-col-head + .ins-matrix-col-head {
-    border-left: 1px solid var(--border);
-}
-
-.ins-matrix-row-head {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px 8px;
-    background: var(--bg-primary);
-    border-top: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-}
-
-.ins-matrix-cell {
-    padding: 16px 20px;
-    border-top: 1px solid var(--border);
-    border-left: 1px solid var(--border);
-}
-
-.ins-matrix-q {
-    font-size: 14px;
-    font-style: italic;
-    color: var(--text-primary);
-    margin-bottom: 8px;
-    line-height: 1.4;
-}
-
-.ins-matrix-model {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--info);
-    margin-bottom: 4px;
-}
-
-.ins-matrix-detail {
-    font-size: 12px;
-    color: var(--text-tertiary);
-    line-height: 1.5;
-}
-
-@media (max-width: 639px) {
-    .ins-matrix {
-        grid-template-columns: 1fr;
-    }
-    .ins-matrix-corner, .ins-matrix-col-head { display: none; }
-    .ins-matrix-row-head {
-        justify-content: flex-start;
-        padding: 10px 16px;
-        border-right: none;
-    }
-    .ins-matrix-cell { border-left: none; }
-}
+/* (matrix styles replaced by ins-modes-grid above) */
 
 /* Motion sensor callout */
 .ins-callout {
@@ -1167,9 +1060,10 @@
    SECTION 3: SYSTEM ARCHITECTURE
    ================================================================ */
 
-/* Sensing pipeline v2 */
-.ins-pipeline-v2 {
-    display: flex;
+/* ── Sensing pipeline grid ── */
+.ins-arch-grid {
+    display: grid;
+    grid-template-columns: 32% 8% 20% 8% 32%;
     align-items: center;
     gap: 0;
     margin-bottom: 32px;
@@ -1178,91 +1072,322 @@
     padding: 8px 0;
 }
 
-.ins-pv2-sources,
-.ins-pv2-db,
-.ins-pv2-outputs {
+.ins-arch-col {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    flex-shrink: 0;
+    gap: 10px;
 }
 
-.ins-pv2-sources { min-width: 200px; }
-.ins-pv2-db { min-width: 130px; }
-.ins-pv2-outputs { min-width: 220px; }
-
-.ins-pv2-arrow {
-    flex-shrink: 0;
-    width: 60px;
-}
-
-.ins-pipe-svg {
-    width: 60px;
-    height: 180px;
-}
-
-.ins-pv2-svg-out {
-    width: 60px;
-    height: 240px;
-}
-
-.ins-pv2-primary {
-    border-left-width: 3px;
-    border-left-color: var(--info);
-}
-
-.ins-pv2-training {
-    border-left: 3px solid var(--text-tertiary);
-    opacity: 0.65;
-}
-
-.ins-pv2-return-arrow {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0 4px;
-}
-
-.ins-pv2-return-label {
-    font-size: 9px;
-    color: #7B61FF;
-    font-weight: 600;
-    opacity: 0.7;
-    letter-spacing: 0.3px;
-    white-space: nowrap;
-}
-
-.ins-pipe-node {
-    padding: 12px 16px;
-    border-radius: 10px;
+.ins-arch-card {
     background: var(--bg-primary);
     border: 1px solid var(--border);
     border-left: 3px solid var(--text-tertiary);
+    border-radius: 10px;
+    padding: 12px 14px;
 }
 
-.ins-pipe-node-blue { border-left-color: var(--info); }
-.ins-pipe-node-green { border-left-color: var(--success); }
-.ins-pipe-node-amber { border-left-color: var(--warning); }
-.ins-pipe-node-purple { border-left-color: #7B61FF; }
-.ins-pipe-node-db { border-left-color: var(--success); text-align: center; }
+.ins-arch-card-blue { border-left-color: var(--info); }
+.ins-arch-card-green { border-left-color: var(--success); }
+.ins-arch-card-amber { border-left-color: var(--warning); }
+.ins-arch-card-db {
+    border-left-color: var(--success);
+    text-align: center;
+}
+.ins-arch-card-muted {
+    border-left-color: var(--text-tertiary);
+    opacity: 0.7;
+}
 
-.ins-pipe-node-name {
+.ins-arch-card-icon {
+    font-size: 24px;
+    color: var(--success);
+    margin-bottom: 4px;
+}
+
+.ins-arch-card-name {
     font-size: 12px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
-.ins-pipe-node-detail {
+.ins-arch-card-detail {
     font-size: 11px;
     color: var(--text-tertiary);
     line-height: 1.3;
 }
 
-.ins-pipe-node-freq {
+.ins-arch-card-freq {
     font-size: 10px;
     color: var(--text-tertiary);
     font-style: italic;
     margin-top: 2px;
+}
+
+/* Arrows between columns */
+.ins-arch-arrows {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 4px;
+}
+
+.ins-arch-arrow-line {
+    width: 100%;
+    height: 2px;
+    background: var(--text-tertiary);
+    position: relative;
+}
+
+.ins-arch-arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    border: 5px solid transparent;
+    border-left: 6px solid var(--text-tertiary);
+}
+
+.ins-arch-arrow-dashed {
+    background: repeating-linear-gradient(
+        90deg,
+        var(--text-tertiary) 0, var(--text-tertiary) 6px,
+        transparent 6px, transparent 10px
+    );
+    height: 2px;
+}
+
+.ins-arch-arrow-dashed::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    border: 5px solid transparent;
+    border-left: 6px solid var(--text-tertiary);
+}
+
+.ins-arch-arrow-label {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* Out-arrows (db → outputs) */
+.ins-arch-arrows-out {
+    gap: 20px;
+}
+
+.ins-arch-arrow-out-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    width: 100%;
+}
+
+/* pkl arrow between flask and training */
+.ins-arch-pkl-arrow {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+}
+
+.ins-arch-pkl-line {
+    flex: 1;
+    height: 1px;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--text-tertiary) 0, var(--text-tertiary) 4px,
+        transparent 4px, transparent 7px
+    );
+}
+
+.ins-arch-pkl-label {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+}
+
+@media (max-width: 639px) {
+    .ins-arch-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .ins-arch-arrows {
+        flex-direction: row;
+        padding: 4px 0;
+    }
+    .ins-arch-arrow-line {
+        width: 40px;
+        height: 2px;
+    }
+    .ins-arch-arrows-out { gap: 8px; }
+    .ins-arch-arrow-out-row { flex-direction: row; }
+}
+
+/* ── Actuation pipeline (horizontal flow) ── */
+.ins-act-flow {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    margin-bottom: 32px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 0;
+}
+
+.ins-act-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.ins-act-card-icon {
+    font-size: 28px;
+    margin-bottom: 4px;
+}
+
+.ins-act-card-icon-amber { color: var(--warning); }
+.ins-act-card-icon-green { color: var(--success); }
+.ins-act-card-icon-purple { color: #7B61FF; }
+.ins-act-card-icon-blue { color: var(--info); }
+
+.ins-act-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ins-act-card-detail {
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+.ins-act-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
+    flex-shrink: 0;
+    min-width: 50px;
+    padding-top: 20px;
+}
+
+.ins-act-conn-line {
+    width: 100%;
+    height: 2px;
+    background: var(--text-tertiary);
+    position: relative;
+}
+
+.ins-act-conn-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    border: 5px solid transparent;
+    border-left: 6px solid var(--text-tertiary);
+}
+
+.ins-act-conn-label {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    margin-top: 3px;
+    white-space: nowrap;
+}
+
+@media (max-width: 639px) {
+    .ins-act-flow { flex-direction: column; align-items: stretch; gap: 0; }
+    .ins-act-card { min-width: 0; flex-direction: row; padding: 14px 16px; gap: 12px; text-align: left; }
+    .ins-act-card-icon { font-size: 22px; margin-bottom: 0; }
+    .ins-act-connector { flex-direction: row; padding: 0; min-width: 0; height: 28px; justify-content: center; padding-top: 0; }
+    .ins-act-conn-line { width: 2px; height: 20px; }
+    .ins-act-conn-line::after {
+        right: auto; top: auto;
+        bottom: -1px; left: -4px;
+        border: 5px solid transparent;
+        border-top: 6px solid var(--text-tertiary);
+        border-left: 5px solid transparent;
+    }
+}
+
+/* ── App modes (2×2 card grid) ── */
+.ins-modes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+.ins-mode-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    border-top: 3px solid transparent;
+}
+
+.ins-mode-card-dock { border-top-color: var(--info); }
+.ins-mode-card-bike { border-top-color: #06b6d4; }
+
+.ins-mode-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.ins-mode-badge-now {
+    background: rgba(55, 138, 221, 0.1);
+    color: var(--info);
+}
+
+.ins-mode-badge-plan {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+}
+
+.ins-mode-q {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.ins-mode-model {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--info);
+    margin-bottom: 4px;
+}
+
+.ins-mode-detail {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+}
+
+@media (max-width: 639px) {
+    .ins-modes-grid { grid-template-columns: 1fr; }
 }
 
 /* Data source cards */
@@ -1330,48 +1455,7 @@
     text-align: left;
 }
 
-/* Actuation pipeline */
-.ins-act-pipeline {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 32px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 8px 0;
-}
-
-.ins-act-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-}
-
-.ins-act-node {
-    padding: 12px 16px;
-    border-radius: 10px;
-    background: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--text-tertiary);
-    text-align: center;
-    min-width: 120px;
-}
-
-.ins-act-label {
-    font-size: 9px;
-    color: var(--text-tertiary);
-    font-style: italic;
-    white-space: nowrap;
-}
-
-.ins-act-arrow {
-    color: var(--text-tertiary);
-    font-size: 14px;
-    padding-top: 16px;
-    flex-shrink: 0;
-}
+/* (actuation pipeline styles moved above with ins-act-flow) */
 
 /* Infrastructure block */
 .ins-infra {
@@ -1876,14 +1960,13 @@
     .ins-model-metrics { grid-template-columns: repeat(2, 1fr); }
     .ins-model-name { font-size: 18px; }
 
-    /* Pipeline diagrams - tighter */
-    .ins-pv2-sources { min-width: 150px; }
-    .ins-pv2-db { min-width: 100px; }
-    .ins-pv2-outputs { min-width: 170px; }
-    .ins-pipe-node { padding: 8px 10px; }
-    .ins-pipe-node-name { font-size: 11px; }
-    .ins-pipe-node-detail { font-size: 10px; }
-    .ins-pipe-node-freq { font-size: 9px; }
+    /* Architecture diagrams - tighter */
+    .ins-arch-card { padding: 8px 10px; }
+    .ins-arch-card-name { font-size: 11px; }
+    .ins-arch-card-detail { font-size: 10px; }
+    .ins-arch-card-freq { font-size: 9px; }
+    .ins-act-card { padding: 14px 12px; min-width: 110px; }
+    .ins-act-card-icon { font-size: 22px; }
 
     /* Nav */
     .ins-nav-inner { padding: 0 12px; }
