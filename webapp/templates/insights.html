@@ -1446,12 +1446,18 @@
 }
 
 .ins-chart-takeaway {
-    font-size: 13px;
-    color: var(--text-tertiary);
+    font-size: 14px;
+    color: var(--text-primary);
     margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-    line-height: 1.5;
+    padding: 12px 16px;
+    border-left: 3px solid var(--info);
+    background: rgba(55, 138, 221, 0.06);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    line-height: 1.55;
+}
+
+[data-bs-theme="dark"] .ins-chart-takeaway {
+    background: rgba(55, 138, 221, 0.08);
 }
 
 .ins-chart-note {
@@ -1852,7 +1858,7 @@
     /* Chart containers */
     .ins-chart-wrap { padding: 14px 12px 12px; border-radius: 10px; }
     .ins-chart-title { font-size: 12px; }
-    .ins-chart-takeaway { font-size: 12px; }
+    .ins-chart-takeaway { font-size: 13px; padding: 10px 14px; }
     .ins-chart-note { font-size: 11px; padding: 6px 10px; }
 
     /* Cards */
@@ -1943,8 +1949,8 @@ function chartColors() {
     };
 }
 
-const WARM_PALETTE = ['#E88D3F', '#D4622B', '#C04A20', '#A33518', '#8B2510'];
-const COOL_PALETTE = ['#378ADD', '#2B6CB0', '#1E5294', '#163C6E', '#0F2B52'];
+const WARM_PALETTE = ['#e63946', '#f4845f', '#f9a825', '#d4580a', '#7c2d12'];
+const COOL_PALETTE = ['#1d4ed8', '#3b82f6', '#06b6d4', '#8b5cf6', '#64748b'];
 const PREFERRED_IDS = ['BikePoints_432', 'BikePoints_482', 'BikePoints_878', 'BikePoints_356', 'BikePoints_428'];
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -2085,7 +2091,7 @@ async function loadSection4() {
             data: st.data.map(d => ({ x: d.t, y: d.v })),
             borderColor: WARM_PALETTE[i % WARM_PALETTE.length],
             backgroundColor: WARM_PALETTE[i % WARM_PALETTE.length] + '22',
-            borderWidth: 2,
+            borderWidth: 2.5,
             pointRadius: 0,
             tension: 0.3,
             fill: false,
@@ -2096,8 +2102,8 @@ async function loadSection4() {
             beforeDraw(chart) {
                 const { ctx, chartArea, scales: { x, y } } = chart;
                 if (!chartArea) return;
-                const left = x.getPixelForValue(8.5);
-                const right = x.getPixelForValue(9.5);
+                const left = x.getPixelForValue(8);
+                const right = x.getPixelForValue(10);
                 ctx.save();
                 ctx.fillStyle = 'rgba(232, 141, 63, 0.08)';
                 ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
@@ -2142,7 +2148,7 @@ async function loadSection4() {
                     },
                 },
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 }, color: cc.text } },
+                    legend: { position: 'bottom', labels: { usePointStyle: false, boxWidth: 14, boxHeight: 4, padding: 12, font: { size: 11 }, color: cc.text } },
                     tooltip: {
                         itemSort: (a, b) => b.parsed.y - a.parsed.y,
                         callbacks: {
@@ -2225,7 +2231,7 @@ async function loadSection4() {
             data: st.data.map(d => ({ x: d.t, y: d.v })),
             borderColor: COOL_PALETTE[i % COOL_PALETTE.length],
             backgroundColor: COOL_PALETTE[i % COOL_PALETTE.length] + '22',
-            borderWidth: 2,
+            borderWidth: 2.5,
             pointRadius: 0,
             tension: 0.3,
             fill: false,
@@ -2258,7 +2264,7 @@ async function loadSection4() {
                     },
                 },
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 }, color: cc.text } },
+                    legend: { position: 'bottom', labels: { usePointStyle: false, boxWidth: 14, boxHeight: 4, padding: 12, font: { size: 11 }, color: cc.text } },
                     tooltip: {
                         itemSort: (a, b) => b.parsed.y - a.parsed.y,
                         callbacks: {

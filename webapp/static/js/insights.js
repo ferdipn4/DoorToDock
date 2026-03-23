@@ -32,11 +32,11 @@ function getAxisTitleColor() {
 }
 
 const STATION_COLORS = {
-    'BikePoints_432': '#E24B4A',
-    'BikePoints_482': '#BA7517',
-    'BikePoints_878': '#378ADD',
-    'BikePoints_356': '#1D9E75',
-    'BikePoints_428': '#7B61FF',
+    'BikePoints_432': '#e63946',
+    'BikePoints_482': '#f4845f',
+    'BikePoints_878': '#f9a825',
+    'BikePoints_356': '#d4580a',
+    'BikePoints_428': '#7c2d12',
 };
 
 const PREFERRED_IDS = ['BikePoints_432', 'BikePoints_482', 'BikePoints_878', 'BikePoints_356', 'BikePoints_428'];
@@ -139,7 +139,7 @@ function renderMorningChart(rows) {
             data: slots.map(s => station.data[`${s.h}:${s.m}`] ?? null),
             borderColor: STATION_COLORS[id],
             backgroundColor: 'transparent',
-            borderWidth: 2,
+            borderWidth: 2.5,
             pointRadius: 0,
             pointHoverRadius: 4,
             tension: 0.3,
@@ -157,7 +157,7 @@ function renderMorningChart(rows) {
                 legend: {
                     display: true,
                     position: 'bottom',
-                    labels: { usePointStyle: true, pointStyle: 'line', font: { size: 10 }, color: getLegendColor(), padding: 14 },
+                    labels: { usePointStyle: false, boxWidth: 14, boxHeight: 4, font: { size: 10 }, color: getLegendColor(), padding: 14 },
                 },
                 tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} empty docks` } },
             },
@@ -216,7 +216,7 @@ function renderEveningChart(rows) {
             data: slots.map(s => station.data[`${s.h}:${s.m}`] ?? null),
             borderColor: STATION_COLORS[id],
             backgroundColor: 'transparent',
-            borderWidth: 2,
+            borderWidth: 2.5,
             pointRadius: 0,
             pointHoverRadius: 4,
             tension: 0.3,
@@ -234,7 +234,7 @@ function renderEveningChart(rows) {
                 legend: {
                     display: true,
                     position: 'bottom',
-                    labels: { usePointStyle: true, pointStyle: 'line', font: { size: 10 }, color: getLegendColor(), padding: 14 },
+                    labels: { usePointStyle: false, boxWidth: 14, boxHeight: 4, font: { size: 10 }, color: getLegendColor(), padding: 14 },
                 },
                 tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} bikes` } },
             },
