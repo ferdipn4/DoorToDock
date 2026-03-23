@@ -377,7 +377,7 @@
                 <p class="ins-body" id="weather-intro">Commuter schedules dominate dock dynamics far more than weather. Here's how dry and rainy days compare.</p>
 
                 <div class="ins-chart-wrap">
-                    <div class="ins-chart-title">Dry vs rainy weekdays - empty docks at preferred stations (6 AM – 8 PM)</div>
+                    <div class="ins-chart-title">Dry vs rainy weekdays – empty docks at preferred stations (6 AM – 8 PM)</div>
                     <canvas id="chart-weather-compare" height="260"></canvas>
                     <div class="ins-chart-note">Note: Lines may appear incomplete due to limited rainy days in the 24-day collection period. Only days with measurable precipitation (&gt; 0.1mm) are classified as rainy.</div>
                     <div class="ins-chart-takeaway" id="weather-takeaway">Loading...</div>
@@ -461,7 +461,7 @@
 
             <!-- Model comparison bar chart -->
             <div class="ins-chart-wrap">
-                <div class="ins-chart-title">Model comparison - MAE across all benchmarked models</div>
+                <div class="ins-chart-title">Model comparison – MAE across all benchmarked models</div>
                 <canvas id="chart-model-compare" height="240"></canvas>
                 <div class="ins-chart-takeaway">Models validated with TimeSeriesSplit (3-fold expanding window) to prevent data leakage and confirm stability across time periods.</div>
             </div>
@@ -483,7 +483,7 @@
             <p class="ins-body" id="feat-nc-intro">Which features matter most for the nowcast model's 15-minute predictions?</p>
 
             <div class="ins-chart-wrap">
-                <div class="ins-chart-title" id="feat-nc-chart-title">Feature importance - Nowcast model</div>
+                <div class="ins-chart-title" id="feat-nc-chart-title">Feature importance – Nowcast model</div>
                 <canvas id="chart-feat-nc" height="300"></canvas>
                 <div class="ins-chart-takeaway" id="feat-nc-takeaway">Loading...</div>
             </div>
@@ -493,7 +493,7 @@
             <p class="ins-body" id="feat-fc-intro">How does the forecast model make predictions without live dock data?</p>
 
             <div class="ins-chart-wrap" id="feat-fc-wrap">
-                <div class="ins-chart-title" id="feat-fc-chart-title">Feature breakdown - Forecast model</div>
+                <div class="ins-chart-title" id="feat-fc-chart-title">Feature breakdown – Forecast model</div>
                 <div id="feat-fc-content"></div>
                 <div class="ins-chart-takeaway" id="feat-fc-takeaway">Loading...</div>
             </div>
@@ -503,7 +503,7 @@
             <p class="ins-body">Pearson correlation coefficients measure the linear relationship between each weather variable and dock availability across all stations.</p>
 
             <div class="ins-chart-wrap">
-                <div class="ins-chart-title">Pearson r - weather variables vs. empty docks</div>
+                <div class="ins-chart-title">Pearson r – weather variables vs. empty docks</div>
                 <canvas id="chart-corr" height="180"></canvas>
                 <div class="ins-chart-takeaway" id="corr-takeaway">Loading...</div>
             </div>
@@ -671,8 +671,7 @@
 .ins-assess-card,
 .ins-infra,
 .ins-arch-card,
-.ins-act-card,
-.ins-mode-card {
+.ins-act-card {
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
@@ -1324,7 +1323,7 @@
     }
 }
 
-/* ── App modes (2×2 card grid) ── */
+/* ── App modes (2×2 card grid) — scoped under .ins-modes-grid ── */
 .ins-modes-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1332,35 +1331,27 @@
     margin-bottom: 40px;
 }
 
-.ins-mode-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-radius: 14px;
+.ins-modes-grid .ins-mode-card {
     padding: 20px;
-    position: relative;
     border-top: 3px solid transparent;
 }
 
-.ins-mode-card-dock { border-top-color: var(--info); }
-.ins-mode-card-bike { border-top-color: #06b6d4; }
+.ins-modes-grid .ins-mode-card-dock { border-top-color: var(--info); }
+.ins-modes-grid .ins-mode-card-bike { border-top-color: #06b6d4; }
 
-.ins-mode-badge {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
+.ins-modes-grid .ins-mode-badge {
     letter-spacing: 1px;
-    text-transform: uppercase;
     padding: 3px 8px;
     border-radius: 4px;
-    margin-bottom: 10px;
+    background: transparent;
 }
 
-.ins-mode-badge-now {
+.ins-modes-grid .ins-mode-badge-now {
     background: rgba(55, 138, 221, 0.1);
     color: var(--info);
 }
 
-.ins-mode-badge-plan {
+.ins-modes-grid .ins-mode-badge-plan {
     background: rgba(6, 182, 212, 0.1);
     color: #06b6d4;
 }
@@ -2678,7 +2669,7 @@ async function loadSection6() {
     // --- 6a: Nowcast feature importance ---
     if (ch5 && ch5.feature_importance && ch5.feature_importance.length > 0) {
         const ncName = ch5.nowcast?.name || 'Nowcast';
-        setText('feat-nc-chart-title', `Feature importance - ${ncName} model`);
+        setText('feat-nc-chart-title', `Feature importance – ${ncName} model`);
 
         const feats = ch5.feature_importance;
         const topFeat = feats[0];
@@ -2749,7 +2740,7 @@ async function loadSection6() {
     // --- 6b: Forecast feature importance ---
     if (ch5 && ch5.forecast) {
         const fcName = ch5.forecast?.name || 'Forecast';
-        setText('feat-fc-chart-title', `Feature breakdown - ${fcName} model`);
+        setText('feat-fc-chart-title', `Feature breakdown – ${fcName} model`);
 
         const isBaseline = fcName.toLowerCase().includes('baseline') || fcName.toLowerCase().includes('historical') || fcName.toLowerCase().includes('average');
 
