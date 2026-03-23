@@ -111,7 +111,7 @@
 
             <!-- STATE 3: To Imperial + Plan -->
             <div id="state-to-plan" style="display: none;">
-                <div class="plan-form">
+                <div class="plan-card">
                     <div class="plan-field">
                         <label class="plan-field-label">I NEED TO ARRIVE BY</label>
                         <div class="plan-time-row">
@@ -129,13 +129,10 @@
                     <button class="plan-scan-btn" id="to-plan-scan-btn">
                         <i class="bi bi-search"></i> Get recommendation
                     </button>
-                    <div class="plan-field">
-                        <label class="plan-field-label">WEATHER FORECAST</label>
-                        <div class="weather-strip" id="to-plan-weather">
-                            <i class="bi bi-cloud"></i>
-                            <span id="to-plan-weather-text">Select a time to see forecast</span>
-                        </div>
-                    </div>
+                </div>
+                <div class="weather-strip plan-weather-strip" id="to-plan-weather">
+                    <i class="bi bi-cloud"></i>
+                    <span id="to-plan-weather-text">Select a time to see forecast</span>
                 </div>
                 <!-- Plan skeleton / empty state (static grey placeholders) -->
                 <div id="to-plan-empty" class="skel-hero-card skel-hero-blue skel-static">
@@ -180,7 +177,7 @@
 
             <!-- STATE 4: From Imperial + Plan -->
             <div id="state-from-plan" style="display: none;">
-                <div class="plan-form">
+                <div class="plan-card">
                     <div class="plan-field">
                         <label class="plan-field-label">I WANT TO LEAVE UNI AT</label>
                         <div class="plan-time-row">
@@ -198,13 +195,10 @@
                     <button class="plan-scan-btn" id="from-plan-scan-btn">
                         <i class="bi bi-search"></i> Get recommendation
                     </button>
-                    <div class="plan-field">
-                        <label class="plan-field-label">WEATHER FORECAST</label>
-                        <div class="weather-strip" id="from-plan-weather">
-                            <i class="bi bi-cloud"></i>
-                            <span id="from-plan-weather-text">Select a time to see forecast</span>
-                        </div>
-                    </div>
+                </div>
+                <div class="weather-strip plan-weather-strip" id="from-plan-weather">
+                    <i class="bi bi-cloud"></i>
+                    <span id="from-plan-weather-text">Select a time to see forecast</span>
                 </div>
                 <div id="from-plan-empty" class="skel-hero-card skel-hero-green skel-static">
                     <div class="skel-bar skel-static-bar" style="width: 100px; height: 10px;"></div>
@@ -910,11 +904,20 @@
 /* ═══════════════════════════════════════════════
    PLAN FORM
    ═══════════════════════════════════════════════ */
-.plan-form {
+.plan-card {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 16px;
+    padding: 20px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 12px;
+}
+
+.plan-weather-strip {
+    margin-bottom: 12px;
 }
 
 .plan-helper {
