@@ -144,73 +144,59 @@
             <h2 class="ins-h2">Sensing pipeline</h2>
             <p class="ins-body">Three data sources feed into a cloud database via automated collection scripts running on Heroku.</p>
 
-            <!-- Data source stat cards (what and how much) -->
-            <div class="ins-source-cards">
-                <div class="ins-source-card">
-                    <div class="ins-source-header">
-                        <span class="ins-source-badge ins-source-badge-blue">TfL Santander Cycles API</span>
-                        <span class="ins-source-freq">every ~60s</span>
+            <!-- Unified sensing diagram: source cards → arrows → Supabase -->
+            <div class="ins-sense-unified">
+                <!-- Top row: 3 source stat cards -->
+                <div class="ins-source-cards">
+                    <div class="ins-source-card">
+                        <div class="ins-source-header">
+                            <span class="ins-source-badge ins-source-badge-blue">TfL Santander Cycles API</span>
+                            <span class="ins-source-freq">every ~60s</span>
+                        </div>
+                        <div class="ins-source-value" id="ds-docks">--</div>
+                        <div class="ins-source-label">dock readings</div>
+                        <div class="ins-source-fields">21 Santander Cycles stations near Imperial, since Feb 25 2026. Fields: available_bikes, empty_docks, ebikes, total_docks, coordinates.</div>
                     </div>
-                    <div class="ins-source-value" id="ds-docks">--</div>
-                    <div class="ins-source-label">dock readings</div>
-                    <div class="ins-source-fields">21 Santander Cycles stations near Imperial, since Feb 25 2026. Fields: available_bikes, empty_docks, ebikes, total_docks, coordinates.</div>
-                </div>
-                <div class="ins-source-card">
-                    <div class="ins-source-header">
-                        <span class="ins-source-badge ins-source-badge-green">Open-Meteo API</span>
-                        <span class="ins-source-freq">every ~60s</span>
+                    <div class="ins-source-card">
+                        <div class="ins-source-header">
+                            <span class="ins-source-badge ins-source-badge-green">Open-Meteo API</span>
+                            <span class="ins-source-freq">every ~60s</span>
+                        </div>
+                        <div class="ins-source-value" id="ds-weather">--</div>
+                        <div class="ins-source-label">weather observations</div>
+                        <div class="ins-source-fields">Since Feb 25 2026. Fields: temperature, humidity, precipitation, wind_speed, weather_code.</div>
                     </div>
-                    <div class="ins-source-value" id="ds-weather">--</div>
-                    <div class="ins-source-label">weather observations</div>
-                    <div class="ins-source-fields">Since Feb 25 2026. Fields: temperature, humidity, precipitation, wind_speed, weather_code.</div>
-                </div>
-                <div class="ins-source-card">
-                    <div class="ins-source-header">
-                        <span class="ins-source-badge ins-source-badge-amber">KY-028 sensor</span>
-                        <span class="ins-source-freq">continuous</span>
+                    <div class="ins-source-card">
+                        <div class="ins-source-header">
+                            <span class="ins-source-badge ins-source-badge-amber">KY-028 sensor</span>
+                            <span class="ins-source-freq">continuous</span>
+                        </div>
+                        <div class="ins-source-value" id="ds-sensor">--</div>
+                        <div class="ins-source-label">temperature readings</div>
+                        <div class="ins-source-fields">Via ESP32 + HTTPS, Feb 25 to Mar 13 2026 (sensor disconnected after 16 days). Fields: temperature_c, raw_adc.</div>
                     </div>
-                    <div class="ins-source-value" id="ds-sensor">--</div>
-                    <div class="ins-source-label">temperature readings</div>
-                    <div class="ins-source-fields">Via ESP32 + HTTPS, Feb 25 to Mar 13 2026 (sensor disconnected after 16 days). Fields: temperature_c, raw_adc.</div>
                 </div>
-            </div>
-
-            <div class="ins-sense-grid">
-                <!-- Row 1: TfL → Supabase -->
-                <div class="ins-arch-card ins-arch-card-blue">
-                    <div class="ins-arch-card-name">TfL Santander Cycles API</div>
-                    <div class="ins-arch-card-detail">bikes, docks, ebikes</div>
-                </div>
-                <div class="ins-sense-arrow">
-                    <span class="ins-sense-arrow-line"></span>
-                    <span class="ins-sense-arrow-label">every 60s</span>
-                </div>
-                <!-- Row 2: Open-Meteo → Supabase -->
-                <div class="ins-arch-card ins-arch-card-green">
-                    <div class="ins-arch-card-name">Open-Meteo API</div>
-                    <div class="ins-arch-card-detail">temp, humidity, rain, wind</div>
-                </div>
-                <div class="ins-sense-arrow">
-                    <span class="ins-sense-arrow-line"></span>
-                    <span class="ins-sense-arrow-label">every 60s</span>
-                </div>
-                <!-- Row 3: KY-028 → Supabase -->
-                <div class="ins-arch-card ins-arch-card-amber">
-                    <div class="ins-arch-card-name">KY-028 via ESP32</div>
-                    <div class="ins-arch-card-detail">temperature_c (training only)</div>
-                </div>
-                <div class="ins-sense-arrow">
-                    <span class="ins-sense-arrow-line"></span>
-                    <span class="ins-sense-arrow-label">HTTPS POST</span>
-                </div>
-                <!-- Supabase spans all 3 rows -->
-                <div class="ins-sense-db">
-                    <div class="ins-arch-card ins-arch-card-db">
-                        <div class="ins-arch-card-icon"><i class="bi bi-database"></i></div>
-                        <div class="ins-arch-card-name">Supabase PostgreSQL</div>
-                        <div class="ins-arch-card-detail">6 tables, SSL</div>
-                        <div class="ins-arch-card-freq" id="arch-total-rows">Loading...</div>
+                <!-- Middle row: 3 vertical arrows -->
+                <div class="ins-sense-varrows">
+                    <div class="ins-sense-varrow">
+                        <span class="ins-sense-varrow-line"></span>
+                        <span class="ins-sense-varrow-label">every ~60s</span>
                     </div>
+                    <div class="ins-sense-varrow">
+                        <span class="ins-sense-varrow-line"></span>
+                        <span class="ins-sense-varrow-label">every ~60s</span>
+                    </div>
+                    <div class="ins-sense-varrow">
+                        <span class="ins-sense-varrow-line"></span>
+                        <span class="ins-sense-varrow-label">HTTPS POST</span>
+                    </div>
+                </div>
+                <!-- Bottom row: Supabase card full width -->
+                <div class="ins-sense-db-wide">
+                    <div class="ins-arch-card-icon"><i class="bi bi-database"></i></div>
+                    <div class="ins-arch-card-name">Supabase PostgreSQL</div>
+                    <div class="ins-arch-card-detail">6 tables, SSL</div>
+                    <div class="ins-arch-card-freq" id="arch-total-rows">Loading...</div>
                 </div>
             </div>
 
@@ -710,7 +696,8 @@
 .ins-assess-card,
 .ins-infra,
 .ins-arch-card,
-.ins-act-card {
+.ins-act-card,
+.ins-sense-db-wide {
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
@@ -1177,60 +1164,62 @@
     white-space: nowrap;
 }
 
-/* ── Diagram 1: Sensing pipeline ── */
-.ins-sense-grid {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-rows: auto auto auto;
-    align-items: center;
-    gap: 10px 0;
+/* ── Diagram 1: Unified sensing pipeline ── */
+.ins-sense-unified {
     margin-bottom: 32px;
+}
+
+/* Vertical arrows row */
+.ins-sense-varrows {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.ins-sense-varrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
     padding: 8px 0;
 }
 
-/* Source cards: column 1 */
-.ins-sense-grid > .ins-arch-card:nth-child(1) { grid-area: 1 / 1; }
-.ins-sense-grid > .ins-arch-card:nth-child(3) { grid-area: 2 / 1; }
-.ins-sense-grid > .ins-arch-card:nth-child(5) { grid-area: 3 / 1; }
-
-/* Arrows: column 2 */
-.ins-sense-grid > .ins-sense-arrow:nth-child(2) { grid-area: 1 / 2; min-width: 90px; padding: 0 10px; }
-.ins-sense-grid > .ins-sense-arrow:nth-child(4) { grid-area: 2 / 2; min-width: 90px; padding: 0 10px; }
-.ins-sense-grid > .ins-sense-arrow:nth-child(6) { grid-area: 3 / 2; min-width: 90px; padding: 0 10px; }
-
-/* Supabase: column 3, spans all 3 rows */
-.ins-sense-db {
-    grid-area: 1 / 3 / 4 / 4;
-    display: flex;
-    align-items: center;
-    height: 100%;
+.ins-sense-varrow-line {
+    display: block;
+    width: 2px;
+    height: 28px;
+    background: var(--text-tertiary);
+    position: relative;
 }
 
-.ins-sense-db .ins-arch-card {
-    width: 100%;
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 20px 14px;
+.ins-sense-varrow-line::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: -4px;
+    border: 5px solid transparent;
+    border-top: 6px solid var(--text-tertiary);
 }
 
-@media (max-width: 579px) {
-    .ins-sense-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto;
-        gap: 0;
-    }
-    .ins-sense-grid > .ins-arch-card:nth-child(1),
-    .ins-sense-grid > .ins-arch-card:nth-child(3),
-    .ins-sense-grid > .ins-arch-card:nth-child(5) { grid-area: auto; }
-    .ins-sense-grid > .ins-sense-arrow { min-width: 0; padding: 6px 0; flex-direction: row; gap: 6px; }
-    .ins-sense-grid > .ins-sense-arrow:nth-child(2),
-    .ins-sense-grid > .ins-sense-arrow:nth-child(4),
-    .ins-sense-grid > .ins-sense-arrow:nth-child(6) { grid-area: auto; min-width: 0; padding: 6px 20px; }
-    .ins-sense-arrow-line { width: 40px; }
-    .ins-sense-db { grid-area: auto; }
-    .ins-sense-db .ins-arch-card { min-height: 0; }
+.ins-sense-varrow-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+}
+
+/* Full-width Supabase card */
+.ins-sense-db-wide {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--success);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+
+@media (max-width: 639px) {
+    .ins-sense-varrows { grid-template-columns: 1fr; gap: 0; }
+    .ins-sense-varrow { padding: 4px 0; }
 }
 
 /* ── Diagram 2: Processing and serving ── */
@@ -1513,7 +1502,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 0;
 }
 
 @media (max-width: 639px) {
