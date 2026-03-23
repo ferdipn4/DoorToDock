@@ -420,11 +420,11 @@
                         </div>
                     </div>
                     <div class="ins-model-why" id="model-nc-why">Loading...</div>
-                    <!-- Runner-up -->
-                    <details class="ins-model-runnerup">
-                        <summary>Benchmarked against</summary>
+                    <!-- Benchmarks (always visible) -->
+                    <div class="ins-model-bench">
+                        <div class="ins-model-bench-heading">Benchmarked against:</div>
                         <div class="ins-model-runnerup-list" id="model-nc-runners"></div>
-                    </details>
+                    </div>
                 </div>
 
                 <!-- Forecast card -->
@@ -451,11 +451,11 @@
                         </div>
                     </div>
                     <div class="ins-model-why" id="model-fc-why">Loading...</div>
-                    <!-- Runner-up -->
-                    <details class="ins-model-runnerup">
-                        <summary>Benchmarked against</summary>
+                    <!-- Benchmarks (always visible) -->
+                    <div class="ins-model-bench">
+                        <div class="ins-model-bench-heading">Benchmarked against:</div>
                         <div class="ins-model-runnerup-list" id="model-fc-runners"></div>
-                    </details>
+                    </div>
                 </div>
             </div>
 
@@ -476,7 +476,7 @@
             <div class="ins-section-label">Feature Analysis</div>
             <p class="ins-lead">What drives each prediction? Understanding feature importance reveals what the models actually learn, and what they can't.</p>
 
-            <div class="ins-chart-note" style="margin-bottom: 24px;">Feature analysis is shown for empty dock predictions (morning commute). Available bike patterns are the inverse: as empty docks decrease, available bikes increase by the same amount, so feature importance and correlations apply equally to both directions.</div>
+            <div class="ins-inverse-callout"><i class="bi bi-info-circle"></i> Analysis below is shown for empty dock predictions. Available bike patterns are the direct inverse: when empty docks decrease, available bikes increase by the same amount.</div>
 
             <!-- 6a: Nowcast Feature Importance -->
             <h2 class="ins-h2">Nowcast feature importance</h2>
@@ -1702,43 +1702,70 @@
     flex: 1;
 }
 
-/* Runner-up details */
-.ins-model-runnerup {
+/* Benchmark list (always visible) */
+.ins-model-bench {
     border-top: 1px solid var(--border);
     padding-top: 10px;
+    margin-top: 4px;
 }
 
-.ins-model-runnerup summary {
-    font-size: 12px;
-    font-weight: 500;
+.ins-model-bench-heading {
+    font-size: 11px;
+    font-weight: 600;
     color: var(--text-tertiary);
-    cursor: pointer;
-    user-select: none;
-}
-
-.ins-model-runnerup summary:hover {
-    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .ins-model-runnerup-list {
-    margin-top: 8px;
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     line-height: 1.7;
 }
 
 .ins-model-runnerup-item {
     display: flex;
     justify-content: space-between;
-    padding: 4px 0;
-    border-bottom: 1px solid var(--border);
+    padding: 3px 0;
 }
 
-.ins-model-runnerup-item:last-child { border-bottom: none; }
+.ins-model-runnerup-item span:last-child {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-tertiary);
+}
 
 /* ================================================================
    SECTION 6: FEATURE ANALYSIS
    ================================================================ */
+
+/* Inverse note callout */
+.ins-inverse-callout {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+}
+
+.ins-inverse-callout i {
+    color: #3b82f6;
+    margin-right: 6px;
+}
+
+[data-bs-theme="dark"] .ins-inverse-callout,
+:root:not([data-bs-theme="light"]) .ins-inverse-callout {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-inverse-callout {
+        background: rgba(59, 130, 246, 0.15);
+    }
+}
 
 .ins-section-alt {
     background: var(--bg-tertiary);
