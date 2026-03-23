@@ -7,7 +7,7 @@ views = Blueprint("views", __name__)
 
 @views.route("/")
 def index():
-    return redirect("/go")
+    return render_template("home.html", active_tab="home")
 
 
 @views.route("/go")
