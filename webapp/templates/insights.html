@@ -144,6 +144,37 @@
             <h2 class="ins-h2">Sensing pipeline</h2>
             <p class="ins-body">Three data sources feed into a cloud database via automated collection scripts running on Heroku.</p>
 
+            <!-- Data source stat cards (what and how much) -->
+            <div class="ins-source-cards">
+                <div class="ins-source-card">
+                    <div class="ins-source-header">
+                        <span class="ins-source-badge ins-source-badge-blue">TfL Santander Cycles API</span>
+                        <span class="ins-source-freq">every ~60s</span>
+                    </div>
+                    <div class="ins-source-value" id="ds-docks">--</div>
+                    <div class="ins-source-label">dock readings</div>
+                    <div class="ins-source-fields">21 Santander Cycles stations near Imperial, since Feb 25 2026. Fields: available_bikes, empty_docks, ebikes, total_docks, coordinates.</div>
+                </div>
+                <div class="ins-source-card">
+                    <div class="ins-source-header">
+                        <span class="ins-source-badge ins-source-badge-green">Open-Meteo API</span>
+                        <span class="ins-source-freq">every ~60s</span>
+                    </div>
+                    <div class="ins-source-value" id="ds-weather">--</div>
+                    <div class="ins-source-label">weather observations</div>
+                    <div class="ins-source-fields">Since Feb 25 2026. Fields: temperature, humidity, precipitation, wind_speed, weather_code.</div>
+                </div>
+                <div class="ins-source-card">
+                    <div class="ins-source-header">
+                        <span class="ins-source-badge ins-source-badge-amber">KY-028 sensor</span>
+                        <span class="ins-source-freq">continuous</span>
+                    </div>
+                    <div class="ins-source-value" id="ds-sensor">--</div>
+                    <div class="ins-source-label">temperature readings</div>
+                    <div class="ins-source-fields">Via ESP32 + HTTPS, Feb 25 to Mar 13 2026 (sensor disconnected after 16 days). Fields: temperature_c, raw_adc.</div>
+                </div>
+            </div>
+
             <div class="ins-sense-grid">
                 <!-- Row 1: TfL → Supabase -->
                 <div class="ins-arch-card ins-arch-card-blue">
@@ -243,37 +274,6 @@
                 </div>
             </div>
 
-            <!-- Data source cards -->
-            <div class="ins-source-cards">
-                <div class="ins-source-card">
-                    <div class="ins-source-header">
-                        <span class="ins-source-badge ins-source-badge-blue">TfL Santander Cycles API</span>
-                        <span class="ins-source-freq">every ~60s</span>
-                    </div>
-                    <div class="ins-source-value" id="ds-docks">--</div>
-                    <div class="ins-source-label">dock readings</div>
-                    <div class="ins-source-fields">21 Santander Cycles stations near Imperial, since Feb 25 2026. Fields: available_bikes, empty_docks, ebikes, total_docks, coordinates.</div>
-                </div>
-                <div class="ins-source-card">
-                    <div class="ins-source-header">
-                        <span class="ins-source-badge ins-source-badge-green">Open-Meteo API</span>
-                        <span class="ins-source-freq">every ~60s</span>
-                    </div>
-                    <div class="ins-source-value" id="ds-weather">--</div>
-                    <div class="ins-source-label">weather observations</div>
-                    <div class="ins-source-fields">Since Feb 25 2026. Fields: temperature, humidity, precipitation, wind_speed, weather_code.</div>
-                </div>
-                <div class="ins-source-card">
-                    <div class="ins-source-header">
-                        <span class="ins-source-badge ins-source-badge-amber">KY-028 sensor</span>
-                        <span class="ins-source-freq">continuous</span>
-                    </div>
-                    <div class="ins-source-value" id="ds-sensor">--</div>
-                    <div class="ins-source-label">temperature readings</div>
-                    <div class="ins-source-fields">Via ESP32 + HTTPS, Feb 25 to Mar 13 2026 (sensor disconnected after 16 days). Fields: temperature_c, raw_adc.</div>
-                </div>
-            </div>
-
             <!-- 3b: Actuation Pipeline -->
             <h2 class="ins-h2" style="margin-top: 48px;">Actuation pipeline</h2>
             <p class="ins-body">When the PIR sensor detects departure, the system triggers a real-time prediction and sends a Telegram notification with the best station.</p>
@@ -316,27 +316,31 @@
             <!-- 3c: App modes and model mapping -->
             <h2 class="ins-h2" style="margin-top: 48px;">App modes and model mapping</h2>
             <p class="ins-body">Two directions and two timing modes combine into four prediction scenarios, each with its own model strategy.</p>
-            <div class="ins-modes-grid">
+            <div class="ins-modes-matrix">
+                <!-- Column headers -->
+                <div class="ins-modes-corner"></div>
+                <div class="ins-modes-col-head">To Imperial</div>
+                <div class="ins-modes-col-head">From Imperial</div>
+                <!-- Row 1: Now -->
+                <div class="ins-modes-row-head">Now</div>
                 <div class="ins-mode-card ins-mode-card-dock">
-                    <div class="ins-mode-badge ins-mode-badge-now">Now</div>
                     <div class="ins-mode-q">"Where do I dock my bike?"</div>
                     <div class="ins-mode-model" id="matrix-now-to-model">Loading...</div>
                     <div class="ins-mode-detail">Predicts empty docks in 15 min using current count + weather</div>
                 </div>
                 <div class="ins-mode-card ins-mode-card-bike">
-                    <div class="ins-mode-badge ins-mode-badge-now">Now</div>
                     <div class="ins-mode-q">"Where do I pick up a bike?"</div>
                     <div class="ins-mode-model">No model needed</div>
                     <div class="ins-mode-detail">Live data from TfL API. Shows current available bikes</div>
                 </div>
+                <!-- Row 2: Plan -->
+                <div class="ins-modes-row-head">Plan</div>
                 <div class="ins-mode-card ins-mode-card-dock">
-                    <div class="ins-mode-badge ins-mode-badge-plan">Plan</div>
                     <div class="ins-mode-q">"When should I leave to arrive by 10:15?"</div>
                     <div class="ins-mode-model" id="matrix-plan-to-model">Loading...</div>
                     <div class="ins-mode-detail">Predicts empty docks at arrival time using time patterns + weather forecast</div>
                 </div>
                 <div class="ins-mode-card ins-mode-card-bike">
-                    <div class="ins-mode-badge ins-mode-badge-plan">Plan</div>
                     <div class="ins-mode-q">"Which station will have bikes at 4 PM?"</div>
                     <div class="ins-mode-model" id="matrix-plan-from-model">Loading...</div>
                     <div class="ins-mode-detail">Predicts available bikes at departure using time patterns + weather forecast</div>
@@ -1407,37 +1411,68 @@
     }
 }
 
-/* ── App modes (2×2 card grid) — scoped under .ins-modes-grid ── */
-.ins-modes-grid {
+/* ── App modes (2×2 matrix with headers) ── */
+.ins-modes-matrix {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: 48px 1fr 1fr;
+    gap: 10px;
     margin-bottom: 40px;
 }
 
-.ins-modes-grid .ins-mode-card {
-    padding: 20px;
+.ins-modes-corner {
+    /* empty top-left cell */
+}
+
+.ins-modes-col-head {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-align: center;
+    padding-bottom: 4px;
+}
+
+.ins-modes-row-head {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    writing-mode: horizontal-tb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ins-modes-matrix .ins-mode-card {
+    padding: 18px;
     border-top: 3px solid transparent;
 }
 
-.ins-modes-grid .ins-mode-card-dock { border-top-color: var(--info); }
-.ins-modes-grid .ins-mode-card-bike { border-top-color: #06b6d4; }
-
-.ins-modes-grid .ins-mode-badge {
-    letter-spacing: 1px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    background: transparent;
+.ins-modes-matrix .ins-mode-card-dock {
+    border-top-color: var(--info);
+    background: rgba(55, 138, 221, 0.03);
 }
 
-.ins-modes-grid .ins-mode-badge-now {
-    background: rgba(55, 138, 221, 0.1);
-    color: var(--info);
+.ins-modes-matrix .ins-mode-card-bike {
+    border-top-color: #06b6d4;
+    background: rgba(6, 182, 212, 0.03);
 }
 
-.ins-modes-grid .ins-mode-badge-plan {
-    background: rgba(6, 182, 212, 0.1);
-    color: #06b6d4;
+[data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-dock {
+    background: rgba(55, 138, 221, 0.06);
+}
+
+[data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-bike {
+    background: rgba(6, 182, 212, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-dock {
+        background: rgba(55, 138, 221, 0.06);
+    }
+    :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-bike {
+        background: rgba(6, 182, 212, 0.06);
+    }
 }
 
 .ins-mode-q {
@@ -1462,7 +1497,15 @@
 }
 
 @media (max-width: 639px) {
-    .ins-modes-grid { grid-template-columns: 1fr; }
+    .ins-modes-matrix {
+        grid-template-columns: 1fr;
+    }
+    .ins-modes-corner { display: none; }
+    .ins-modes-col-head { display: none; }
+    .ins-modes-row-head {
+        justify-content: flex-start;
+        padding: 8px 0 0;
+    }
 }
 
 /* Data source cards */
