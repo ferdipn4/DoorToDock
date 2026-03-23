@@ -178,17 +178,20 @@
                 </div>
                 <!-- Middle row: 3 vertical arrows -->
                 <div class="ins-sense-varrows">
-                    <div class="ins-sense-varrow">
-                        <span class="ins-sense-varrow-line"></span>
-                        <span class="ins-sense-varrow-label">every ~60s</span>
+                    <div class="ins-varrow">
+                        <div class="ins-varrow-shaft"></div>
+                        <div class="ins-varrow-head">▼</div>
+                        <div class="ins-arrow-label">every ~60s</div>
                     </div>
-                    <div class="ins-sense-varrow">
-                        <span class="ins-sense-varrow-line"></span>
-                        <span class="ins-sense-varrow-label">every ~60s</span>
+                    <div class="ins-varrow">
+                        <div class="ins-varrow-shaft"></div>
+                        <div class="ins-varrow-head">▼</div>
+                        <div class="ins-arrow-label">every ~60s</div>
                     </div>
-                    <div class="ins-sense-varrow">
-                        <span class="ins-sense-varrow-line"></span>
-                        <span class="ins-sense-varrow-label">HTTPS POST</span>
+                    <div class="ins-varrow">
+                        <div class="ins-varrow-shaft"></div>
+                        <div class="ins-varrow-head">▼</div>
+                        <div class="ins-arrow-label">HTTPS POST</div>
                     </div>
                 </div>
                 <!-- Bottom row: Supabase card full width -->
@@ -210,18 +213,20 @@
                     <div class="ins-arch-card-name">Supabase</div>
                     <div class="ins-arch-card-detail">historical data</div>
                 </div>
-                <div class="ins-sense-arrow">
-                    <span class="ins-sense-arrow-line"></span>
-                    <span class="ins-sense-arrow-label">export</span>
+                <div class="ins-harrow">
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">export</div>
                 </div>
                 <div class="ins-arch-card ins-arch-card-muted">
                     <div class="ins-arch-card-name">Training Pipeline</div>
                     <div class="ins-arch-card-detail">export_data.py</div>
                     <div class="ins-arch-card-detail">train_model.py</div>
                 </div>
-                <div class="ins-sense-arrow">
-                    <span class="ins-sense-arrow-line"></span>
-                    <span class="ins-sense-arrow-label">produces</span>
+                <div class="ins-harrow">
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">produces</div>
                 </div>
                 <div class="ins-arch-card ins-serve-pkl">
                     <div class="ins-arch-card-name">.pkl models</div>
@@ -231,8 +236,9 @@
 
                 <!-- Vertical dotted arrow: pkl → Flask -->
                 <div class="ins-serve-vert-arrow">
-                    <span class="ins-serve-vert-line"></span>
-                    <span class="ins-serve-vert-label">loaded on startup</span>
+                    <div class="ins-varrow-dashed-shaft"></div>
+                    <div class="ins-varrow-head">▼</div>
+                    <div class="ins-arrow-label">loaded on startup</div>
                 </div>
 
                 <!-- Row 2: live serving -->
@@ -240,17 +246,19 @@
                     <div class="ins-arch-card-name">Supabase</div>
                     <div class="ins-arch-card-detail">live queries</div>
                 </div>
-                <div class="ins-sense-arrow ins-serve-arrow-bot">
-                    <span class="ins-sense-arrow-line"></span>
-                    <span class="ins-sense-arrow-label">SELECT</span>
+                <div class="ins-harrow ins-serve-arrow-bot">
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">SELECT</div>
                 </div>
                 <div class="ins-arch-card ins-arch-card-blue ins-serve-flask">
                     <div class="ins-arch-card-name">Flask App on Heroku</div>
                     <div class="ins-arch-card-detail">Gunicorn, 2 workers</div>
                 </div>
-                <div class="ins-sense-arrow ins-serve-arrow-bot2">
-                    <span class="ins-sense-arrow-line"></span>
-                    <span class="ins-sense-arrow-label">serves</span>
+                <div class="ins-harrow ins-serve-arrow-bot2">
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">serves</div>
                 </div>
                 <div class="ins-arch-card ins-arch-card-blue ins-serve-outputs">
                     <div class="ins-arch-card-name">Outputs</div>
@@ -271,8 +279,9 @@
                     <div class="ins-act-card-detail">HC-SR501 + ESP32</div>
                 </div>
                 <div class="ins-act-connector">
-                    <div class="ins-act-conn-line"></div>
-                    <div class="ins-act-conn-label">departure event</div>
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">departure event</div>
                 </div>
                 <div class="ins-act-card">
                     <div class="ins-act-card-icon ins-act-card-icon-green"><i class="bi bi-database"></i></div>
@@ -280,8 +289,9 @@
                     <div class="ins-act-card-detail">sensor_events table</div>
                 </div>
                 <div class="ins-act-connector">
-                    <div class="ins-act-conn-line"></div>
-                    <div class="ins-act-conn-label">triggers prediction</div>
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">triggers prediction</div>
                 </div>
                 <div class="ins-act-card">
                     <div class="ins-act-card-icon ins-act-card-icon-purple"><i class="bi bi-cpu"></i></div>
@@ -289,8 +299,9 @@
                     <div class="ins-act-card-detail">T+15 min forecast</div>
                 </div>
                 <div class="ins-act-connector">
-                    <div class="ins-act-conn-line"></div>
-                    <div class="ins-act-conn-label">sends notification</div>
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">sends notification</div>
                 </div>
                 <div class="ins-act-card">
                     <div class="ins-act-card-icon ins-act-card-icon-blue"><i class="bi bi-telegram"></i></div>
@@ -1150,37 +1161,62 @@
     margin-top: 2px;
 }
 
-/* ── Shared horizontal arrow connector ── */
-.ins-sense-arrow {
+/* ── Shared arrow label ── */
+.ins-arrow-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* ── Horizontal arrow (line + → head) ── */
+.ins-harrow {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    padding: 0 2px;
+    gap: 2px;
+    padding: 0 4px;
 }
 
-.ins-sense-arrow-line {
-    display: block;
+.ins-harrow-line {
     width: 100%;
     height: 2px;
     background: var(--text-tertiary);
-    position: relative;
+    border-radius: 1px;
 }
 
-.ins-sense-arrow-line::after {
-    content: '';
-    position: absolute;
-    right: -1px;
-    top: -4px;
-    border: 5px solid transparent;
-    border-left: 6px solid var(--text-tertiary);
+.ins-harrow-head {
+    display: none;
 }
 
-.ins-sense-arrow-label {
-    font-size: 10px;
+/* Show arrow as line + → together in a row */
+.ins-harrow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 0;
+}
+
+.ins-harrow .ins-harrow-line {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.ins-harrow .ins-harrow-head {
+    grid-column: 2;
+    grid-row: 1;
+    display: block;
+    font-size: 16px;
     color: var(--text-tertiary);
-    white-space: nowrap;
+    line-height: 1;
+    margin-left: -2px;
+}
+
+.ins-harrow .ins-arrow-label {
+    grid-column: 1 / -1;
+    grid-row: 2;
 }
 
 /* ── Diagram 1: Unified sensing pipeline ── */
@@ -1188,42 +1224,40 @@
     margin-bottom: 32px;
 }
 
-/* Vertical arrows row */
+/* ── Vertical arrow (solid shaft + ▼ head) ── */
 .ins-sense-varrows {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
 }
 
-.ins-sense-varrow {
+.ins-varrow {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
-    padding: 8px 0;
+    gap: 0;
+    padding: 6px 0;
 }
 
-.ins-sense-varrow-line {
-    display: block;
+.ins-varrow-shaft {
     width: 2px;
-    height: 28px;
+    height: 20px;
     background: var(--text-tertiary);
-    position: relative;
+    border-radius: 1px;
 }
 
-.ins-sense-varrow-line::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: -4px;
-    border: 5px solid transparent;
-    border-top: 6px solid var(--text-tertiary);
-}
-
-.ins-sense-varrow-label {
+.ins-varrow-head {
     font-size: 10px;
     color: var(--text-tertiary);
-    white-space: nowrap;
+    line-height: 1;
+    margin-top: -2px;
+}
+
+/* Dashed vertical shaft (for "loaded on startup") */
+.ins-varrow-dashed-shaft {
+    width: 0;
+    height: 22px;
+    border-left: 2px dashed var(--text-tertiary);
 }
 
 /* Full-width Supabase card */
@@ -1238,7 +1272,7 @@
 
 @media (max-width: 639px) {
     .ins-sense-varrows { grid-template-columns: 1fr; gap: 0; }
-    .ins-sense-varrow { padding: 4px 0; }
+    .ins-varrow { padding: 4px 0; }
 }
 
 /* ── Diagram 2: Processing and serving ── */
@@ -1254,46 +1288,19 @@
 
 /* Row 1: training path */
 .ins-serve-db-top   { grid-area: 1 / 1; }
-.ins-serve-grid > .ins-sense-arrow:nth-child(2) { grid-area: 1 / 2; min-width: 60px; padding: 0 6px; }
+.ins-serve-grid > .ins-harrow:nth-child(2) { grid-area: 1 / 2; min-width: 60px; padding: 0 6px; }
 .ins-serve-grid > .ins-arch-card-muted { grid-area: 1 / 3; }
-.ins-serve-grid > .ins-sense-arrow:nth-child(4) { grid-area: 1 / 4; min-width: 60px; padding: 0 6px; }
+.ins-serve-grid > .ins-harrow:nth-child(4) { grid-area: 1 / 4; min-width: 60px; padding: 0 6px; }
 .ins-serve-pkl { grid-area: 1 / 5; border-left-color: #7B61FF; }
 
-/* Vertical arrow: row 2, column 5 → column 3 */
+/* Vertical dotted arrow between rows */
 .ins-serve-vert-arrow {
     grid-area: 2 / 3 / 3 / 6;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     padding: 4px 0;
-}
-
-.ins-serve-vert-line {
-    display: block;
-    width: 2px;
-    height: 28px;
-    background: repeating-linear-gradient(
-        180deg,
-        var(--text-tertiary) 0, var(--text-tertiary) 4px,
-        transparent 4px, transparent 7px
-    );
-    position: relative;
-}
-
-.ins-serve-vert-line::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: -4px;
-    border: 5px solid transparent;
-    border-top: 6px solid var(--text-tertiary);
-}
-
-.ins-serve-vert-label {
-    font-size: 10px;
-    color: var(--text-tertiary);
-    white-space: nowrap;
 }
 
 /* Row 3: live serving path */
@@ -1310,18 +1317,17 @@
         gap: 0;
     }
     .ins-serve-grid > * { grid-area: auto !important; }
-    .ins-serve-grid > .ins-sense-arrow { min-width: 0; padding: 6px 20px; flex-direction: row; gap: 6px; }
-    .ins-sense-arrow-line { width: 40px; }
-    .ins-serve-vert-arrow { flex-direction: row; padding: 6px 20px; }
-    .ins-serve-vert-line { width: 40px; height: 2px;
-        background: repeating-linear-gradient(90deg, var(--text-tertiary) 0, var(--text-tertiary) 4px, transparent 4px, transparent 7px);
+    .ins-serve-grid > .ins-harrow {
+        min-width: 0;
+        padding: 6px 20px;
+        grid-template-columns: auto auto 1fr;
+        grid-template-rows: auto;
     }
-    .ins-serve-vert-line::after {
-        bottom: auto; left: auto;
-        right: -1px; top: -4px;
-        border: 5px solid transparent;
-        border-left: 6px solid var(--text-tertiary);
-    }
+    .ins-serve-grid > .ins-harrow .ins-harrow-line { width: 30px; }
+    .ins-serve-grid > .ins-harrow .ins-arrow-label { grid-column: 3; grid-row: 1; text-align: left; margin-left: 6px; }
+    .ins-serve-vert-arrow { padding: 6px 20px; }
+    .ins-serve-vert-arrow .ins-varrow-dashed-shaft { height: 0; width: 30px; border-left: none; border-top: 2px dashed var(--text-tertiary); }
+    .ins-serve-vert-arrow .ins-varrow-head { display: none; }
 }
 
 /* ── Actuation pipeline (horizontal flow) ── */
@@ -1371,52 +1377,59 @@
 }
 
 .ins-act-connector {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
     align-items: center;
-    justify-content: center;
-    padding: 0 2px;
+    gap: 0;
     flex-shrink: 0;
     min-width: 50px;
-    padding-top: 20px;
+    padding: 20px 2px 0;
 }
 
-.ins-act-conn-line {
-    width: 100%;
-    height: 2px;
-    background: var(--text-tertiary);
-    position: relative;
+.ins-act-connector .ins-harrow-line {
+    grid-column: 1;
+    grid-row: 1;
 }
 
-.ins-act-conn-line::after {
-    content: '';
-    position: absolute;
-    right: -1px;
-    top: -4px;
-    border: 5px solid transparent;
-    border-left: 6px solid var(--text-tertiary);
-}
-
-.ins-act-conn-label {
-    font-size: 9px;
+.ins-act-connector .ins-harrow-head {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 16px;
     color: var(--text-tertiary);
-    margin-top: 3px;
-    white-space: nowrap;
+    line-height: 1;
+    margin-left: -2px;
+}
+
+.ins-act-connector .ins-arrow-label {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: 10px;
 }
 
 @media (max-width: 639px) {
     .ins-act-flow { flex-direction: column; align-items: stretch; gap: 0; }
     .ins-act-card { min-width: 0; flex-direction: row; padding: 14px 16px; gap: 12px; text-align: left; }
     .ins-act-card-icon { font-size: 22px; margin-bottom: 0; }
-    .ins-act-connector { flex-direction: row; padding: 0; min-width: 0; height: 28px; justify-content: center; padding-top: 0; }
-    .ins-act-conn-line { width: 2px; height: 20px; }
-    .ins-act-conn-line::after {
-        right: auto; top: auto;
-        bottom: -1px; left: -4px;
-        border: 5px solid transparent;
-        border-top: 6px solid var(--text-tertiary);
-        border-left: 5px solid transparent;
+    .ins-act-connector {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+        min-width: 0;
+        height: auto;
     }
+    .ins-act-connector .ins-harrow-line {
+        width: 2px;
+        height: 16px;
+    }
+    .ins-act-connector .ins-harrow-head {
+        font-size: 10px;
+        margin-left: 0;
+        margin-top: -3px;
+        transform: rotate(90deg);
+    }
+    .ins-act-connector .ins-arrow-label { display: none; }
 }
 
 /* ── App modes (2×2 matrix with headers) ── */
@@ -2396,30 +2409,31 @@
 }
 
 /* Arrows – neon */
-[data-bs-theme="dark"] .ins-sense-arrow-line,
-[data-bs-theme="dark"] .ins-sense-varrow-line,
-[data-bs-theme="dark"] .ins-act-conn-line {
+[data-bs-theme="dark"] .ins-harrow-line,
+[data-bs-theme="dark"] .ins-varrow-shaft {
     background: rgba(0, 229, 255, 0.3);
 }
 
-[data-bs-theme="dark"] .ins-sense-arrow-line::after,
-[data-bs-theme="dark"] .ins-sense-varrow-line::after,
-[data-bs-theme="dark"] .ins-act-conn-line::after {
-    border-left-color: rgba(0, 229, 255, 0.4);
-    border-top-color: rgba(0, 229, 255, 0.4);
+[data-bs-theme="dark"] .ins-harrow-head,
+[data-bs-theme="dark"] .ins-varrow-head {
+    color: rgba(0, 229, 255, 0.5);
+}
+
+[data-bs-theme="dark"] .ins-varrow-dashed-shaft {
+    border-left-color: rgba(0, 229, 255, 0.3);
 }
 
 @media (prefers-color-scheme: dark) {
-    :root:not([data-bs-theme="light"]) .ins-sense-arrow-line,
-    :root:not([data-bs-theme="light"]) .ins-sense-varrow-line,
-    :root:not([data-bs-theme="light"]) .ins-act-conn-line {
+    :root:not([data-bs-theme="light"]) .ins-harrow-line,
+    :root:not([data-bs-theme="light"]) .ins-varrow-shaft {
         background: rgba(0, 229, 255, 0.3);
     }
-    :root:not([data-bs-theme="light"]) .ins-sense-arrow-line::after,
-    :root:not([data-bs-theme="light"]) .ins-sense-varrow-line::after,
-    :root:not([data-bs-theme="light"]) .ins-act-conn-line::after {
-        border-left-color: rgba(0, 229, 255, 0.4);
-        border-top-color: rgba(0, 229, 255, 0.4);
+    :root:not([data-bs-theme="light"]) .ins-harrow-head,
+    :root:not([data-bs-theme="light"]) .ins-varrow-head {
+        color: rgba(0, 229, 255, 0.5);
+    }
+    :root:not([data-bs-theme="light"]) .ins-varrow-dashed-shaft {
+        border-left-color: rgba(0, 229, 255, 0.3);
     }
 }
 
@@ -2521,23 +2535,7 @@
     box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
 }
 
-/* Dotted arrow – neon */
-[data-bs-theme="dark"] .ins-serve-vert-line {
-    background: repeating-linear-gradient(180deg, rgba(0, 229, 255, 0.3) 0, rgba(0, 229, 255, 0.3) 4px, transparent 4px, transparent 7px);
-}
-
-[data-bs-theme="dark"] .ins-serve-vert-line::after {
-    border-top-color: rgba(0, 229, 255, 0.4);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-bs-theme="light"]) .ins-serve-vert-line {
-        background: repeating-linear-gradient(180deg, rgba(0, 229, 255, 0.3) 0, rgba(0, 229, 255, 0.3) 4px, transparent 4px, transparent 7px);
-    }
-    :root:not([data-bs-theme="light"]) .ins-serve-vert-line::after {
-        border-top-color: rgba(0, 229, 255, 0.4);
-    }
-}
+/* (dotted arrow neon handled by .ins-varrow-dashed-shaft above) */
 
 /* Flow connector – neon in dark */
 [data-bs-theme="dark"] .ins-flow-connector::after {
