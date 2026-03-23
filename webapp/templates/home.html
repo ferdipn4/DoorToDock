@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="home-page">
-    <div class="home-card">
+    <div class="home-content">
         <div class="home-icon"><i class="bi bi-bicycle"></i></div>
         <h1 class="home-title">Door2Dock</h1>
         <p class="home-desc">Door2Dock predicts Santander Cycles dock and bike availability at 21 stations near Imperial College London. Check real-time availability before you leave, or plan ahead to find the best station for your commute.</p>
@@ -11,9 +11,14 @@
             <a href="/go?timing=now" class="home-btn home-btn-primary">
                 <i class="bi bi-cursor-fill"></i> Check now
             </a>
-            <a href="/go?timing=plan" class="home-btn home-btn-secondary">
+            <a href="/go?timing=plan" class="home-btn home-btn-outline">
                 <i class="bi bi-calendar-check"></i> Plan a trip
             </a>
+        </div>
+        <div class="home-features">
+            <div class="home-feature"><span class="home-feature-emoji">📡</span> 21 stations monitored</div>
+            <div class="home-feature"><span class="home-feature-emoji">🔮</span> 15-min predictions</div>
+            <div class="home-feature"><span class="home-feature-emoji">📱</span> Telegram alerts</div>
         </div>
     </div>
 </div>
@@ -25,26 +30,31 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: calc(100vh - 120px);
-    padding: 24px 16px;
+    min-height: calc(100vh - var(--bottomnav-height) - 16px);
+    padding: 40px 24px;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(55, 138, 221, 0.04) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(29, 158, 117, 0.03) 0%, transparent 50%),
+        linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
 }
 
 @media (min-width: 768px) {
     .home-page {
-        min-height: calc(100vh - var(--topbar-height) - 24px);
+        min-height: calc(100vh - var(--topbar-height));
     }
 }
 
-.home-card {
+.home-content {
     text-align: center;
-    max-width: 480px;
+    max-width: 520px;
     width: 100%;
 }
 
 .home-icon {
-    font-size: 48px;
+    font-size: 72px;
     color: var(--info);
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    line-height: 1;
 }
 
 [data-bs-theme="dark"] .home-icon {
@@ -52,49 +62,100 @@
 }
 
 .home-title {
-    font-size: 28px;
+    font-size: 48px;
     font-weight: 700;
     color: var(--text-primary);
-    margin: 0 0 12px;
-    letter-spacing: -0.5px;
+    margin: 0 0 16px;
+    letter-spacing: -1px;
+    line-height: 1.1;
 }
 
 .home-desc {
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 18px;
+    line-height: 1.65;
     color: var(--text-secondary);
-    margin: 0 0 28px;
+    margin: 0 auto 36px;
+    max-width: 460px;
 }
 
 .home-actions {
     display: flex;
-    gap: 10px;
+    gap: 16px;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .home-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    font-weight: 500;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 32px;
+    min-height: 52px;
+    border-radius: var(--radius-lg);
+    font-size: 16px;
+    font-weight: 600;
     text-decoration: none;
-    transition: opacity 0.15s;
+    transition: all 0.15s ease;
+    cursor: pointer;
 }
-
-.home-btn:hover { opacity: 0.85; }
 
 .home-btn-primary {
     background: var(--info);
     color: #fff;
+    border: 2px solid var(--info);
 }
 
-.home-btn-secondary {
-    background: var(--bg-secondary);
+.home-btn-primary:hover {
+    background: #2d7bc4;
+    border-color: #2d7bc4;
+    color: #fff;
+}
+
+.home-btn-outline {
+    background: transparent;
     color: var(--text-primary);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border-hover);
+}
+
+.home-btn-outline:hover {
+    border-color: var(--info);
+    color: var(--info);
+    background: rgba(55, 138, 221, 0.04);
+}
+
+[data-bs-theme="dark"] .home-btn-outline:hover {
+    background: rgba(55, 138, 221, 0.08);
+}
+
+.home-features {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.home-feature {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--text-tertiary);
+}
+
+.home-feature-emoji {
+    font-size: 16px;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .home-title { font-size: 36px; }
+    .home-desc { font-size: 16px; }
+    .home-icon { font-size: 56px; }
+    .home-btn { padding: 12px 24px; min-height: 48px; font-size: 15px; }
+    .home-features { gap: 16px; }
+    .home-feature { font-size: 13px; }
 }
 </style>
 {% endblock %}
