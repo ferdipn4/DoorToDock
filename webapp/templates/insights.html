@@ -2,8 +2,12 @@
 {% block title %}Insights{% endblock %}
 
 {% block content %}
+<div class="page-loader" id="page-loader">
+    <div class="page-loader-spinner"></div>
+    <div class="page-loader-text">Loading insights...</div>
+</div>
 <!-- Sticky section nav -->
-<nav class="ins-nav" id="ins-nav">
+<nav class="ins-nav" id="ins-nav" style="display:none">
     <div class="ins-nav-inner">
         <a href="#s-problem" class="ins-nav-link active" data-section="s-problem">The Problem</a>
         <a href="#s-solution" class="ins-nav-link" data-section="s-solution">The Solution</a>
@@ -15,7 +19,7 @@
     </div>
 </nav>
 
-<div class="ins-page">
+<div class="ins-page" id="ins-content" style="display:none">
 
     <!-- ============================================================ -->
     <!-- SECTION 1: THE PROBLEM -->

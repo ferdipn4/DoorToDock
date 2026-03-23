@@ -60,6 +60,21 @@ function showError(containerId, retryFn) {
 }
 
 // Init
+let _insightsRevealed = false;
+function revealInsights() {
+    if (_insightsRevealed) return;
+    _insightsRevealed = true;
+    const loader = document.getElementById('page-loader');
+    const nav = document.getElementById('ins-nav');
+    const content = document.getElementById('ins-content');
+    if (loader) loader.classList.add('fade-out');
+    setTimeout(() => {
+        if (loader) loader.style.display = 'none';
+        if (nav) nav.style.display = '';
+        if (content) content.style.display = '';
+    }, 300);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadCh1();
     loadCh3();
@@ -96,6 +111,7 @@ async function loadCh1() {
         setText('stat-docks-930', 'Error');
         setText('stat-bikes-6pm', 'Error');
     }
+    revealInsights();
 }
 
 function buildTimeSlots(startHour, endHour) {
@@ -345,6 +361,7 @@ async function loadCh3() {
         setText('ds-weather', 'Error');
         setText('ds-sensor', 'Error');
     }
+    revealInsights();
 }
 
 function renderSensorChart(rows) {
@@ -448,6 +465,7 @@ async function loadCh4() {
     } catch (e) {
         console.error('Ch4 load failed:', e);
     }
+    revealInsights();
 }
 
 function renderRainChart(dryRows, wetRows, dayCounts) {
@@ -667,6 +685,7 @@ async function loadCh5() {
     } catch (e) {
         console.error('Ch5 load failed:', e);
     }
+    revealInsights();
 }
 
 function renderFeatureImportance(features) {

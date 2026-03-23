@@ -9,6 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
 });
 
+function showContent() {
+    const loader = document.getElementById('page-loader');
+    const content = document.getElementById('settings-content');
+    if (loader) loader.classList.add('fade-out');
+    setTimeout(() => {
+        if (loader) loader.style.display = 'none';
+        if (content) content.style.display = '';
+    }, 300);
+}
+
 async function loadSettings() {
     try {
         const [s, st] = await Promise.all([getSettings(), getStations()]);
@@ -20,8 +30,10 @@ async function loadSettings() {
         renderMotionSensor();
         renderAutoSwitch();
         renderAppearance();
+        showContent();
     } catch (e) {
         console.error('Failed to load settings:', e);
+        showContent();
     }
 }
 
