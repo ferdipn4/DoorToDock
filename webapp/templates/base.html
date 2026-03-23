@@ -20,8 +20,8 @@
     <script>
     (function() {
         var t = localStorage.getItem('ds_appearance');
-        if (t === 'dark') document.documentElement.setAttribute('data-bs-theme', 'dark');
-        else if (t === 'light') document.documentElement.setAttribute('data-bs-theme', 'light');
+        if (t === 'light') document.documentElement.setAttribute('data-bs-theme', 'light');
+        else document.documentElement.setAttribute('data-bs-theme', 'dark');
     })();
     </script>
     {% block head %}{% endblock %}

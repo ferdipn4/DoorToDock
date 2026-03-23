@@ -154,9 +154,9 @@ body {
 }
 
 .topbar-clock {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-tertiary);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
   margin-left: 12px;
   font-variant-numeric: tabular-nums;
 }
@@ -219,9 +219,9 @@ body {
 
 .bottom-nav-clock-bar {
   text-align: center;
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
   font-variant-numeric: tabular-nums;
   padding: 3px 0 0;
   line-height: 1;
