@@ -3,17 +3,15 @@
 
 {% block content %}
 <div class="home-page">
+    <!-- Background map (decorative, non-interactive) -->
+    <div class="home-map" id="home-map"></div>
+    <div class="home-map-fade"></div>
+
+    <!-- Content -->
     <div class="home-content">
+        <div class="home-icon"><i class="bi bi-bicycle"></i></div>
         <h1 class="home-title">Door2Dock</h1>
         <p class="home-tagline">Predict dock and bike availability at 21 Santander Cycles stations near Imperial College, before you leave.</p>
-
-        <!-- Animated dock visualization -->
-        <div class="home-dots-wrap">
-            <div class="home-dots" id="home-dots">
-                {% for i in range(21) %}<span class="home-dot"></span>{% endfor %}
-            </div>
-            <div class="home-dots-label">21 stations · morning fill-up simulation</div>
-        </div>
 
         <div class="home-actions">
             <a href="/go?timing=now" class="home-btn">
@@ -36,11 +34,13 @@
 {% block head %}
 <style>
 .home-page {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: calc(100vh - var(--bottomnav-height));
     padding: 40px 24px;
+    overflow: hidden;
 }
 @media (min-width: 768px) {
     .home-page {
@@ -48,10 +48,61 @@
     }
 }
 
+/* ── Background map ── */
+.home-map {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    filter: grayscale(100%) brightness(1.15) opacity(0.15);
+}
+
+[data-bs-theme="dark"] .home-map {
+    filter: grayscale(100%) brightness(0.3) opacity(0.2);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .home-map {
+        filter: grayscale(100%) brightness(0.3) opacity(0.2);
+    }
+}
+
+/* Hide Leaflet attribution & controls */
+.home-map .leaflet-control-container { display: none !important; }
+
+/* Radial fade overlay */
+.home-map-fade {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 30%, var(--bg-secondary) 75%);
+}
+
+/* ── Content ── */
 .home-content {
+    position: relative;
+    z-index: 1;
     text-align: center;
     max-width: 560px;
     width: 100%;
+}
+
+.home-icon {
+    font-size: 64px;
+    color: var(--info);
+    margin-bottom: 12px;
+    line-height: 1;
+    animation: home-pulse 3s ease-in-out infinite;
+}
+
+[data-bs-theme="dark"] .home-icon { color: #60a5fa; }
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .home-icon { color: #60a5fa; }
+}
+
+@keyframes home-pulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
 }
 
 .home-title {
@@ -61,6 +112,12 @@
     margin: 0 0 16px;
     letter-spacing: -1px;
     line-height: 1.1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-bs-theme="dark"] .home-title { text-shadow: none; }
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .home-title { text-shadow: none; }
 }
 
 .home-tagline {
@@ -69,41 +126,6 @@
     color: var(--text-secondary);
     margin: 0 auto 40px;
     max-width: 500px;
-}
-
-/* ── Dock dots animation ── */
-.home-dots-wrap {
-    margin-bottom: 40px;
-}
-
-.home-dots {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.home-dot {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background-color: #22c55e;
-    transition: background-color 0.6s ease;
-}
-
-[data-bs-theme="dark"] .home-dot {
-    filter: brightness(1.15);
-}
-@media (prefers-color-scheme: dark) {
-    :root:not([data-bs-theme="light"]) .home-dot {
-        filter: brightness(1.15);
-    }
-}
-
-.home-dots-label {
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--text-tertiary);
 }
 
 /* ── Buttons ── */
@@ -130,13 +152,13 @@
     background: var(--info);
     color: #fff;
     border: none;
-    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .home-btn:hover {
     transform: scale(1.02);
-    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.35);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     color: #fff;
     text-decoration: none;
 }
@@ -157,16 +179,13 @@
     color: var(--text-tertiary);
 }
 
-.home-feature i {
-    font-size: 15px;
-}
+.home-feature i { font-size: 15px; }
 
 /* ── Mobile ── */
 @media (max-width: 480px) {
+    .home-icon { font-size: 52px; }
     .home-title { font-size: 36px; }
     .home-tagline { font-size: 16px; margin-bottom: 32px; }
-    .home-dot { width: 14px; height: 14px; }
-    .home-dots { gap: 5px; }
     .home-btn { padding: 12px 24px; min-height: 48px; font-size: 15px; }
     .home-features { gap: 16px; }
     .home-feature { font-size: 13px; }
@@ -174,80 +193,27 @@
 </style>
 
 <script>
-(function() {
-    const GREEN  = '#22c55e';
-    const ORANGE = '#f59e0b';
-    const RED    = '#ef4444';
-    const TOTAL  = 21;
+document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById('home-map');
+    if (!el || typeof L === 'undefined') return;
 
-    // Timing (ms)
-    const FILL_DURATION  = 4000;  // green → orange → red sweep
-    const HOLD_DURATION  = 1000;  // hold all red
-    const RESET_DURATION = 2000;  // fade back to green
-    const CYCLE = FILL_DURATION + HOLD_DURATION + RESET_DURATION;
+    var map = L.map(el, {
+        center: [51.4988, -0.1749],
+        zoom: 15,
+        zoomControl: false,
+        attributionControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        touchZoom: false,
+        keyboard: false,
+        boxZoom: false,
+        tap: false,
+    });
 
-    const dots = document.querySelectorAll('.home-dot');
-    if (!dots.length) return;
-
-    function lerp(a, b, t) { return a + (b - a) * Math.max(0, Math.min(1, t)); }
-
-    function hexToRgb(hex) {
-        const n = parseInt(hex.slice(1), 16);
-        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-    }
-
-    const cGreen  = hexToRgb(GREEN);
-    const cOrange = hexToRgb(ORANGE);
-    const cRed    = hexToRgb(RED);
-
-    function colorAt(progress) {
-        // 0..0.5 = green→orange, 0.5..1 = orange→red
-        let r, g, b;
-        if (progress < 0.5) {
-            const t = progress / 0.5;
-            r = lerp(cGreen[0], cOrange[0], t);
-            g = lerp(cGreen[1], cOrange[1], t);
-            b = lerp(cGreen[2], cOrange[2], t);
-        } else {
-            const t = (progress - 0.5) / 0.5;
-            r = lerp(cOrange[0], cRed[0], t);
-            g = lerp(cOrange[1], cRed[1], t);
-            b = lerp(cOrange[2], cRed[2], t);
-        }
-        return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
-    }
-
-    function animate() {
-        const now = Date.now();
-        const elapsed = now % CYCLE;
-
-        if (elapsed < FILL_DURATION) {
-            // Fill phase: sweep left to right
-            const globalProgress = elapsed / FILL_DURATION;
-            dots.forEach((dot, i) => {
-                // Each dot starts filling at a staggered time
-                const dotStart = i / TOTAL;
-                const dotProgress = (globalProgress - dotStart) / (1 - dotStart + 0.001);
-                if (globalProgress < dotStart) {
-                    dot.style.backgroundColor = GREEN;
-                } else {
-                    dot.style.backgroundColor = colorAt(Math.min(1, dotProgress));
-                }
-            });
-        } else if (elapsed < FILL_DURATION + HOLD_DURATION) {
-            // Hold phase: all red
-            dots.forEach(dot => { dot.style.backgroundColor = RED; });
-        } else {
-            // Reset phase: all fade back to green together
-            const resetProgress = (elapsed - FILL_DURATION - HOLD_DURATION) / RESET_DURATION;
-            const c = colorAt(1 - resetProgress);
-            dots.forEach(dot => { dot.style.backgroundColor = c; });
-        }
-
-        requestAnimationFrame(animate);
-    }
-
-    requestAnimationFrame(animate);
-})();
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map);
+});
 </script>
 {% endblock %}
