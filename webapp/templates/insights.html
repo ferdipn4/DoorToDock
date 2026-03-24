@@ -541,7 +541,9 @@
 
             <div class="ins-chart-wrap">
                 <div class="ins-chart-title">Pearson r – weather variables vs. empty docks</div>
-                <canvas id="chart-corr" height="180"></canvas>
+                <div style="position:relative; height:300px;">
+                    <canvas id="chart-corr"></canvas>
+                </div>
                 <div class="corr-note" id="corr-note" style="display:none;"></div>
             </div>
 
@@ -1711,9 +1713,6 @@
 }
 
 /* ── Pearson correlation bar chart (HTML/CSS) ── */
-#chart-corr {
-    max-height: 200px;
-}
 
 .corr-note {
     margin-top: 16px;
@@ -3520,7 +3519,8 @@ async function loadSection6() {
                     data: values,
                     backgroundColor: corrVars.map(v => v.color),
                     borderRadius: 4,
-                    barThickness: 28,
+                    barThickness: 36,
+                    maxBarThickness: 40,
                 }]
             },
             options: {
