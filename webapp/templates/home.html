@@ -3,21 +3,18 @@
 
 {% block content %}
 <div class="home-page">
-    <!-- Gradient hero area -->
-    <div class="home-gradient">
-        <div class="home-hero">
-            <div class="home-icon"><i class="bi bi-bicycle"></i></div>
-            <h1 class="home-title">Door2Dock</h1>
-            <p class="home-tagline">Predict dock &amp; bike availability at 21 stations near Imperial College — before you leave.</p>
-        </div>
-        <!-- Wave divider -->
-        <svg class="home-wave" viewBox="0 0 1440 80" preserveAspectRatio="none">
-            <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z"/>
-        </svg>
-    </div>
+    <div class="home-content">
+        <h1 class="home-title">Door2Dock</h1>
+        <p class="home-tagline">Predict dock and bike availability at 21 Santander Cycles stations near Imperial College, before you leave.</p>
 
-    <!-- Below gradient: buttons + features -->
-    <div class="home-lower">
+        <!-- Animated dock visualization -->
+        <div class="home-dots-wrap">
+            <div class="home-dots" id="home-dots">
+                {% for i in range(21) %}<span class="home-dot"></span>{% endfor %}
+            </div>
+            <div class="home-dots-label">21 stations · morning fill-up simulation</div>
+        </div>
+
         <div class="home-actions">
             <a href="/go?timing=now" class="home-btn">
                 <i class="bi bi-cursor-fill"></i> Check now
@@ -26,19 +23,11 @@
                 <i class="bi bi-calendar-check"></i> Plan a trip
             </a>
         </div>
+
         <div class="home-features">
-            <div class="home-feature">
-                <i class="bi bi-broadcast home-feature-icon"></i>
-                <span>21 stations monitored</span>
-            </div>
-            <div class="home-feature">
-                <i class="bi bi-graph-up-arrow home-feature-icon"></i>
-                <span>15-min predictions</span>
-            </div>
-            <div class="home-feature">
-                <i class="bi bi-telegram home-feature-icon"></i>
-                <span>Telegram alerts</span>
-            </div>
+            <div class="home-feature"><i class="bi bi-broadcast"></i> 21 stations monitored</div>
+            <div class="home-feature"><i class="bi bi-graph-up-arrow"></i> 15-min predictions</div>
+            <div class="home-feature"><i class="bi bi-telegram"></i> Telegram alerts</div>
         </div>
     </div>
 </div>
@@ -46,11 +35,12 @@
 
 {% block head %}
 <style>
-/* ── Home page ── */
 .home-page {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     min-height: calc(100vh - var(--bottomnav-height));
+    padding: 40px 24px;
 }
 @media (min-width: 768px) {
     .home-page {
@@ -58,51 +48,16 @@
     }
 }
 
-/* Gradient hero — top ~60% */
-.home-gradient {
-    position: relative;
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 60vh;
-    background: linear-gradient(180deg, #1e3a5f 0%, #2563eb 100%);
-    padding: 60px 24px 0;
-}
-
-[data-bs-theme="dark"] .home-gradient {
-    background: linear-gradient(180deg, #0f1729 0%, #1e3a5f 100%);
-}
-@media (prefers-color-scheme: dark) {
-    :root:not([data-bs-theme="light"]) .home-gradient {
-        background: linear-gradient(180deg, #0f1729 0%, #1e3a5f 100%);
-    }
-}
-
-.home-hero {
+.home-content {
     text-align: center;
-    max-width: 520px;
-}
-
-/* Bike icon with pulse */
-.home-icon {
-    font-size: 64px;
-    color: #fff;
-    margin-bottom: 16px;
-    line-height: 1;
-    animation: home-pulse 3s ease-in-out infinite;
-}
-
-@keyframes home-pulse {
-    0%, 100% { opacity: 0.8; }
-    50% { opacity: 1; }
+    max-width: 560px;
+    width: 100%;
 }
 
 .home-title {
     font-size: 48px;
-    font-weight: 600;
-    color: #fff;
+    font-weight: 700;
+    color: var(--text-primary);
     margin: 0 0 16px;
     letter-spacing: -1px;
     line-height: 1.1;
@@ -111,40 +66,53 @@
 .home-tagline {
     font-size: 18px;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.8);
-    margin: 0 auto;
-    max-width: 480px;
+    color: var(--text-secondary);
+    margin: 0 auto 40px;
+    max-width: 500px;
 }
 
-/* Wave SVG divider */
-.home-wave {
-    display: block;
-    width: 100%;
-    height: 60px;
-    margin-top: auto;
-    position: relative;
-    bottom: -1px;
-}
-.home-wave path {
-    fill: var(--bg-secondary);
+/* ── Dock dots animation ── */
+.home-dots-wrap {
+    margin-bottom: 40px;
 }
 
-/* Lower section */
-.home-lower {
-    flex: 1;
+.home-dots {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 32px 24px 48px;
-    background: var(--bg-secondary);
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
-/* Buttons */
+.home-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    transition: background-color 0.6s ease;
+}
+
+[data-bs-theme="dark"] .home-dot {
+    filter: brightness(1.15);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .home-dot {
+        filter: brightness(1.15);
+    }
+}
+
+.home-dots-label {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+/* ── Buttons ── */
 .home-actions {
     display: flex;
     gap: 16px;
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 44px;
 }
 
 .home-btn {
@@ -159,71 +127,127 @@
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
-    background: #fff;
-    color: #1e3a5f;
+    background: var(--info);
+    color: #fff;
     border: none;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .home-btn:hover {
     transform: scale(1.02);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
-    color: #1e3a5f;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.35);
+    color: #fff;
     text-decoration: none;
 }
 
-[data-bs-theme="dark"] .home-btn {
-    background: rgba(255, 255, 255, 0.95);
-    color: #0f1729;
-}
-@media (prefers-color-scheme: dark) {
-    :root:not([data-bs-theme="light"]) .home-btn {
-        background: rgba(255, 255, 255, 0.95);
-        color: #0f1729;
-    }
-}
-
-/* Features */
+/* ── Features ── */
 .home-features {
     display: flex;
     justify-content: center;
-    gap: 32px;
-    margin-top: 40px;
+    gap: 28px;
     flex-wrap: wrap;
 }
 
 .home-feature {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--text-tertiary);
+}
+
+.home-feature i {
     font-size: 15px;
-    color: var(--text-secondary);
 }
 
-.home-feature-icon {
-    font-size: 18px;
-    color: var(--info);
-}
-
-[data-bs-theme="dark"] .home-feature-icon {
-    color: #60a5fa;
-}
-@media (prefers-color-scheme: dark) {
-    :root:not([data-bs-theme="light"]) .home-feature-icon {
-        color: #60a5fa;
-    }
-}
-
-/* Mobile */
+/* ── Mobile ── */
 @media (max-width: 480px) {
-    .home-gradient { min-height: 55vh; padding: 48px 20px 0; }
     .home-title { font-size: 36px; }
-    .home-tagline { font-size: 16px; }
-    .home-icon { font-size: 52px; }
+    .home-tagline { font-size: 16px; margin-bottom: 32px; }
+    .home-dot { width: 14px; height: 14px; }
+    .home-dots { gap: 5px; }
     .home-btn { padding: 12px 24px; min-height: 48px; font-size: 15px; }
-    .home-features { gap: 20px; }
-    .home-feature { font-size: 14px; }
+    .home-features { gap: 16px; }
+    .home-feature { font-size: 13px; }
 }
 </style>
+
+<script>
+(function() {
+    const GREEN  = '#22c55e';
+    const ORANGE = '#f59e0b';
+    const RED    = '#ef4444';
+    const TOTAL  = 21;
+
+    // Timing (ms)
+    const FILL_DURATION  = 4000;  // green → orange → red sweep
+    const HOLD_DURATION  = 1000;  // hold all red
+    const RESET_DURATION = 2000;  // fade back to green
+    const CYCLE = FILL_DURATION + HOLD_DURATION + RESET_DURATION;
+
+    const dots = document.querySelectorAll('.home-dot');
+    if (!dots.length) return;
+
+    function lerp(a, b, t) { return a + (b - a) * Math.max(0, Math.min(1, t)); }
+
+    function hexToRgb(hex) {
+        const n = parseInt(hex.slice(1), 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    const cGreen  = hexToRgb(GREEN);
+    const cOrange = hexToRgb(ORANGE);
+    const cRed    = hexToRgb(RED);
+
+    function colorAt(progress) {
+        // 0..0.5 = green→orange, 0.5..1 = orange→red
+        let r, g, b;
+        if (progress < 0.5) {
+            const t = progress / 0.5;
+            r = lerp(cGreen[0], cOrange[0], t);
+            g = lerp(cGreen[1], cOrange[1], t);
+            b = lerp(cGreen[2], cOrange[2], t);
+        } else {
+            const t = (progress - 0.5) / 0.5;
+            r = lerp(cOrange[0], cRed[0], t);
+            g = lerp(cOrange[1], cRed[1], t);
+            b = lerp(cOrange[2], cRed[2], t);
+        }
+        return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+    }
+
+    function animate() {
+        const now = Date.now();
+        const elapsed = now % CYCLE;
+
+        if (elapsed < FILL_DURATION) {
+            // Fill phase: sweep left to right
+            const globalProgress = elapsed / FILL_DURATION;
+            dots.forEach((dot, i) => {
+                // Each dot starts filling at a staggered time
+                const dotStart = i / TOTAL;
+                const dotProgress = (globalProgress - dotStart) / (1 - dotStart + 0.001);
+                if (globalProgress < dotStart) {
+                    dot.style.backgroundColor = GREEN;
+                } else {
+                    dot.style.backgroundColor = colorAt(Math.min(1, dotProgress));
+                }
+            });
+        } else if (elapsed < FILL_DURATION + HOLD_DURATION) {
+            // Hold phase: all red
+            dots.forEach(dot => { dot.style.backgroundColor = RED; });
+        } else {
+            // Reset phase: all fade back to green together
+            const resetProgress = (elapsed - FILL_DURATION - HOLD_DURATION) / RESET_DURATION;
+            const c = colorAt(1 - resetProgress);
+            dots.forEach(dot => { dot.style.backgroundColor = c; });
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+})();
+</script>
 {% endblock %}
