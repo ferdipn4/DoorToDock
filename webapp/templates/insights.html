@@ -411,7 +411,7 @@
             <!-- Weather effect -->
             <div class="ins-subsection ins-subsection-neutral">
                 <h2 class="ins-h2">Does weather change the pattern?</h2>
-                <p class="ins-body" id="weather-intro">Commuter schedules dominate dock dynamics far more than weather. Here's how dry and rainy days compare.</p>
+                <p class="ins-body" id="weather-intro">Weather shifts the daily curve without changing its shape. Here's how dry and rainy days compare.</p>
 
                 <div class="ins-chart-wrap">
                     <div class="ins-chart-title">Dry vs rainy weekdays – empty docks at preferred stations (6 AM – 8 PM)</div>
@@ -3067,7 +3067,7 @@ async function loadSection4() {
         const rainyDays = rain_day_counts?.rainy_days || 0;
 
         setText('weather-intro',
-            `Over ${dryDays + rainyDays} weekdays of data (${dryDays} dry, ${rainyDays} with rain), the commuter schedule dominates dock dynamics far more than weather. Here's the comparison.`
+            `Over ${dryDays + rainyDays} weekdays of data (${dryDays} dry, ${rainyDays} with rain), weather shifts the daily curve without changing its shape. Here's how dry and rainy days compare.`
         );
 
         if (rain_dry && rain_wet) {
@@ -3124,15 +3124,8 @@ async function loadSection4() {
                 },
             });
 
-            // Compute average difference
-            const commonHours = hours.filter(h => dryMap[h] != null && wetMap[h] != null);
-            const avgDiff = commonHours.length > 0
-                ? commonHours.reduce((s, h) => s + (wetMap[h] - dryMap[h]), 0) / commonHours.length
-                : 0;
-            const direction = avgDiff > 0 ? 'more' : 'fewer';
-
             setText('weather-takeaway',
-                `On rainy days, stations average ${Math.abs(avgDiff).toFixed(1)} ${direction} empty docks. Weather effects are modest compared to time-of-day patterns, confirming that commuter schedules dominate dock dynamics. Longer data collection will reveal stronger seasonal patterns.`
+                `Rain shifts the pattern in both directions. In the morning, docks stay emptier longer on rainy days as fewer cyclists commute by bike. By the evening, the effect reverses: fewer bikes were taken out, so fewer return. The overall shape follows the same commuter schedule regardless of weather, confirming that time of day dominates dock dynamics. With only ${rainyDays} rainy weekday${rainyDays !== 1 ? 's' : ''} in the dataset, these observations are preliminary.`
             );
         }
     }
