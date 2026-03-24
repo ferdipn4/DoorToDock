@@ -2660,15 +2660,16 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function setupScrollSpy() {
     const nav = document.getElementById('ins-nav');
-    const links = nav.querySelectorAll('.ins-nav-link');
+    if (!nav) return;
+    const links = [...nav.querySelectorAll('.ins-nav-link')];
     const scroller = document.querySelector('.app-content');
-    const sections = [];
+    if (!scroller) return;
 
-    links.forEach(link => {
-        const id = link.getAttribute('data-section');
-        const section = document.getElementById(id);
-        if (section) sections.push({ id, el: section, link });
-    });
+    // Build section list
+    const sections = links.map(link => {
+        const el = document.getElementById(link.getAttribute('data-section'));
+        return el ? { el, link } : null;
+    }).filter(Boolean);
 
     function setActive(link) {
         links.forEach(l => l.classList.remove('active'));
@@ -2676,35 +2677,31 @@ function setupScrollSpy() {
         link.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     }
 
-    // Click: scroll to section + immediately highlight
+    // Click handler – scroll the target into view
     links.forEach(link => {
         link.addEventListener('click', e => {
             e.preventDefault();
-            const id = link.getAttribute('data-section');
-            const target = document.getElementById(id);
-            if (target) {
-                setActive(link);
-                const offset = nav.offsetHeight + 8;
-                const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - offset;
-                scroller.scrollTo({ top, behavior: 'smooth' });
-            }
+            const target = document.getElementById(link.getAttribute('data-section'));
+            if (!target) return;
+            setActive(link);
+            // Calculate position within the scroller
+            const targetTop = target.offsetTop;
+            const navH = nav.offsetHeight || 44;
+            scroller.scrollTo({ top: targetTop - navH - 4, behavior: 'smooth' });
         });
     });
 
-    // Scroll spy: highlight whichever section's top is closest to the viewport top
+    // Scroll spy – on scroll, find which section is at the top
     let ticking = false;
     scroller.addEventListener('scroll', () => {
         if (ticking) return;
         ticking = true;
         requestAnimationFrame(() => {
-            const scrollerTop = scroller.getBoundingClientRect().top;
-            const threshold = nav.offsetHeight + 40;
+            const navH = nav.offsetHeight || 44;
+            const scrollPos = scroller.scrollTop + navH + 60;
             let current = sections[0];
             for (const s of sections) {
-                const rect = s.el.getBoundingClientRect();
-                if (rect.top - scrollerTop <= threshold) {
-                    current = s;
-                }
+                if (s.el.offsetTop <= scrollPos) current = s;
             }
             if (current) setActive(current.link);
             ticking = false;
@@ -3589,6 +3586,8 @@ function revealPage() {
         if (loader) loader.style.display = 'none';
         if (nav) nav.style.display = '';
         if (content) content.style.display = '';
+        // Set up scroll spy after elements are visible so offsetTop works
+        requestAnimationFrame(() => setupScrollSpy());
     }, 300);
 }
 
@@ -3818,7 +3817,6 @@ async function loadDeeperAnalysis() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    setupScrollSpy();
     Promise.all([
         loadHeroStats().catch(() => {}),
         loadDataSources().catch(() => {}),
