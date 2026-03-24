@@ -1416,11 +1416,18 @@ def sensor_event():
     # Ensure sensor_events table exists
     _ensure_sensor_events_table()
 
-    # Store the event
-    execute("""
-        INSERT INTO sensor_events (timestamp, event_type, confidence)
-        VALUES (NOW(), %s, %s)
-    """, (event_type, confidence))
+    # Store the event (allow backdated timestamp for backfill)
+    ts = data.get("timestamp")
+    if ts:
+        execute("""
+            INSERT INTO sensor_events (timestamp, event_type, confidence)
+            VALUES (%s, %s, %s)
+        """, (ts, event_type, confidence))
+    else:
+        execute("""
+            INSERT INTO sensor_events (timestamp, event_type, confidence)
+            VALUES (NOW(), %s, %s)
+        """, (event_type, confidence))
 
     # Only send Telegram for departure events
     if event_type != "departure" or not tg_configured():
