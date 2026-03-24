@@ -409,7 +409,8 @@ function applyTheme(theme) {
     } else if (theme === 'light') {
         html.setAttribute('data-bs-theme', 'light');
     } else {
-        // System: remove attribute, let media queries handle it
-        html.removeAttribute('data-bs-theme');
+        // System: match OS preference
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        html.setAttribute('data-bs-theme', prefersDark ? 'dark' : 'light');
     }
 }

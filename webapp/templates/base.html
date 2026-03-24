@@ -19,9 +19,16 @@
     <!-- Apply saved theme immediately to prevent flash -->
     <script>
     (function() {
-        var t = localStorage.getItem('ds_appearance');
+        var t = localStorage.getItem('ds_appearance') || 'system';
         if (t === 'light') document.documentElement.setAttribute('data-bs-theme', 'light');
-        else document.documentElement.setAttribute('data-bs-theme', 'dark');
+        else if (t === 'dark') document.documentElement.setAttribute('data-bs-theme', 'dark');
+        else {
+            // System: use prefers-color-scheme
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+            else
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
     })();
     </script>
     {% block head %}{% endblock %}
