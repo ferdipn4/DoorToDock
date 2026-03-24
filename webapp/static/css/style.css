@@ -724,3 +724,155 @@ canvas {
 @keyframes spinner-border {
   to { transform: rotate(360deg); }
 }
+
+/* ══════════════════════════════════════════════
+   Onboarding Tour
+   ══════════════════════════════════════════════ */
+
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+}
+
+[data-bs-theme="dark"] .tour-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme="light"]) .tour-overlay {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Highlight ring on targeted element */
+.tour-highlight {
+  z-index: 10001 !important;
+  animation: tour-ring 1.5s ease-in-out infinite;
+}
+
+@keyframes tour-ring {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+}
+
+/* Tooltip card */
+.tour-tooltip {
+  position: fixed;
+  z-index: 10002;
+  max-width: 320px;
+  width: calc(100vw - 32px);
+  padding: 20px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+/* Centred mode (step 1) */
+.tour-tooltip.tour-center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Pointer arrow */
+.tour-tooltip[data-pos="bottom"]::before,
+.tour-tooltip[data-pos="top"]::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+}
+
+.tour-tooltip[data-pos="bottom"]::before {
+  top: -16px;
+  border-bottom-color: var(--bg-primary);
+}
+
+.tour-tooltip[data-pos="top"]::after {
+  bottom: -16px;
+  border-top-color: var(--bg-primary);
+}
+
+/* Close button */
+.tour-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.tour-close:hover {
+  color: var(--text-primary);
+}
+
+/* Text */
+.tour-text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  padding-right: 16px;
+}
+
+/* Bottom row: buttons + dots */
+.tour-btns {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tour-btn {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.tour-btn:hover { opacity: 0.85; }
+.tour-btn:active { transform: scale(0.97); }
+
+.tour-btn-fill {
+  background: var(--info);
+  color: #fff;
+}
+
+.tour-btn-outline {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+/* Progress dots */
+.tour-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.tour-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s;
+}
+
+.tour-dot.active {
+  background: var(--info);
+}
