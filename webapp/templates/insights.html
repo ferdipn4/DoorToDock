@@ -2710,22 +2710,10 @@ function setupScrollSpy() {
     const scroller = document.querySelector('.app-content');
     if (!scroller) return;
 
-    // Build section list
     const sections = links.map(link => {
         const el = document.getElementById(link.getAttribute('data-section'));
         return el ? { el, link } : null;
     }).filter(Boolean);
-
-    // Get element's top position relative to the scroller
-    function getTopInScroller(el) {
-        let top = 0;
-        let node = el;
-        while (node && node !== scroller) {
-            top += node.offsetTop;
-            node = node.offsetParent;
-        }
-        return top;
-    }
 
     function setActive(link) {
         links.forEach(l => l.classList.remove('active'));
@@ -2733,7 +2721,7 @@ function setupScrollSpy() {
         link.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     }
 
-    // Click handler – scroll the target into view
+    // Click handler – use getBoundingClientRect (always correct regardless of DOM nesting)
     links.forEach(link => {
         link.addEventListener('click', e => {
             e.preventDefault();
@@ -2741,21 +2729,30 @@ function setupScrollSpy() {
             if (!target) return;
             setActive(link);
             const navH = nav.offsetHeight || 44;
-            scroller.scrollTo({ top: getTopInScroller(target) - navH - 4, behavior: 'smooth' });
+            // How far target is from the top of the scroller's viewport
+            const scrollerRect = scroller.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
+            const offset = targetRect.top - scrollerRect.top;
+            scroller.scrollTo({
+                top: scroller.scrollTop + offset - navH - 4,
+                behavior: 'smooth'
+            });
         });
     });
 
-    // Scroll spy – on scroll, find which section is at the top
+    // Scroll spy – highlight the section currently in view
     let ticking = false;
     scroller.addEventListener('scroll', () => {
         if (ticking) return;
         ticking = true;
         requestAnimationFrame(() => {
             const navH = nav.offsetHeight || 44;
-            const scrollPos = scroller.scrollTop + navH + 60;
+            const threshold = navH + 80;
             let current = sections[0];
             for (const s of sections) {
-                if (getTopInScroller(s.el) <= scrollPos) current = s;
+                const rect = s.el.getBoundingClientRect();
+                const scrollerRect = scroller.getBoundingClientRect();
+                if (rect.top - scrollerRect.top <= threshold) current = s;
             }
             if (current) setActive(current.link);
             ticking = false;
