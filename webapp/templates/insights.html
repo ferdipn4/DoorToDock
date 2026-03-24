@@ -567,7 +567,7 @@
     <section class="ins-section" id="s-deeper">
         <div class="ins-section-inner">
             <div class="ins-section-label">Deeper Analysis</div>
-            <p class="ins-lead">Beyond the basic patterns, we dig into how demand shifts across contexts: weekdays vs weekends, cold vs warm weather, and which stations you can actually count on.</p>
+            <p class="ins-lead">Beyond the basic patterns, this section examines how demand shifts across contexts: weekdays vs weekends, cold vs warm weather, and which stations prove most dependable.</p>
 
             <!-- Row 1: Weekday vs Weekend + Temperature Effect -->
             <div class="ins-chart-pair">
@@ -758,6 +758,11 @@
 }
 
 /* ── Common section styles ── */
+.ins-section,
+.ins-hero {
+    scroll-margin-top: 48px;
+}
+
 .ins-section {
     padding: 80px 24px;
 }
@@ -1436,6 +1441,7 @@
 }
 
 .ins-act-connector .ins-harrow-head {
+    display: block;
     grid-column: 2;
     grid-row: 1;
     font-size: 16px;
@@ -3715,7 +3721,7 @@ async function loadDeeperAnalysis() {
             const wdAvg = wdMorning.reduce((a, b) => a + b, 0) / (wdMorning.length || 1);
             const weAvg = weMorning.reduce((a, b) => a + b, 0) / (weMorning.length || 1);
             setText('weekday-weekend-takeaway',
-                `Weekend mornings have ${(weAvg - wdAvg).toFixed(1)} more docks available on average (8–10 AM). The commuter rush disappears, and the morning scarcity problem is a weekday phenomenon.`
+                `Weekend mornings show ${(weAvg - wdAvg).toFixed(1)} more docks available on average (8–10 AM). The commuter rush disappears, making morning scarcity a purely weekday phenomenon.`
             );
         }
 
@@ -3775,7 +3781,7 @@ async function loadDeeperAnalysis() {
             });
 
             setText('temp-bins-takeaway',
-                `Warmer days tend to have fewer available docks, likely because more people cycle. Cold mornings may discourage casual riders, leaving more parking for committed commuters.`
+                `Warmer days tend to have fewer available docks, likely due to increased cycling activity. Cold mornings may discourage casual riders, leaving more parking for regular commuters.`
             );
         }
 
@@ -3819,7 +3825,7 @@ async function loadDeeperAnalysis() {
             const mostVolatile = sorted[0]?.station_name.split(',')[0];
             const leastVolatile = sorted[sorted.length - 1]?.station_name.split(',')[0];
             setText('volatility-takeaway',
-                `${mostVolatile} is the most unpredictable station during morning rush (highest standard deviation). ${leastVolatile} is the most stable. High-volatility stations are riskier to rely on.`
+                `${mostVolatile} is the most unpredictable station during morning rush (highest standard deviation). ${leastVolatile} is the most stable. High-volatility stations carry greater risk for commuters.`
             );
         }
 
@@ -3864,7 +3870,7 @@ async function loadDeeperAnalysis() {
             const best = sorted[0];
             const worst = sorted[sorted.length - 1];
             setText('reliability-takeaway',
-                `${best?.station_name.split(',')[0]} has docking space at 9 AM on ${best?.pct_reliable}% of weekdays. ${worst?.station_name.split(',')[0]} only manages ${worst?.pct_reliable}%. Choose your station by reliability, not just proximity.`
+                `${best?.station_name.split(',')[0]} has docking space at 9 AM on ${best?.pct_reliable}% of weekdays. ${worst?.station_name.split(',')[0]} only manages ${worst?.pct_reliable}%. Station selection based on reliability, not just proximity, reduces the chance of arriving at a full dock.`
             );
         }
 
