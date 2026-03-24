@@ -207,18 +207,17 @@ function switchState() {
         stationsNow.style.display = 'none';
         stationsPlan.style.display = '';
 
-        document.getElementById('to-plan-alts-header').style.display = direction === 'to' ? '' : 'none';
-        document.getElementById('to-plan-alternatives').style.display = direction === 'to' ? '' : 'none';
-        document.getElementById('from-plan-alts-header').style.display = direction === 'from' ? '' : 'none';
-        document.getElementById('from-plan-alternatives').style.display = direction === 'from' ? '' : 'none';
-
-        // Show static skeleton rows in plan alt containers if no results yet
         const prefix = direction === 'to' ? 'to-plan' : 'from-plan';
-        const altContainer = document.getElementById(`${prefix}-alternatives`);
         const resultEl = document.getElementById(`${prefix}-result`);
-        if (altContainer && resultEl && resultEl.style.display === 'none' && !altContainer.querySelector('.alt-row')) {
-            altContainer.innerHTML = Array(3).fill(buildSkeletonRow(false)).join('');
-        }
+        const hasResults = resultEl && resultEl.style.display !== 'none';
+        const planStationsEmpty = document.getElementById('plan-stations-empty');
+
+        // Show headers/lists only if we have results, otherwise show empty state
+        document.getElementById('to-plan-alts-header').style.display = (direction === 'to' && hasResults) ? '' : 'none';
+        document.getElementById('to-plan-alternatives').style.display = (direction === 'to' && hasResults) ? '' : 'none';
+        document.getElementById('from-plan-alts-header').style.display = (direction === 'from' && hasResults) ? '' : 'none';
+        document.getElementById('from-plan-alternatives').style.display = (direction === 'from' && hasResults) ? '' : 'none';
+        if (planStationsEmpty) planStationsEmpty.style.display = hasResults ? 'none' : '';
     }
 
     // Load data
@@ -620,6 +619,10 @@ async function loadToPlan() {
     if (emptyState) emptyState.style.display = 'none';
     if (resultEl) resultEl.style.display = 'none';
     if (loading) loading.style.display = '';
+    const planStationsEmpty = document.getElementById('plan-stations-empty');
+    if (planStationsEmpty) planStationsEmpty.style.display = 'none';
+    document.getElementById('to-plan-alts-header').style.display = '';
+    document.getElementById('to-plan-alternatives').style.display = '';
     showSkeletonStationRows('to-plan-alternatives');
     try {
         const [data, stns] = await Promise.all([
@@ -715,6 +718,10 @@ async function loadFromPlan() {
     if (emptyState) emptyState.style.display = 'none';
     if (resultEl) resultEl.style.display = 'none';
     if (loading) loading.style.display = '';
+    const planStationsEmpty2 = document.getElementById('plan-stations-empty');
+    if (planStationsEmpty2) planStationsEmpty2.style.display = 'none';
+    document.getElementById('from-plan-alts-header').style.display = '';
+    document.getElementById('from-plan-alternatives').style.display = '';
     showSkeletonStationRows('from-plan-alternatives');
     try {
         const [data, stns] = await Promise.all([
