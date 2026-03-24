@@ -2710,6 +2710,17 @@ function setupScrollSpy() {
         return el ? { el, link } : null;
     }).filter(Boolean);
 
+    // Get element's top position relative to the scroller
+    function getTopInScroller(el) {
+        let top = 0;
+        let node = el;
+        while (node && node !== scroller) {
+            top += node.offsetTop;
+            node = node.offsetParent;
+        }
+        return top;
+    }
+
     function setActive(link) {
         links.forEach(l => l.classList.remove('active'));
         link.classList.add('active');
@@ -2723,10 +2734,8 @@ function setupScrollSpy() {
             const target = document.getElementById(link.getAttribute('data-section'));
             if (!target) return;
             setActive(link);
-            // Calculate position within the scroller
-            const targetTop = target.offsetTop;
             const navH = nav.offsetHeight || 44;
-            scroller.scrollTo({ top: targetTop - navH - 4, behavior: 'smooth' });
+            scroller.scrollTo({ top: getTopInScroller(target) - navH - 4, behavior: 'smooth' });
         });
     });
 
@@ -2740,7 +2749,7 @@ function setupScrollSpy() {
             const scrollPos = scroller.scrollTop + navH + 60;
             let current = sections[0];
             for (const s of sections) {
-                if (s.el.offsetTop <= scrollPos) current = s;
+                if (getTopInScroller(s.el) <= scrollPos) current = s;
             }
             if (current) setActive(current.link);
             ticking = false;
