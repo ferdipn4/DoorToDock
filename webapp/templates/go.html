@@ -112,27 +112,37 @@
             <!-- STATE 3: To Imperial + Plan -->
             <div id="state-to-plan" style="display: none;">
                 <div class="plan-card">
-                    <div class="plan-field">
-                        <label class="plan-field-label">I NEED TO ARRIVE BY</label>
-                        <div class="plan-time-row">
-                            <div class="plan-time-picker">
-                                <select class="plan-select" id="to-plan-hour"></select>
-                                <span class="plan-time-sep">:</span>
-                                <select class="plan-select" id="to-plan-minute"></select>
+                    <div class="plan-step">
+                        <span class="plan-step-num">1</span>
+                        <div class="plan-step-content">
+                            <label class="plan-field-label">I NEED TO ARRIVE BY</label>
+                            <div class="plan-time-row">
+                                <div class="plan-time-picker">
+                                    <select class="plan-select" id="to-plan-hour"></select>
+                                    <span class="plan-time-sep">:</span>
+                                    <select class="plan-select" id="to-plan-minute"></select>
+                                </div>
                             </div>
                         </div>
-                        <div class="plan-day-selector" id="to-plan-days"></div>
                     </div>
-                    <div class="plan-helper" id="to-plan-helper">
-                        <i class="bi bi-info-circle"></i> Select a time and day to get your recommendation
+                    <div class="plan-step">
+                        <span class="plan-step-num">2</span>
+                        <div class="plan-step-content">
+                            <div class="plan-day-selector" id="to-plan-days"></div>
+                        </div>
                     </div>
-                    <button class="plan-scan-btn" id="to-plan-scan-btn">
-                        <i class="bi bi-search"></i> Get recommendation
-                    </button>
-                </div>
-                <div class="weather-strip plan-weather-strip" id="to-plan-weather">
-                    <i class="bi bi-cloud"></i>
-                    <span id="to-plan-weather-text">Select a time to see forecast</span>
+                    <div class="weather-strip plan-weather-inline" id="to-plan-weather">
+                        <i class="bi bi-cloud"></i>
+                        <span id="to-plan-weather-text">Select a time to see forecast</span>
+                    </div>
+                    <div class="plan-step plan-step-btn">
+                        <span class="plan-step-num">3</span>
+                        <div class="plan-step-content">
+                            <button class="plan-scan-btn" id="to-plan-scan-btn">
+                                <i class="bi bi-search"></i> Get recommendation
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <!-- Plan skeleton / empty state (static grey placeholders) -->
                 <div id="to-plan-empty" class="plan-empty-state">
@@ -175,27 +185,37 @@
             <!-- STATE 4: From Imperial + Plan -->
             <div id="state-from-plan" style="display: none;">
                 <div class="plan-card">
-                    <div class="plan-field">
-                        <label class="plan-field-label">I WANT TO LEAVE UNI AT</label>
-                        <div class="plan-time-row">
-                            <div class="plan-time-picker">
-                                <select class="plan-select" id="from-plan-hour"></select>
-                                <span class="plan-time-sep">:</span>
-                                <select class="plan-select" id="from-plan-minute"></select>
+                    <div class="plan-step">
+                        <span class="plan-step-num">1</span>
+                        <div class="plan-step-content">
+                            <label class="plan-field-label">I WANT TO LEAVE UNI AT</label>
+                            <div class="plan-time-row">
+                                <div class="plan-time-picker">
+                                    <select class="plan-select" id="from-plan-hour"></select>
+                                    <span class="plan-time-sep">:</span>
+                                    <select class="plan-select" id="from-plan-minute"></select>
+                                </div>
                             </div>
                         </div>
-                        <div class="plan-day-selector" id="from-plan-days"></div>
                     </div>
-                    <div class="plan-helper" id="from-plan-helper">
-                        <i class="bi bi-info-circle"></i> Select a time and day to get your recommendation
+                    <div class="plan-step">
+                        <span class="plan-step-num">2</span>
+                        <div class="plan-step-content">
+                            <div class="plan-day-selector" id="from-plan-days"></div>
+                        </div>
                     </div>
-                    <button class="plan-scan-btn" id="from-plan-scan-btn">
-                        <i class="bi bi-search"></i> Get recommendation
-                    </button>
-                </div>
-                <div class="weather-strip plan-weather-strip" id="from-plan-weather">
-                    <i class="bi bi-cloud"></i>
-                    <span id="from-plan-weather-text">Select a time to see forecast</span>
+                    <div class="weather-strip plan-weather-inline" id="from-plan-weather">
+                        <i class="bi bi-cloud"></i>
+                        <span id="from-plan-weather-text">Select a time to see forecast</span>
+                    </div>
+                    <div class="plan-step plan-step-btn">
+                        <span class="plan-step-num">3</span>
+                        <div class="plan-step-content">
+                            <button class="plan-scan-btn" id="from-plan-scan-btn">
+                                <i class="bi bi-search"></i> Get recommendation
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div id="from-plan-empty" class="plan-empty-state">
                     <i class="bi bi-clock plan-empty-icon"></i>
@@ -949,6 +969,55 @@
     border: 1px solid var(--border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     margin-bottom: 12px;
+}
+
+/* Step numbers */
+.plan-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.plan-step-btn {
+    align-items: center;
+}
+
+.plan-step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--info);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.plan-step-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Weather inline (inside card) */
+.plan-weather-inline {
+    margin: -4px 0 0 34px;
+    font-size: 13px;
+}
+
+/* Dimmed pre-results area */
+.plan-results-dim {
+    opacity: 0.35;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.plan-results-dim.plan-results-active {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .plan-weather-strip {

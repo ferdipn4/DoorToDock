@@ -198,6 +198,10 @@ function switchState() {
         stationsNow.style.display = '';
         stationsPlan.style.display = 'none';
 
+        // Remove plan dimming when switching to Now mode
+        document.querySelector('.go-right')?.classList.remove('plan-results-dim', 'plan-results-active');
+        document.getElementById('minimap-wrap')?.classList.remove('plan-results-dim', 'plan-results-active');
+
         // Toggle between to/from station lists
         document.getElementById('to-now-sort-row').style.display = direction === 'to' ? '' : 'none';
         document.getElementById('to-now-stations').style.display = direction === 'to' ? '' : 'none';
@@ -218,6 +222,18 @@ function switchState() {
         document.getElementById('from-plan-alts-header').style.display = (direction === 'from' && hasResults) ? '' : 'none';
         document.getElementById('from-plan-alternatives').style.display = (direction === 'from' && hasResults) ? '' : 'none';
         if (planStationsEmpty) planStationsEmpty.style.display = hasResults ? 'none' : '';
+
+        // Dim results area and hide map before first recommendation
+        const goRight = document.querySelector('.go-right');
+        const mapWrap = document.getElementById('minimap-wrap');
+        if (goRight) {
+            goRight.classList.toggle('plan-results-dim', !hasResults);
+            goRight.classList.toggle('plan-results-active', hasResults);
+        }
+        if (mapWrap) {
+            mapWrap.classList.toggle('plan-results-dim', !hasResults);
+            mapWrap.classList.toggle('plan-results-active', hasResults);
+        }
     }
 
     // Load data
@@ -634,6 +650,9 @@ async function loadToPlan() {
         if (loading) loading.style.display = 'none';
         renderToPlanResult(data);
         renderPlanWeather('to-plan', data.weather_forecast);
+        // Un-dim results area and show map
+        document.querySelector('.go-right')?.classList.replace('plan-results-dim', 'plan-results-active');
+        document.getElementById('minimap-wrap')?.classList.replace('plan-results-dim', 'plan-results-active');
         updateMapMarkers();
     } catch (e) {
         console.error('Failed to load plan:', e);
@@ -733,6 +752,9 @@ async function loadFromPlan() {
         if (loading) loading.style.display = 'none';
         renderFromPlanResult(data);
         renderPlanWeather('from-plan', data.weather_forecast);
+        // Un-dim results area and show map
+        document.querySelector('.go-right')?.classList.replace('plan-results-dim', 'plan-results-active');
+        document.getElementById('minimap-wrap')?.classList.replace('plan-results-dim', 'plan-results-active');
         updateMapMarkers();
     } catch (e) {
         console.error('Failed to load from-plan:', e);
