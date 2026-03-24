@@ -2718,7 +2718,13 @@ function setupScrollSpy() {
     function setActive(link) {
         links.forEach(l => l.classList.remove('active'));
         link.classList.add('active');
-        link.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+        // Scroll nav strip horizontally to center the active link.
+        // Do NOT use scrollIntoView — it scrolls all ancestor containers
+        // (including .app-content) which fights with our manual scrollTo.
+        const linkLeft = link.offsetLeft;
+        const linkW = link.offsetWidth;
+        const navW = nav.offsetWidth;
+        nav.scrollTo({ left: linkLeft - navW / 2 + linkW / 2, behavior: 'smooth' });
     }
 
     // Click handler – use getBoundingClientRect (always correct regardless of DOM nesting)
