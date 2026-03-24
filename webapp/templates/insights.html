@@ -218,20 +218,18 @@
                     <div class="ins-arch-card-name">Supabase</div>
                     <div class="ins-arch-card-detail">historical data</div>
                 </div>
-                <div class="ins-harrow">
-                    <div class="ins-harrow-line"></div>
-                    <div class="ins-harrow-head">→</div>
-                    <div class="ins-arrow-label">export</div>
+                <div class="ins-serve-arrow" style="display:flex;align-items:center;padding:0 4px;min-width:70px;flex-direction:column;">
+                    <span style="font-size:24px;color:var(--text-tertiary);line-height:1;">→</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">export</span>
                 </div>
                 <div class="ins-arch-card ins-arch-card-muted">
                     <div class="ins-arch-card-name">Training Pipeline</div>
                     <div class="ins-arch-card-detail">export_data.py</div>
                     <div class="ins-arch-card-detail">train_model.py</div>
                 </div>
-                <div class="ins-harrow">
-                    <div class="ins-harrow-line"></div>
-                    <div class="ins-harrow-head">→</div>
-                    <div class="ins-arrow-label">produces</div>
+                <div class="ins-serve-arrow" style="display:flex;align-items:center;padding:0 4px;min-width:70px;flex-direction:column;">
+                    <span style="font-size:24px;color:var(--text-tertiary);line-height:1;">→</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">produces</span>
                 </div>
                 <div class="ins-arch-card ins-serve-pkl">
                     <div class="ins-arch-card-name">.pkl models</div>
@@ -240,10 +238,10 @@
                 </div>
 
                 <!-- Vertical dotted arrow: pkl → Flask -->
-                <div class="ins-serve-vert-arrow">
-                    <div class="ins-varrow-dashed-shaft"></div>
-                    <div class="ins-varrow-head">▼</div>
-                    <div class="ins-arrow-label">loaded on startup</div>
+                <div class="ins-serve-vert-arrow" style="display:flex;flex-direction:column;align-items:center;padding:12px 0;">
+                    <span style="font-size:18px;color:var(--text-tertiary);line-height:1;">⋮</span>
+                    <span style="font-size:18px;color:var(--text-tertiary);line-height:1;">↓</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">loaded on startup</span>
                 </div>
 
                 <!-- Row 2: live serving -->
@@ -251,19 +249,17 @@
                     <div class="ins-arch-card-name">Supabase</div>
                     <div class="ins-arch-card-detail">live queries</div>
                 </div>
-                <div class="ins-harrow ins-serve-arrow-bot">
-                    <div class="ins-harrow-line"></div>
-                    <div class="ins-harrow-head">→</div>
-                    <div class="ins-arrow-label">SELECT</div>
+                <div class="ins-serve-arrow ins-serve-arrow-bot" style="display:flex;align-items:center;padding:0 4px;min-width:70px;flex-direction:column;">
+                    <span style="font-size:24px;color:var(--text-tertiary);line-height:1;">→</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">SELECT</span>
                 </div>
                 <div class="ins-arch-card ins-arch-card-blue ins-serve-flask">
                     <div class="ins-arch-card-name">Flask App on Heroku</div>
                     <div class="ins-arch-card-detail">Gunicorn, 2 workers</div>
                 </div>
-                <div class="ins-harrow ins-serve-arrow-bot2">
-                    <div class="ins-harrow-line"></div>
-                    <div class="ins-harrow-head">→</div>
-                    <div class="ins-arrow-label">serves</div>
+                <div class="ins-serve-arrow ins-serve-arrow-bot2" style="display:flex;align-items:center;padding:0 4px;min-width:70px;flex-direction:column;">
+                    <span style="font-size:24px;color:var(--text-tertiary);line-height:1;">→</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">serves</span>
                 </div>
                 <div class="ins-arch-card ins-arch-card-blue ins-serve-outputs">
                     <div class="ins-arch-card-name">Outputs</div>
@@ -1338,26 +1334,19 @@
 
 /* Row 1: training path */
 .ins-serve-db-top   { grid-area: 1 / 1; }
-.ins-serve-grid > .ins-harrow:nth-child(2) { grid-area: 1 / 2; min-width: 60px; padding: 0 6px; }
+.ins-serve-grid > .ins-serve-arrow:nth-child(2) { grid-area: 1 / 2; }
 .ins-serve-grid > .ins-arch-card-muted { grid-area: 1 / 3; }
-.ins-serve-grid > .ins-harrow:nth-child(4) { grid-area: 1 / 4; min-width: 60px; padding: 0 6px; }
+.ins-serve-grid > .ins-serve-arrow:nth-child(4) { grid-area: 1 / 4; }
 .ins-serve-pkl { grid-area: 1 / 5; border-left-color: #7B61FF; }
 
-/* Vertical dotted arrow between rows */
-.ins-serve-vert-arrow {
-    grid-area: 2 / 3 / 3 / 6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 4px 0;
-}
+/* Vertical arrow between rows */
+.ins-serve-vert-arrow { grid-area: 2 / 3 / 3 / 6; }
 
 /* Row 3: live serving path */
 .ins-serve-db-bot    { grid-area: 3 / 1; }
-.ins-serve-arrow-bot { grid-area: 3 / 2; min-width: 60px; padding: 0 6px; }
+.ins-serve-arrow-bot { grid-area: 3 / 2; }
 .ins-serve-flask     { grid-area: 3 / 3; }
-.ins-serve-arrow-bot2 { grid-area: 3 / 4; min-width: 60px; padding: 0 6px; }
+.ins-serve-arrow-bot2 { grid-area: 3 / 4; }
 .ins-serve-outputs   { grid-area: 3 / 5; }
 
 @media (max-width: 579px) {
@@ -1367,17 +1356,7 @@
         gap: 0;
     }
     .ins-serve-grid > * { grid-area: auto !important; }
-    .ins-serve-grid > .ins-harrow {
-        min-width: 0;
-        padding: 6px 20px;
-        grid-template-columns: auto auto 1fr;
-        grid-template-rows: auto;
-    }
-    .ins-serve-grid > .ins-harrow .ins-harrow-line { width: 30px; }
-    .ins-serve-grid > .ins-harrow .ins-arrow-label { grid-column: 3; grid-row: 1; text-align: left; margin-left: 6px; }
-    .ins-serve-vert-arrow { padding: 6px 20px; }
-    .ins-serve-vert-arrow .ins-varrow-dashed-shaft { height: 0; width: 30px; border-left: none; border-top: 2px dashed var(--text-tertiary); }
-    .ins-serve-vert-arrow .ins-varrow-head { display: none; }
+    .ins-serve-vert-arrow { padding: 6px 0; }
 }
 
 /* ── Actuation pipeline (horizontal flow) ── */
