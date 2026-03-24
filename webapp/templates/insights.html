@@ -2661,6 +2661,7 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function setupScrollSpy() {
     const nav = document.getElementById('ins-nav');
     const links = nav.querySelectorAll('.ins-nav-link');
+    const scroller = document.querySelector('.app-content');
     const sections = [];
 
     links.forEach(link => {
@@ -2669,13 +2670,20 @@ function setupScrollSpy() {
         if (section) sections.push({ id, el: section, link });
     });
 
+    function setActive(link) {
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        link.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    }
+
+    // Click: scroll to section + immediately highlight
     links.forEach(link => {
         link.addEventListener('click', e => {
             e.preventDefault();
             const id = link.getAttribute('data-section');
             const target = document.getElementById(id);
             if (target) {
-                const scroller = document.querySelector('.app-content');
+                setActive(link);
                 const offset = nav.offsetHeight + 8;
                 const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - offset;
                 scroller.scrollTo({ top, behavior: 'smooth' });
@@ -2683,25 +2691,25 @@ function setupScrollSpy() {
         });
     });
 
-    const scroller = document.querySelector('.app-content');
-    const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                links.forEach(l => l.classList.remove('active'));
-                const match = sections.find(s => s.el === entry.target);
-                if (match) {
-                    match.link.classList.add('active');
-                    match.link.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    // Scroll spy: highlight whichever section's top is closest to the viewport top
+    let ticking = false;
+    scroller.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            const scrollerTop = scroller.getBoundingClientRect().top;
+            const threshold = nav.offsetHeight + 40;
+            let current = sections[0];
+            for (const s of sections) {
+                const rect = s.el.getBoundingClientRect();
+                if (rect.top - scrollerTop <= threshold) {
+                    current = s;
                 }
             }
+            if (current) setActive(current.link);
+            ticking = false;
         });
-    }, {
-        root: scroller,
-        rootMargin: '-20% 0px -60% 0px',
-        threshold: 0,
     });
-
-    sections.forEach(s => observer.observe(s.el));
 }
 
 // ============================================================
