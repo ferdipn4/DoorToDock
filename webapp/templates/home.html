@@ -3,22 +3,42 @@
 
 {% block content %}
 <div class="home-page">
-    <div class="home-content">
-        <div class="home-icon"><i class="bi bi-bicycle"></i></div>
-        <h1 class="home-title">Door2Dock</h1>
-        <p class="home-desc">Door2Dock predicts Santander Cycles dock and bike availability at 21 stations near Imperial College London. Check real-time availability before you leave, or plan ahead to find the best station for your commute.</p>
+    <!-- Gradient hero area -->
+    <div class="home-gradient">
+        <div class="home-hero">
+            <div class="home-icon"><i class="bi bi-bicycle"></i></div>
+            <h1 class="home-title">Door2Dock</h1>
+            <p class="home-tagline">Predict dock &amp; bike availability at 21 stations near Imperial College — before you leave.</p>
+        </div>
+        <!-- Wave divider -->
+        <svg class="home-wave" viewBox="0 0 1440 80" preserveAspectRatio="none">
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z"/>
+        </svg>
+    </div>
+
+    <!-- Below gradient: buttons + features -->
+    <div class="home-lower">
         <div class="home-actions">
-            <a href="/go?timing=now" class="home-btn home-btn-primary">
+            <a href="/go?timing=now" class="home-btn">
                 <i class="bi bi-cursor-fill"></i> Check now
             </a>
-            <a href="/go?timing=plan" class="home-btn home-btn-primary">
+            <a href="/go?timing=plan" class="home-btn">
                 <i class="bi bi-calendar-check"></i> Plan a trip
             </a>
         </div>
         <div class="home-features">
-            <div class="home-feature"><span class="home-feature-emoji">📡</span> 21 stations monitored</div>
-            <div class="home-feature"><span class="home-feature-emoji">🔮</span> 15-min predictions</div>
-            <div class="home-feature"><span class="home-feature-emoji">📱</span> Telegram alerts</div>
+            <div class="home-feature">
+                <i class="bi bi-broadcast home-feature-icon"></i>
+                <span>21 stations monitored</span>
+            </div>
+            <div class="home-feature">
+                <i class="bi bi-graph-up-arrow home-feature-icon"></i>
+                <span>15-min predictions</span>
+            </div>
+            <div class="home-feature">
+                <i class="bi bi-telegram home-feature-icon"></i>
+                <span>Telegram alerts</span>
+            </div>
         </div>
     </div>
 </div>
@@ -26,58 +46,100 @@
 
 {% block head %}
 <style>
+/* ── Home page ── */
 .home-page {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: calc(100vh - var(--bottomnav-height) - 16px);
-    padding: 40px 24px;
-    background:
-        radial-gradient(circle at 30% 20%, rgba(55, 138, 221, 0.04) 0%, transparent 50%),
-        radial-gradient(circle at 70% 80%, rgba(29, 158, 117, 0.03) 0%, transparent 50%),
-        linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    flex-direction: column;
+    min-height: calc(100vh - var(--bottomnav-height));
 }
-
 @media (min-width: 768px) {
     .home-page {
         min-height: calc(100vh - var(--topbar-height));
     }
 }
 
-.home-content {
+/* Gradient hero — top ~60% */
+.home-gradient {
+    position: relative;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    background: linear-gradient(180deg, #1e3a5f 0%, #2563eb 100%);
+    padding: 60px 24px 0;
+}
+
+[data-bs-theme="dark"] .home-gradient {
+    background: linear-gradient(180deg, #0f1729 0%, #1e3a5f 100%);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .home-gradient {
+        background: linear-gradient(180deg, #0f1729 0%, #1e3a5f 100%);
+    }
+}
+
+.home-hero {
     text-align: center;
     max-width: 520px;
-    width: 100%;
 }
 
+/* Bike icon with pulse */
 .home-icon {
-    font-size: 72px;
-    color: var(--info);
-    margin-bottom: 12px;
+    font-size: 64px;
+    color: #fff;
+    margin-bottom: 16px;
     line-height: 1;
+    animation: home-pulse 3s ease-in-out infinite;
 }
 
-[data-bs-theme="dark"] .home-icon {
-    color: #60a5fa;
+@keyframes home-pulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
 }
 
 .home-title {
     font-size: 48px;
-    font-weight: 700;
-    color: var(--text-primary);
+    font-weight: 600;
+    color: #fff;
     margin: 0 0 16px;
     letter-spacing: -1px;
     line-height: 1.1;
 }
 
-.home-desc {
+.home-tagline {
     font-size: 18px;
-    line-height: 1.65;
-    color: var(--text-secondary);
-    margin: 0 auto 36px;
-    max-width: 460px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0 auto;
+    max-width: 480px;
 }
 
+/* Wave SVG divider */
+.home-wave {
+    display: block;
+    width: 100%;
+    height: 60px;
+    margin-top: auto;
+    position: relative;
+    bottom: -1px;
+}
+.home-wave path {
+    fill: var(--bg-secondary);
+}
+
+/* Lower section */
+.home-lower {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px 48px;
+    background: var(--bg-secondary);
+}
+
+/* Buttons */
 .home-actions {
     display: flex;
     gap: 16px;
@@ -96,27 +158,37 @@
     font-size: 16px;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.15s ease;
     cursor: pointer;
+    background: #fff;
+    color: #1e3a5f;
+    border: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.home-btn-primary {
-    background: var(--info);
-    color: #fff;
-    border: 2px solid var(--info);
+.home-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+    color: #1e3a5f;
+    text-decoration: none;
 }
 
-.home-btn-primary:hover {
-    background: #2d7bc4;
-    border-color: #2d7bc4;
-    color: #fff;
+[data-bs-theme="dark"] .home-btn {
+    background: rgba(255, 255, 255, 0.95);
+    color: #0f1729;
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .home-btn {
+        background: rgba(255, 255, 255, 0.95);
+        color: #0f1729;
+    }
 }
 
-
+/* Features */
 .home-features {
     display: flex;
     justify-content: center;
-    gap: 24px;
+    gap: 32px;
     margin-top: 40px;
     flex-wrap: wrap;
 }
@@ -124,23 +196,34 @@
 .home-feature {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    color: var(--text-tertiary);
+    gap: 8px;
+    font-size: 15px;
+    color: var(--text-secondary);
 }
 
-.home-feature-emoji {
-    font-size: 16px;
+.home-feature-icon {
+    font-size: 18px;
+    color: var(--info);
+}
+
+[data-bs-theme="dark"] .home-feature-icon {
+    color: #60a5fa;
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .home-feature-icon {
+        color: #60a5fa;
+    }
 }
 
 /* Mobile */
 @media (max-width: 480px) {
+    .home-gradient { min-height: 55vh; padding: 48px 20px 0; }
     .home-title { font-size: 36px; }
-    .home-desc { font-size: 16px; }
-    .home-icon { font-size: 56px; }
+    .home-tagline { font-size: 16px; }
+    .home-icon { font-size: 52px; }
     .home-btn { padding: 12px 24px; min-height: 48px; font-size: 15px; }
-    .home-features { gap: 16px; }
-    .home-feature { font-size: 13px; }
+    .home-features { gap: 20px; }
+    .home-feature { font-size: 14px; }
 }
 </style>
 {% endblock %}
