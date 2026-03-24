@@ -1128,6 +1128,134 @@ def insights_ch5():
 
 
 # ------------------------------------------------------------------
+# Insights: Chapter 6 - Deeper Analysis
+# ------------------------------------------------------------------
+
+@api.route("/insights/ch6")
+@db_error_handler
+def insights_ch6():
+    """Weekday vs weekend, temperature bins, station volatility, reliability."""
+    station_ids = PREFERRED_STATIONS
+    placeholders = ','.join(['%s'] * len(station_ids))
+
+    # 1) Weekday vs Weekend – hourly avg empty docks (preferred stations)
+    weekday_hourly = query(f"""
+        SELECT
+            EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+            ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
+        FROM bike_availability
+        WHERE station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 21
+        GROUP BY hour ORDER BY hour
+    """, station_ids)
+
+    weekend_hourly = query(f"""
+        SELECT
+            EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+            ROUND(AVG(empty_docks)::numeric, 1) AS avg_empty_docks
+        FROM bike_availability
+        WHERE station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') IN (0, 6)
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 21
+        GROUP BY hour ORDER BY hour
+    """, station_ids)
+
+    # 2) Temperature bins – cold (<10°C) vs warm (>15°C)
+    cold_hourly = query(f"""
+        WITH hourly_weather AS (
+            SELECT DATE_TRUNC('hour', timestamp) AS hr,
+                   AVG(temperature) AS avg_temp
+            FROM weather_data
+            GROUP BY hr
+        )
+        SELECT
+            EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+            ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
+        FROM bike_availability b
+        JOIN hourly_weather w ON DATE_TRUNC('hour', b.timestamp) = w.hr
+        WHERE b.station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 19
+          AND w.avg_temp < 10
+        GROUP BY hour ORDER BY hour
+    """, station_ids)
+
+    warm_hourly = query(f"""
+        WITH hourly_weather AS (
+            SELECT DATE_TRUNC('hour', timestamp) AS hr,
+                   AVG(temperature) AS avg_temp
+            FROM weather_data
+            GROUP BY hr
+        )
+        SELECT
+            EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London')::int AS hour,
+            ROUND(AVG(b.empty_docks)::numeric, 1) AS avg_empty_docks
+        FROM bike_availability b
+        JOIN hourly_weather w ON DATE_TRUNC('hour', b.timestamp) = w.hr
+        WHERE b.station_id IN ({placeholders})
+          AND EXTRACT(DOW FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM b.timestamp AT TIME ZONE 'Europe/London') BETWEEN 6 AND 19
+          AND w.avg_temp > 15
+        GROUP BY hour ORDER BY hour
+    """, station_ids)
+
+    # Temperature bin day counts
+    temp_day_counts = query_one("""
+        SELECT
+            COUNT(DISTINCT CASE WHEN avg_temp < 10 THEN day END) AS cold_days,
+            COUNT(DISTINCT CASE WHEN avg_temp > 15 THEN day END) AS warm_days
+        FROM (
+            SELECT
+                (timestamp AT TIME ZONE 'Europe/London')::date AS day,
+                AVG(temperature) AS avg_temp
+            FROM weather_data
+            WHERE EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+            GROUP BY day
+        ) sub
+    """)
+
+    # 3) Station volatility – stddev of empty docks per station (all 21, weekday 8-10am)
+    volatility = query("""
+        SELECT
+            station_name, station_id,
+            ROUND(STDDEV(empty_docks)::numeric, 1) AS stddev_docks,
+            ROUND(AVG(empty_docks)::numeric, 1) AS avg_docks,
+            ROUND((AVG(empty_docks) / NULLIF(MAX(total_docks), 0) * 100)::numeric, 0) AS utilization_pct
+        FROM bike_availability
+        WHERE EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 8 AND 10
+        GROUP BY station_name, station_id
+        ORDER BY stddev_docks DESC
+    """)
+
+    # 5) Reliability – % of weekday 9:00-10:00 readings with >=5 docks per station
+    reliability = query("""
+        SELECT
+            station_name, station_id,
+            ROUND(
+                100.0 * SUM(CASE WHEN empty_docks >= 5 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0),
+                0
+            ) AS pct_reliable
+        FROM bike_availability
+        WHERE EXTRACT(DOW FROM timestamp AT TIME ZONE 'Europe/London') BETWEEN 1 AND 5
+          AND EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Europe/London') = 9
+        GROUP BY station_name, station_id
+        ORDER BY pct_reliable DESC
+    """)
+
+    return jsonify({
+        "weekday_hourly": [dict(r) for r in weekday_hourly],
+        "weekend_hourly": [dict(r) for r in weekend_hourly],
+        "cold_hourly": [dict(r) for r in cold_hourly],
+        "warm_hourly": [dict(r) for r in warm_hourly],
+        "temp_day_counts": dict(temp_day_counts) if temp_day_counts else {"cold_days": 0, "warm_days": 0},
+        "volatility": [dict(r) for r in volatility],
+        "reliability": [dict(r) for r in reliability],
+    })
+
+
+# ------------------------------------------------------------------
 # Weather: Current
 # ------------------------------------------------------------------
 

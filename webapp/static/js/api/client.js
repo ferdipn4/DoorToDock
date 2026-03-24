@@ -83,6 +83,10 @@ export async function getInsightsCh5() {
   return fetchJSON('/api/insights/ch5');
 }
 
+export async function getInsightsCh6() {
+  return fetchJSON('/api/insights/ch6');
+}
+
 export async function getHeatmap({ stationIds, metric } = {}) {
   const params = new URLSearchParams();
   if (stationIds) params.set('station_ids', stationIds);
