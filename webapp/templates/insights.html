@@ -1477,17 +1477,18 @@
 .ins-modes-col-head {
     font-size: 13px;
     font-weight: 700;
-    color: var(--text-secondary);
     text-align: center;
     padding-bottom: 4px;
 }
+.ins-modes-col-head:nth-child(2) { color: #f59e0b; }
+.ins-modes-col-head:nth-child(3) { color: #06b6d4; }
 
 .ins-modes-row-head {
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
-    color: var(--text-tertiary);
+    color: #d1d5db;
     writing-mode: horizontal-tb;
     display: flex;
     align-items: center;
@@ -1500,29 +1501,29 @@
 }
 
 .ins-modes-matrix .ins-mode-card-dock {
-    border-top-color: var(--info);
-    background: rgba(55, 138, 221, 0.03);
+    border-top-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.04);
 }
 
 .ins-modes-matrix .ins-mode-card-bike {
     border-top-color: #06b6d4;
-    background: rgba(6, 182, 212, 0.03);
+    background: rgba(6, 182, 212, 0.04);
 }
 
 [data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-dock {
-    background: rgba(55, 138, 221, 0.06);
+    background: rgba(245, 158, 11, 0.08);
 }
 
 [data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-bike {
-    background: rgba(6, 182, 212, 0.06);
+    background: rgba(6, 182, 212, 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-dock {
-        background: rgba(55, 138, 221, 0.06);
+        background: rgba(245, 158, 11, 0.08);
     }
     :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-bike {
-        background: rgba(6, 182, 212, 0.06);
+        background: rgba(6, 182, 212, 0.08);
     }
 }
 
@@ -1537,9 +1538,10 @@
 .ins-mode-model {
     font-size: 12px;
     font-weight: 600;
-    color: var(--info);
     margin-bottom: 4px;
 }
+.ins-mode-card-dock .ins-mode-model { color: #f59e0b; }
+.ins-mode-card-bike .ins-mode-model { color: #06b6d4; }
 
 .ins-mode-detail {
     font-size: 12px;
@@ -2621,29 +2623,31 @@
     }
 }
 
-/* App modes matrix – neon tints */
+/* App modes matrix – distinct column colours */
 [data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-dock {
-    border-top-color: var(--neon-cyan);
-    background: rgba(0, 229, 255, 0.04);
+    border-top-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.08);
 }
 
 [data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-bike {
-    border-top-color: var(--neon-teal);
-    background: rgba(34, 211, 238, 0.04);
+    border-top-color: #06b6d4;
+    background: rgba(6, 182, 212, 0.08);
 }
 
-[data-bs-theme="dark"] .ins-mode-model { color: var(--neon-cyan); }
+[data-bs-theme="dark"] .ins-mode-card-dock .ins-mode-model { color: #f59e0b; }
+[data-bs-theme="dark"] .ins-mode-card-bike .ins-mode-model { color: #06b6d4; }
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-dock {
-        border-top-color: var(--neon-cyan);
-        background: rgba(0, 229, 255, 0.04);
+        border-top-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.08);
     }
     :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-bike {
-        border-top-color: var(--neon-teal);
-        background: rgba(34, 211, 238, 0.04);
+        border-top-color: #06b6d4;
+        background: rgba(6, 182, 212, 0.08);
     }
-    :root:not([data-bs-theme="light"]) .ins-mode-model { color: var(--neon-cyan); }
+    :root:not([data-bs-theme="light"]) .ins-mode-card-dock .ins-mode-model { color: #f59e0b; }
+    :root:not([data-bs-theme="light"]) .ins-mode-card-bike .ins-mode-model { color: #06b6d4; }
 }
 
 /* Warm/cool subsection headings – neon */
@@ -3588,21 +3592,25 @@ async function loadSection6() {
         ];
 
         const container = document.getElementById('corr-bars');
-        const scale = 0.3; // |r| = 0.3 fills 50% of bar area
+
+        // Dynamic scale: find max |r| and add padding
+        const allR = corrVars.map(v => Math.abs(corrStats[v.key] ?? 0));
+        const maxAbsR = Math.max(...allR, 0.1);
+        const scale = Math.ceil(maxAbsR * 10 + 1) / 10; // round up to next 0.1 with padding
+
         let html = '';
 
         for (const v of corrVars) {
             const r = corrStats[v.key] ?? 0;
             const absR = Math.abs(r);
-            const widthPct = (absR / scale) * 50; // 50% at scale
+            const widthPct = (absR / scale) * 50; // 50% of track = full scale
             const isNeg = r < 0;
             const sign = r >= 0 ? '+' : '';
             const valStr = sign + r.toFixed(3);
-            const tooSmall = widthPct < 12; // bar too narrow for text
+            const tooSmall = widthPct < 12;
 
             let barStyle, valHtml;
             if (isNeg) {
-                // Negative bar: right edge at 50%, grows left
                 barStyle = `right: 50%; width: ${widthPct}%; background: ${v.color};`;
                 if (tooSmall) {
                     valHtml = `<span class="corr-val-outside" style="right: calc(50% + ${widthPct}% + 6px);">${valStr}</span>`;
@@ -3611,7 +3619,6 @@ async function loadSection6() {
                     barStyle += ' justify-content: flex-start; padding-left: 8px;';
                 }
             } else {
-                // Positive bar: left edge at 50%, grows right
                 barStyle = `left: 50%; width: ${widthPct}%; background: ${v.color};`;
                 if (tooSmall) {
                     valHtml = `<span class="corr-val-outside" style="left: calc(50% + ${widthPct}% + 6px);">${valStr}</span>`;
@@ -3632,8 +3639,12 @@ async function loadSection6() {
             </div>`;
         }
 
-        // Axis
-        const ticks = [-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3];
+        // Dynamic axis ticks based on computed scale
+        const tickStep = scale <= 0.4 ? 0.1 : 0.2;
+        const ticks = [];
+        for (let t = -scale; t <= scale + 0.001; t += tickStep) {
+            ticks.push(Math.round(t * 100) / 100);
+        }
         html += `<div class="corr-axis"><div class="corr-axis-inner">`;
         for (const t of ticks) {
             const label = t === 0 ? '0' : (t > 0 ? '+' + t.toFixed(1) : t.toFixed(1));
@@ -3641,8 +3652,33 @@ async function loadSection6() {
         }
         html += `</div></div>`;
 
-        // Interpretation note
-        html += `<div class="corr-note">All correlations are weak (|r| &lt; 0.3). Time of day and station location dominate dock availability far more than weather. With 24 days of data and limited weather diversity, this is expected.</div>`;
+        // Dynamic interpretation based on actual values
+        const labeled = corrVars.map(v => ({
+            label: v.label.toLowerCase(),
+            r: corrStats[v.key] ?? 0,
+        }));
+        const strong = labeled.filter(v => Math.abs(v.r) >= 0.5);
+        const moderate = labeled.filter(v => Math.abs(v.r) >= 0.3 && Math.abs(v.r) < 0.5);
+        const weak = labeled.filter(v => Math.abs(v.r) < 0.3);
+
+        function describeCorr(v) {
+            const dir = v.r < 0 ? 'negative' : 'positive';
+            return `${v.label} shows a ${Math.abs(v.r) >= 0.5 ? 'strong' : 'moderate'} ${dir} correlation (${v.r >= 0 ? '+' : ''}${v.r.toFixed(2)})`;
+        }
+
+        let noteText = '';
+        const notable = [...strong, ...moderate];
+        if (notable.length === 0) {
+            noteText = 'All correlations are weak (|r| &lt; 0.3). Time of day and station location dominate dock availability far more than weather.';
+        } else {
+            noteText = notable.map(describeCorr).join('. ') + '.';
+            if (weak.length > 0) {
+                const weakNames = weak.map(v => v.label).join(' and ');
+                noteText += ` ${weakNames.charAt(0).toUpperCase() + weakNames.slice(1)} show${weak.length === 1 ? 's' : ''} weak effects.`;
+            }
+        }
+
+        html += `<div class="corr-note">${noteText}</div>`;
 
         container.innerHTML = html;
 
