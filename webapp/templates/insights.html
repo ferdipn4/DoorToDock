@@ -3510,11 +3510,28 @@ async function loadSection7() {
 // Init
 // ============================================================
 
+let _revealed = false;
+function revealPage() {
+    if (_revealed) return;
+    _revealed = true;
+    const loader = document.getElementById('page-loader');
+    const nav = document.getElementById('ins-nav');
+    const content = document.getElementById('ins-content');
+    if (loader) loader.classList.add('fade-out');
+    setTimeout(() => {
+        if (loader) loader.style.display = 'none';
+        if (nav) nav.style.display = '';
+        if (content) content.style.display = '';
+    }, 300);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     setupScrollSpy();
-    loadHeroStats();
-    loadDataSources();
-    loadModelInfo();
+    Promise.all([
+        loadHeroStats().catch(() => {}),
+        loadDataSources().catch(() => {}),
+        loadModelInfo().catch(() => {}),
+    ]).then(revealPage);
     loadSection4();
     loadSection5();
     loadSection6();
