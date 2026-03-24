@@ -545,8 +545,10 @@
 
             <div class="ins-chart-wrap">
                 <div class="ins-chart-title">Pearson r – weather variables vs. empty docks</div>
-                <canvas id="chart-corr" height="180"></canvas>
-                <div class="ins-chart-takeaway" id="corr-takeaway">Loading...</div>
+                <div class="corr-bars" id="corr-bars">
+                    <div class="corr-loading" style="text-align:center; padding:24px; color:var(--text-tertiary);">Loading...</div>
+                </div>
+                <div class="ins-chart-takeaway" id="corr-takeaway" style="display:none"></div>
             </div>
 
             <!-- 6d: Sensor Validation -->
@@ -1727,6 +1729,116 @@
     background: rgba(55, 138, 221, 0.06);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     line-height: 1.55;
+}
+
+/* ── Pearson correlation bar chart (HTML/CSS) ── */
+.corr-bars { width: 100%; }
+
+.corr-row {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    margin-bottom: 6px;
+}
+
+.corr-label {
+    width: 110px;
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: right;
+    padding-right: 12px;
+}
+
+.corr-track {
+    flex: 1;
+    position: relative;
+    height: 36px;
+}
+
+/* Vertical zero line */
+.corr-track::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--text-tertiary);
+    opacity: 0.5;
+    z-index: 1;
+}
+
+.corr-bar {
+    position: absolute;
+    top: 0;
+    height: 36px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    transition: width 0.4s ease;
+}
+
+/* Negative bars grow leftward from center */
+.corr-bar.neg { justify-content: flex-start; padding-left: 6px; }
+/* Positive bars grow rightward from center */
+.corr-bar.pos { justify-content: flex-end; padding-right: 6px; }
+
+.corr-val {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* Small bars: value shown outside */
+.corr-val-outside {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+}
+
+.corr-axis {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+    padding-left: 110px;
+}
+
+.corr-axis-inner {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.corr-axis-tick {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: center;
+    width: 0;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+.corr-note {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-left: 3px solid #e0e0e0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+}
+
+[data-bs-theme="dark"] .corr-note { border-left-color: #555; }
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .corr-note { border-left-color: #555; }
 }
 
 [data-bs-theme="dark"] .ins-chart-takeaway {
@@ -3487,60 +3599,77 @@ async function loadSection6() {
         }
     }
 
-    // --- 6c: Weather correlations ---
+    // --- 6c: Weather correlations (HTML bar chart) ---
     if (corrStats) {
-        const variables = [
-            { key: 'temp_corr', label: 'Temperature', color: neonColor('orange') },
-            { key: 'humidity_corr', label: 'Humidity', color: neonColor('blue') },
-            { key: 'wind_corr', label: 'Wind speed', color: neonColor('green') },
-            { key: 'rain_corr', label: 'Precipitation', color: neonColor('purple') },
+        const corrVars = [
+            { key: 'temp_corr', label: 'Temperature', color: '#2563eb' },
+            { key: 'wind_corr', label: 'Wind speed', color: '#0d9488' },
+            { key: 'humidity_corr', label: 'Humidity', color: '#d97706' },
+            { key: 'rain_corr', label: 'Precipitation', color: '#7c3aed' },
         ];
 
-        const labels = variables.map(v => v.label);
-        const values = variables.map(v => corrStats[v.key] ?? 0);
-        const colors = variables.map(v => v.color);
+        const container = document.getElementById('corr-bars');
+        const scale = 0.3; // |r| = 0.3 fills 50% of bar area
+        let html = '';
 
-        new Chart(document.getElementById('chart-corr'), {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: colors.map(c => c + 'aa'),
-                    borderRadius: 4,
-                }],
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        min: -0.3, max: 0.3,
-                        ticks: { color: cc.textFaint },
-                        grid: { color: cc.grid },
-                        title: { display: true, text: 'Pearson r', color: cc.textFaint, font: { size: 11 } },
-                    },
-                    y: {
-                        ticks: { color: cc.textFaint, font: { size: 11 } },
-                        grid: { display: false },
-                    },
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: item => `r = ${item.parsed.x.toFixed(4)}`,
-                        },
-                    },
-                },
-            },
-        });
+        for (const v of corrVars) {
+            const r = corrStats[v.key] ?? 0;
+            const absR = Math.abs(r);
+            const widthPct = (absR / scale) * 50; // 50% at scale
+            const isNeg = r < 0;
+            const sign = r >= 0 ? '+' : '';
+            const valStr = sign + r.toFixed(3);
+            const tooSmall = widthPct < 12; // bar too narrow for text
 
-        const maxR = Math.max(...values.map(Math.abs));
-        setText('corr-takeaway',
-            `All correlations are weak (|r| < ${(maxR + 0.05).toFixed(1)}). Time-of-day and station location dominate dock availability far more than weather, confirmed by both correlation analysis and SHAP feature importance. With 24 days of data and limited weather diversity, this is expected. Longer collection periods spanning multiple seasons would reveal clearer weather effects.`
-        );
+            let barStyle, valHtml;
+            if (isNeg) {
+                // Negative bar: right edge at 50%, grows left
+                barStyle = `right: 50%; width: ${widthPct}%; background: ${v.color};`;
+                if (tooSmall) {
+                    valHtml = `<span class="corr-val-outside" style="right: calc(50% + ${widthPct}% + 6px);">${valStr}</span>`;
+                } else {
+                    valHtml = '';
+                    barStyle += ' justify-content: flex-start; padding-left: 8px;';
+                }
+            } else {
+                // Positive bar: left edge at 50%, grows right
+                barStyle = `left: 50%; width: ${widthPct}%; background: ${v.color};`;
+                if (tooSmall) {
+                    valHtml = `<span class="corr-val-outside" style="left: calc(50% + ${widthPct}% + 6px);">${valStr}</span>`;
+                } else {
+                    valHtml = '';
+                    barStyle += ' justify-content: flex-end; padding-right: 8px;';
+                }
+            }
+
+            html += `<div class="corr-row">
+                <div class="corr-label">${v.label}</div>
+                <div class="corr-track">
+                    <div class="corr-bar ${isNeg ? 'neg' : 'pos'}" style="${barStyle}">
+                        ${!tooSmall ? `<span class="corr-val">${valStr}</span>` : ''}
+                    </div>
+                    ${tooSmall ? valHtml : ''}
+                </div>
+            </div>`;
+        }
+
+        // Axis
+        const ticks = [-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3];
+        html += `<div class="corr-axis"><div class="corr-axis-inner">`;
+        for (const t of ticks) {
+            const label = t === 0 ? '0' : (t > 0 ? '+' + t.toFixed(1) : t.toFixed(1));
+            html += `<span class="corr-axis-tick">${label}</span>`;
+        }
+        html += `</div></div>`;
+
+        // Interpretation note
+        html += `<div class="corr-note">All correlations are weak (|r| &lt; 0.3). Time of day and station location dominate dock availability far more than weather. With 24 days of data and limited weather diversity, this is expected.</div>`;
+
+        container.innerHTML = html;
+
+        // Hide the old takeaway div (replaced by inline note)
+        const oldTakeaway = document.getElementById('corr-takeaway');
+        if (oldTakeaway) oldTakeaway.style.display = 'none';
     }
 
     // --- 6d: Sensor validation scatter plot ---
