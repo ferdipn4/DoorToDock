@@ -42,8 +42,14 @@
         {
             page: '/settings',
             selector: '.station-reorder-list',
-            text: 'Drag to reorder your preferred stations. The top stations get priority in recommendations. That\'s it, you\'re ready to go!',
+            text: 'Drag to reorder your preferred stations. The top stations get priority in recommendations.',
             position: 'bottom',
+        },
+        {
+            page: '/settings',
+            selector: '#tg-test-btn',
+            text: 'Door2Dock can send push notifications to your phone via Telegram when dock availability changes. Test the connection here. That\'s it, you\'re ready to go!',
+            position: 'top',
         },
     ];
 
