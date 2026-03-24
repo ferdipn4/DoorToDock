@@ -34,14 +34,14 @@
 /* Dark mode — media query (System) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-bs-theme="light"]) {
-    --bg-primary: #1A1A1A;
-    --bg-secondary: #242424;
-    --bg-tertiary: #2C2C2C;
-    --text-primary: #E8E8E8;
-    --text-secondary: #A0A0A0;
-    --text-tertiary: #6B6B6B;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 255, 255, 0.15);
+    --bg-primary: #27272c;
+    --bg-secondary: #1e1e22;
+    --bg-tertiary: #303036;
+    --text-primary: #ebebeb;
+    --text-secondary: #a8a8a8;
+    --text-tertiary: #999;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-hover: rgba(255, 255, 255, 0.18);
 
     --info-bg: rgba(55, 138, 221, 0.12);
     --success-bg: rgba(29, 158, 117, 0.12);
@@ -52,14 +52,14 @@
 
 /* Dark mode — explicit attribute (manual toggle) */
 [data-bs-theme="dark"] {
-  --bg-primary: #1A1A1A;
-  --bg-secondary: #242424;
-  --bg-tertiary: #2C2C2C;
-  --text-primary: #E8E8E8;
-  --text-secondary: #A0A0A0;
-  --text-tertiary: #6B6B6B;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.15);
+  --bg-primary: #27272c;
+  --bg-secondary: #1e1e22;
+  --bg-tertiary: #303036;
+  --text-primary: #ebebeb;
+  --text-secondary: #a8a8a8;
+  --text-tertiary: #999;
+  --border: rgba(255, 255, 255, 0.10);
+  --border-hover: rgba(255, 255, 255, 0.18);
 
   --info-bg: rgba(55, 138, 221, 0.12);
   --success-bg: rgba(29, 158, 117, 0.12);
@@ -398,7 +398,7 @@ body {
 
 /* ── Station rows ── */
 .ds-station-row {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 10px 12px;
   display: flex;
@@ -475,7 +475,7 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   color: var(--text-secondary);
   text-decoration: none;
 }
@@ -685,6 +685,22 @@ canvas {
 }
 [data-bs-theme="dark"] ::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Dark mode: solid 1px borders on cards for clear edge visibility */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme="light"]) .ds-card,
+  :root:not([data-bs-theme="light"]) .ds-station-row {
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--border);
+  }
+}
+[data-bs-theme="dark"] .ds-card,
+[data-bs-theme="dark"] .ds-station-row {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--border);
 }
 
 /* ── Spinner (Bootstrap-compatible) ── */
