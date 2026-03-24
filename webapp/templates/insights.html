@@ -2641,16 +2641,55 @@ function isDark() {
 }
 
 function chartColors() {
+    const dark = isDark();
     const style = getComputedStyle(document.documentElement);
     return {
-        grid: isDark() ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-        text: style.getPropertyValue('--text-secondary').trim() || '#666',
-        textFaint: style.getPropertyValue('--text-tertiary').trim() || '#999',
+        grid: dark ? 'rgba(0, 229, 255, 0.06)' : 'rgba(0,0,0,0.06)',
+        text: dark ? '#a0a0a0' : (style.getPropertyValue('--text-secondary').trim() || '#666'),
+        textFaint: dark ? '#6b6b6b' : (style.getPropertyValue('--text-tertiary').trim() || '#999'),
     };
 }
 
-const WARM_PALETTE = ['#e63946', '#f4845f', '#f9a825', '#d4580a', '#7c2d12'];
-const COOL_PALETTE = ['#1d4ed8', '#3b82f6', '#06b6d4', '#8b5cf6', '#64748b'];
+// Neon palettes for dark mode, warm/muted for light
+const WARM_PALETTE_LIGHT = ['#e63946', '#f4845f', '#f9a825', '#d4580a', '#7c2d12'];
+const WARM_PALETTE_DARK  = ['#ff6b81', '#ff9f43', '#fbbf24', '#f472b6', '#a855f7'];
+const COOL_PALETTE_LIGHT = ['#1d4ed8', '#3b82f6', '#06b6d4', '#8b5cf6', '#64748b'];
+const COOL_PALETTE_DARK  = ['#00e5ff', '#60a5fa', '#22d3ee', '#a855f7', '#34d399'];
+
+function getWarmPalette() { return isDark() ? WARM_PALETTE_DARK : WARM_PALETTE_LIGHT; }
+function getCoolPalette() { return isDark() ? COOL_PALETTE_DARK : COOL_PALETTE_LIGHT; }
+
+// Keep static references for compatibility
+const WARM_PALETTE = WARM_PALETTE_LIGHT;
+const COOL_PALETTE = COOL_PALETTE_LIGHT;
+
+// Neon-aware named colors for charts
+function neonColor(name) {
+    const dark = isDark();
+    const map = {
+        orange:    dark ? '#ff9f43' : '#E88D3F',
+        orangeBg:  dark ? 'rgba(255,159,67,0.15)' : 'rgba(232,141,63,0.1)',
+        orangeBar: dark ? 'rgba(255,159,67,0.7)' : 'rgba(232,141,63,0.7)',
+        blue:      dark ? '#00e5ff' : '#378ADD',
+        blueBg:    dark ? 'rgba(0,229,255,0.12)' : 'rgba(55,138,221,0.1)',
+        blueBar:   dark ? 'rgba(0,229,255,0.7)' : 'rgba(55,138,221,0.7)',
+        red:       dark ? '#ff6b81' : '#e63946',
+        redBg:     dark ? 'rgba(255,107,129,0.1)' : 'rgba(230,57,70,0.06)',
+        cyan:      dark ? '#22d3ee' : '#3b82f6',
+        cyanBg:    dark ? 'rgba(34,211,238,0.1)' : 'rgba(59,130,246,0.06)',
+        green:     dark ? '#34d399' : '#1D9E75',
+        greenBar:  dark ? 'rgba(52,211,153,0.7)' : 'rgba(29,158,117,0.7)',
+        purple:    dark ? '#a855f7' : '#8b5cf6',
+        amber:     dark ? '#fbbf24' : '#BA7517',
+        amberBar:  dark ? 'rgba(251,191,36,0.6)' : 'rgba(232,141,63,0.6)',
+        pink:      dark ? '#f472b6' : '#d4580a',
+        lime:      dark ? '#34d399' : '#22c55e',
+        grey:      dark ? 'rgba(200,200,200,0.35)' : 'rgba(200,200,200,0.5)',
+        // Preferred station highlight
+        highlight: dark ? '#00e5ff' : '#378ADD',
+    };
+    return map[name] || name;
+}
 const PREFERRED_IDS = ['BikePoints_432', 'BikePoints_482', 'BikePoints_878', 'BikePoints_356', 'BikePoints_428'];
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -2793,12 +2832,13 @@ async function loadSection4() {
 
     // --- Morning line chart ---
     if (ch1 && ch1.morning) {
+        const wp = getWarmPalette();
         const stations = groupByStation(ch1.morning, 'avg_empty_docks');
         const datasets = stations.map((st, i) => ({
             label: st.name,
             data: st.data.map(d => ({ x: d.t, y: d.v })),
-            borderColor: WARM_PALETTE[i % WARM_PALETTE.length],
-            backgroundColor: WARM_PALETTE[i % WARM_PALETTE.length] + '22',
+            borderColor: wp[i % wp.length],
+            backgroundColor: wp[i % wp.length] + '22',
             borderWidth: 2.5,
             pointRadius: 0,
             tension: 0.3,
@@ -2812,15 +2852,19 @@ async function loadSection4() {
                 if (!chartArea) return;
                 const left = x.getPixelForValue(8);
                 const right = x.getPixelForValue(10);
+                const dark = isDark();
+                const cwFill = dark ? 'rgba(255, 159, 67, 0.1)' : 'rgba(232, 141, 63, 0.08)';
+                const cwStroke = dark ? 'rgba(255, 159, 67, 0.4)' : 'rgba(232, 141, 63, 0.3)';
+                const cwText = dark ? '#ff9f43' : '#E88D3F';
                 ctx.save();
-                ctx.fillStyle = 'rgba(232, 141, 63, 0.08)';
+                ctx.fillStyle = cwFill;
                 ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
-                ctx.strokeStyle = 'rgba(232, 141, 63, 0.3)';
+                ctx.strokeStyle = cwStroke;
                 ctx.lineWidth = 1;
                 ctx.setLineDash([4, 3]);
                 ctx.strokeRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
                 ctx.setLineDash([]);
-                ctx.fillStyle = '#E88D3F';
+                ctx.fillStyle = cwText;
                 ctx.font = 'bold 10px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText('Critical window', (left + right) / 2, chartArea.top + 14);
@@ -2881,7 +2925,7 @@ async function loadSection4() {
         const sorted = [...ch4.station_930].sort((a, b) => a.avg_empty_docks - b.avg_empty_docks);
         const labels = sorted.map(s => s.station_name.split(',')[0]);
         const values = sorted.map(s => parseFloat(s.avg_empty_docks));
-        const colors = sorted.map(s => PREFERRED_IDS.includes(s.station_id) ? '#E88D3F' : (isDark() ? '#555' : '#ccc'));
+        const colors = sorted.map(s => PREFERRED_IDS.includes(s.station_id) ? neonColor('orange') : neonColor('grey'));
 
         new Chart(document.getElementById('chart-station-930'), {
             type: 'bar',
@@ -2933,12 +2977,13 @@ async function loadSection4() {
 
     // --- Evening line chart ---
     if (ch1 && ch1.evening) {
+        const cp = getCoolPalette();
         const stations = groupByStation(ch1.evening, 'avg_bikes');
         const datasets = stations.map((st, i) => ({
             label: st.name,
             data: st.data.map(d => ({ x: d.t, y: d.v })),
-            borderColor: COOL_PALETTE[i % COOL_PALETTE.length],
-            backgroundColor: COOL_PALETTE[i % COOL_PALETTE.length] + '22',
+            borderColor: cp[i % cp.length],
+            backgroundColor: cp[i % cp.length] + '22',
             borderWidth: 2.5,
             pointRadius: 0,
             tension: 0.3,
@@ -3021,8 +3066,8 @@ async function loadSection4() {
                         {
                             label: 'Dry days',
                             data: hours.map(h => dryMap[h] ?? null),
-                            borderColor: '#E88D3F',
-                            backgroundColor: 'rgba(232,141,63,0.1)',
+                            borderColor: neonColor('orange'),
+                            backgroundColor: neonColor('orangeBg'),
                             borderWidth: 2,
                             pointRadius: 3,
                             tension: 0.3,
@@ -3031,8 +3076,8 @@ async function loadSection4() {
                         {
                             label: 'Rainy days',
                             data: hours.map(h => wetMap[h] ?? null),
-                            borderColor: '#378ADD',
-                            backgroundColor: 'rgba(55,138,221,0.1)',
+                            borderColor: neonColor('blue'),
+                            backgroundColor: neonColor('blueBg'),
                             borderWidth: 2,
                             pointRadius: 3,
                             borderDash: [5, 3],
@@ -3220,13 +3265,13 @@ async function loadSection5() {
                         {
                             label: 'Nowcast MAE',
                             data: ncModels.map(m => m.mae),
-                            backgroundColor: 'rgba(55,138,221,0.7)',
+                            backgroundColor: neonColor('blueBar'),
                             borderRadius: 4,
                         },
                         {
                             label: 'Forecast MAE',
                             data: fcModels.map(m => m.mae),
-                            backgroundColor: 'rgba(232,141,63,0.7)',
+                            backgroundColor: neonColor('orangeBar'),
                             borderRadius: 4,
                         },
                     ],
@@ -3301,7 +3346,10 @@ async function loadSection6() {
                 labels,
                 datasets: [{
                     data: values,
-                    backgroundColor: feats.map((f, i) => i === 0 ? 'rgba(55,138,221,0.8)' : 'rgba(55,138,221,0.35)'),
+                    backgroundColor: feats.map((f, i) => {
+                        const c = neonColor('blue');
+                        return i === 0 ? c : (c + '66');
+                    }),
                     borderRadius: 4,
                 }],
             },
@@ -3401,7 +3449,7 @@ async function loadSection6() {
                     labels,
                     datasets: [{
                         data: values,
-                        backgroundColor: 'rgba(232,141,63,0.6)',
+                        backgroundColor: neonColor('amberBar'),
                         borderRadius: 4,
                     }],
                 },
@@ -3424,10 +3472,10 @@ async function loadSection6() {
     // --- 6c: Weather correlations ---
     if (corrStats) {
         const variables = [
-            { key: 'temp_corr', label: 'Temperature', color: '#E88D3F' },
-            { key: 'humidity_corr', label: 'Humidity', color: '#378ADD' },
-            { key: 'wind_corr', label: 'Wind speed', color: '#1D9E75' },
-            { key: 'rain_corr', label: 'Precipitation', color: '#7B61FF' },
+            { key: 'temp_corr', label: 'Temperature', color: neonColor('orange') },
+            { key: 'humidity_corr', label: 'Humidity', color: neonColor('blue') },
+            { key: 'wind_corr', label: 'Wind speed', color: neonColor('green') },
+            { key: 'rain_corr', label: 'Precipitation', color: neonColor('purple') },
         ];
 
         const labels = variables.map(v => v.label);
@@ -3489,8 +3537,8 @@ async function loadSection6() {
             data: {
                 datasets: [{
                     data: points,
-                    backgroundColor: 'rgba(232,141,63,0.5)',
-                    borderColor: '#E88D3F',
+                    backgroundColor: neonColor('orangeBg'),
+                    borderColor: neonColor('orange'),
                     borderWidth: 1,
                     pointRadius: 3,
                 }],
@@ -3617,7 +3665,7 @@ async function loadDeeperAnalysis() {
                         {
                             label: 'Weekdays (Mon–Fri)',
                             data: hours.map(h => wdMap[h] ?? null),
-                            borderColor: '#e63946',
+                            borderColor: neonColor('red'),
                             borderWidth: 2.5,
                             pointRadius: 3,
                             pointHoverRadius: 5,
@@ -3627,13 +3675,13 @@ async function loadDeeperAnalysis() {
                         {
                             label: 'Weekends (Sat–Sun)',
                             data: hours.map(h => weMap[h] ?? null),
-                            borderColor: '#378ADD',
+                            borderColor: neonColor('blue'),
                             borderWidth: 2.5,
                             borderDash: [5, 3],
                             pointRadius: 3,
                             pointHoverRadius: 5,
                             tension: 0.3,
-                            backgroundColor: 'rgba(55, 138, 221, 0.06)',
+                            backgroundColor: neonColor('blueBg'),
                             fill: true,
                         },
                     ],
@@ -3681,23 +3729,23 @@ async function loadDeeperAnalysis() {
                         {
                             label: `Cold days <10°C (${counts.cold_days || 0} days)`,
                             data: hours.map(h => coldMap[h] ?? null),
-                            borderColor: '#3b82f6',
+                            borderColor: neonColor('cyan'),
                             borderWidth: 2.5,
                             pointRadius: 3,
                             pointHoverRadius: 5,
                             tension: 0.3,
-                            backgroundColor: 'rgba(59, 130, 246, 0.06)',
+                            backgroundColor: neonColor('cyanBg'),
                             fill: true,
                         },
                         {
                             label: `Warm days >15°C (${counts.warm_days || 0} days)`,
                             data: hours.map(h => warmMap[h] ?? null),
-                            borderColor: '#e63946',
+                            borderColor: neonColor('red'),
                             borderWidth: 2.5,
                             pointRadius: 3,
                             pointHoverRadius: 5,
                             tension: 0.3,
-                            backgroundColor: 'rgba(230, 57, 70, 0.06)',
+                            backgroundColor: neonColor('redBg'),
                             fill: true,
                         },
                     ],
@@ -3729,7 +3777,7 @@ async function loadDeeperAnalysis() {
             const labels = top.map(s => s.station_name.split(',')[0]);
             const values = top.map(s => parseFloat(s.stddev_docks));
             const colors = top.map(s =>
-                PREFERRED_IDS.includes(s.station_id) ? '#378ADD' : 'rgba(200, 200, 200, 0.5)'
+                PREFERRED_IDS.includes(s.station_id) ? neonColor('highlight') : neonColor('grey')
             );
 
             new Chart(document.getElementById('chart-volatility'), {
@@ -3773,8 +3821,8 @@ async function loadDeeperAnalysis() {
             const values = sorted.map(s => parseFloat(s.pct_reliable));
             const colors = sorted.map(s => {
                 const v = parseFloat(s.pct_reliable);
-                if (PREFERRED_IDS.includes(s.station_id)) return '#378ADD';
-                return v >= 80 ? '#1D9E75' : v >= 50 ? '#BA7517' : '#E24B4A';
+                if (PREFERRED_IDS.includes(s.station_id)) return neonColor('highlight');
+                return v >= 80 ? neonColor('green') : v >= 50 ? neonColor('amber') : neonColor('red');
             });
 
             new Chart(document.getElementById('chart-reliability'), {
