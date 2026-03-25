@@ -2173,10 +2173,16 @@
     .ins-body { font-size: 14px; }
 
     /* Chart containers */
-    .ins-chart-wrap { padding: 14px 12px 12px; border-radius: 10px; }
+    .ins-chart-wrap { padding: 14px 10px 12px; border-radius: 10px; overflow: hidden; }
+    .ins-chart-wrap canvas { max-height: 220px; }
+    .ins-chart-wrap canvas[height="420"] { max-height: 280px; }
     .ins-chart-title { font-size: 12px; }
     .ins-chart-takeaway { font-size: 13px; padding: 10px 14px; }
     .ins-chart-note { font-size: 11px; padding: 6px 10px; }
+
+    /* Pearson correlation chart */
+    .ins-chart-wrap > div[style*="height:400px"],
+    .ins-chart-wrap > div[style*="height: 400px"] { height: 260px !important; }
 
     /* Cards */
     .ins-direction-card,
@@ -2205,9 +2211,9 @@
     .ins-nav-inner { padding: 0 12px; }
     .ins-nav-link { padding: 10px 10px; font-size: 11px; }
 
-    /* Heatmap cells smaller */
-    .ins-heatmap-cell { min-width: 14px; }
-    .ins-heatmap { min-width: 480px; }
+    /* Heatmap cells smaller – scrollable */
+    .ins-heatmap-cell { min-width: 12px; }
+    .ins-heatmap { min-width: 420px; }
 
     /* Flow steps */
     .ins-app-flow { gap: 0; }
