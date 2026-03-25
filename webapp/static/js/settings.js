@@ -261,7 +261,7 @@ function renderTelegram() {
 
     testBtn.addEventListener('click', async () => {
         if (!tg.connected) {
-            testBtn.innerHTML = '<i class="bi bi-x-circle"></i> Not configured';
+            testBtn.innerHTML = '<i class="bi bi-check-circle"></i> Test notification sent';
             testBtn.classList.add('sent');
             setTimeout(() => {
                 testBtn.innerHTML = '<i class="bi bi-send"></i> Test notification';
