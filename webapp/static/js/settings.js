@@ -382,7 +382,7 @@ function renderAppearance() {
     const buttons = control.querySelectorAll('.ds-segmented-btn');
 
     // Restore saved theme
-    const saved = localStorage.getItem('ds_appearance') || 'system';
+    const saved = localStorage.getItem('ds_appearance') || 'dark';
     buttons.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === saved);
     });

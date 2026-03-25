@@ -19,7 +19,7 @@
     <!-- Apply saved theme immediately to prevent flash -->
     <script>
     (function() {
-        var t = localStorage.getItem('ds_appearance') || 'system';
+        var t = localStorage.getItem('ds_appearance') || 'dark';
         if (t === 'light') document.documentElement.setAttribute('data-bs-theme', 'light');
         else if (t === 'dark') document.documentElement.setAttribute('data-bs-theme', 'dark');
         else {
