@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DockSense - Database Schema</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #fff;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .diagram { max-width: 900px; width: 100%; }
+  h1 { text-align: center; font-size: 22px; font-weight: 600; margin-bottom: 4px; color: #222; }
+  .subtitle { text-align: center; font-size: 13px; color: #666; margin-bottom: 40px; }
+
+  /* Entity wrapper */
+  .entities {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .entity-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+  }
+
+  /* Entity box */
+  .entity {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border: 1.5px solid #e0e0e0;
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+  }
+  .entity-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .entity-name {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: "SF Mono", "Fira Code", monospace;
+  }
+  .entity-badge {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* Color variants for headers */
+  .entity-blue .entity-header { background: #f0f7ff; border-bottom: 1.5px solid #378ADD; }
+  .entity-blue .entity-name { color: #378ADD; }
+  .entity-blue { border-color: #378ADD; }
+  .entity-blue .entity-badge { background: #378ADD; color: #fff; }
+
+  .entity-green .entity-header { background: #f0faf5; border-bottom: 1.5px solid #1D9E75; }
+  .entity-green .entity-name { color: #1D9E75; }
+  .entity-green { border-color: #1D9E75; }
+  .entity-green .entity-badge { background: #1D9E75; color: #fff; }
+
+  .entity-orange .entity-header { background: #fff8ef; border-bottom: 1.5px solid #BA7517; }
+  .entity-orange .entity-name { color: #BA7517; }
+  .entity-orange { border-color: #BA7517; }
+  .entity-orange .entity-badge { background: #BA7517; color: #fff; }
+
+  /* Column table */
+  .col-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .col-table tr {
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .col-table tr:last-child { border-bottom: none; }
+  .col-table td {
+    padding: 6px 16px;
+    font-size: 11.5px;
+    vertical-align: middle;
+  }
+  .col-name {
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+  }
+  .col-type {
+    font-family: "SF Mono", "Fira Code", monospace;
+    color: #888;
+    font-size: 10.5px;
+    white-space: nowrap;
+  }
+  .col-desc {
+    color: #666;
+    font-size: 10.5px;
+  }
+
+  /* Key badges */
+  .key-badge {
+    display: inline-block;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 5px;
+    vertical-align: middle;
+    letter-spacing: 0.3px;
+  }
+  .key-pk { background: #E24B4A; color: #fff; }
+  .key-fk { background: #378ADD; color: #fff; }
+
+  /* Relationship section */
+  .relationships {
+    margin-top: 32px;
+    padding: 20px 24px;
+    background: #f9f9f9;
+    border-radius: 10px;
+    border: 1px solid #e8e8e8;
+  }
+  .rel-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 14px;
+  }
+  .rel-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 12px;
+  }
+  .rel-table {
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-weight: 600;
+    font-size: 11.5px;
+  }
+  .rel-col {
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 11px;
+    color: #666;
+  }
+  .rel-arrow {
+    color: #378ADD;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .rel-type {
+    font-size: 10px;
+    color: #888;
+    font-style: italic;
+  }
+
+  /* Highlighted row */
+  .col-table tr.highlight {
+    background: #fffbf0;
+  }
+
+  @media print {
+    body { padding: 20px; }
+    .entity { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="diagram">
+  <h1>Database Schema</h1>
+  <p class="subtitle">DockSense -- Supabase PostgreSQL Entity-Relationship Diagram</p>
+
+  <div class="entities">
+
+    <!-- Row 1: bike_availability (large table) -->
+    <div class="entity-row">
+      <div class="entity entity-blue">
+        <div class="entity-header">
+          <span class="entity-name">bike_availability</span>
+          <span class="entity-badge">~315,000 rows</span>
+        </div>
+        <table class="col-table">
+          <tr>
+            <td class="col-name">id <span class="key-badge key-pk">PK</span></td>
+            <td class="col-type">SERIAL</td>
+            <td class="col-desc">Auto-increment primary key</td>
+          </tr>
+          <tr>
+            <td class="col-name">timestamp</td>
+            <td class="col-type">TIMESTAMPTZ</td>
+            <td class="col-desc">UTC observation time</td>
+          </tr>
+          <tr class="highlight">
+            <td class="col-name">station_id <span class="key-badge key-fk">FK</span></td>
+            <td class="col-type">TEXT</td>
+            <td class="col-desc">e.g. "BikePoints_809"</td>
+          </tr>
+          <tr>
+            <td class="col-name">station_name</td>
+            <td class="col-type">TEXT</td>
+            <td class="col-desc">Human-readable station name</td>
+          </tr>
+          <tr>
+            <td class="col-name">available_bikes</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-desc">Total bikes (standard + e-bikes)</td>
+          </tr>
+          <tr>
+            <td class="col-name">standard_bikes</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-desc">Standard pedal bikes</td>
+          </tr>
+          <tr>
+            <td class="col-name">ebikes</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-desc">Electric bikes</td>
+          </tr>
+          <tr>
+            <td class="col-name">empty_docks</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-desc">Free docking slots (prediction target)</td>
+          </tr>
+          <tr>
+            <td class="col-name">total_docks</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-desc">Station capacity</td>
+          </tr>
+          <tr>
+            <td class="col-name">latitude</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Station latitude</td>
+          </tr>
+          <tr>
+            <td class="col-name">longitude</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Station longitude</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Row 2: weather_data + monitored_stations -->
+    <div class="entity-row">
+      <div class="entity entity-blue">
+        <div class="entity-header">
+          <span class="entity-name">weather_data</span>
+          <span class="entity-badge">~19,000 rows</span>
+        </div>
+        <table class="col-table">
+          <tr>
+            <td class="col-name">id <span class="key-badge key-pk">PK</span></td>
+            <td class="col-type">SERIAL</td>
+            <td class="col-desc">Auto-increment</td>
+          </tr>
+          <tr>
+            <td class="col-name">timestamp</td>
+            <td class="col-type">TIMESTAMPTZ</td>
+            <td class="col-desc">UTC observation time</td>
+          </tr>
+          <tr>
+            <td class="col-name">temperature</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Degrees Celsius</td>
+          </tr>
+          <tr>
+            <td class="col-name">humidity</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Relative humidity %</td>
+          </tr>
+          <tr>
+            <td class="col-name">precipitation</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Rainfall mm/h</td>
+          </tr>
+          <tr>
+            <td class="col-name">wind_speed</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Wind speed m/s</td>
+          </tr>
+          <tr>
+            <td class="col-name">weather_code</td>
+            <td class="col-type">INTEGER</td>
+            <td class="col-desc">WMO weather code</td>
+          </tr>
+          <tr>
+            <td class="col-name">description</td>
+            <td class="col-type">TEXT</td>
+            <td class="col-desc">e.g. "light rain"</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="entity entity-green">
+        <div class="entity-header">
+          <span class="entity-name">monitored_stations</span>
+          <span class="entity-badge">21 rows</span>
+        </div>
+        <table class="col-table">
+          <tr>
+            <td class="col-name">station_id <span class="key-badge key-pk">PK</span></td>
+            <td class="col-type">TEXT</td>
+            <td class="col-desc">e.g. "BikePoints_809"</td>
+          </tr>
+          <tr>
+            <td class="col-name">station_name</td>
+            <td class="col-type">TEXT</td>
+            <td class="col-desc">Display name</td>
+          </tr>
+          <tr>
+            <td class="col-name">latitude</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Station latitude</td>
+          </tr>
+          <tr>
+            <td class="col-name">longitude</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Station longitude</td>
+          </tr>
+          <tr>
+            <td class="col-name">distance_m</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Haversine distance to IC</td>
+          </tr>
+          <tr>
+            <td class="col-name">walking_distance_m</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Walking distance</td>
+          </tr>
+          <tr>
+            <td class="col-name">walking_duration_s</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Walking time (seconds)</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Row 3: temperature_readings + sensor_events -->
+    <div class="entity-row">
+      <div class="entity entity-orange">
+        <div class="entity-header">
+          <span class="entity-name">temperature_readings</span>
+          <span class="entity-badge">~19,000 rows</span>
+        </div>
+        <table class="col-table">
+          <tr>
+            <td class="col-name">created_at</td>
+            <td class="col-type">TIMESTAMPTZ</td>
+            <td class="col-desc">Auto-set by Supabase</td>
+          </tr>
+          <tr>
+            <td class="col-name">temperature_c</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">KY-028 sensor reading</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="entity entity-orange">
+        <div class="entity-header">
+          <span class="entity-name">sensor_events</span>
+          <span class="entity-badge">~20 rows</span>
+        </div>
+        <table class="col-table">
+          <tr>
+            <td class="col-name">id <span class="key-badge key-pk">PK</span></td>
+            <td class="col-type">SERIAL</td>
+            <td class="col-desc">Auto-increment</td>
+          </tr>
+          <tr>
+            <td class="col-name">timestamp</td>
+            <td class="col-type">TIMESTAMPTZ</td>
+            <td class="col-desc">Event time (UTC)</td>
+          </tr>
+          <tr>
+            <td class="col-name">event_type</td>
+            <td class="col-type">TEXT</td>
+            <td class="col-desc">e.g. "departure"</td>
+          </tr>
+          <tr>
+            <td class="col-name">confidence</td>
+            <td class="col-type">FLOAT</td>
+            <td class="col-desc">Post-debounce confidence</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Relationships -->
+  <div class="relationships">
+    <div class="rel-title">Relationships</div>
+    <div class="rel-item">
+      <span class="rel-table" style="color: #378ADD;">bike_availability</span>
+      <span class="rel-col">.station_id</span>
+      <span class="rel-arrow">---></span>
+      <span class="rel-table" style="color: #1D9E75;">monitored_stations</span>
+      <span class="rel-col">.station_id</span>
+      <span class="rel-type">(many-to-one)</span>
+    </div>
+    <div class="rel-item">
+      <span class="rel-table" style="color: #378ADD;">bike_availability</span>
+      <span class="rel-col">.timestamp</span>
+      <span class="rel-arrow">- - ></span>
+      <span class="rel-table" style="color: #378ADD;">weather_data</span>
+      <span class="rel-col">.timestamp</span>
+      <span class="rel-type">(join key for merged dataset, rounded to minute)</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#F5F5F0">
+    <title>{% block title %}Door2Dock{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚲</text></svg>">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Apply saved theme immediately to prevent flash -->
+    <script>
+    (function() {
+        var t = localStorage.getItem('ds_appearance') || 'system';
+        if (t === 'light') document.documentElement.setAttribute('data-bs-theme', 'light');
+        else if (t === 'dark') document.documentElement.setAttribute('data-bs-theme', 'dark');
+        else {
+            // System: use prefers-color-scheme
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+            else
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+    })();
+    </script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Desktop Top Bar -->
+        <nav class="topbar" aria-label="Main navigation">
+            <a href="/" class="topbar-brand"><i class="bi bi-bicycle"></i> Door2Dock</a>
+            <div class="topbar-nav">
+                <a href="/go?timing=now" class="topbar-item {% if active_tab == 'go' and active_timing|default('now') == 'now' %}active{% endif %}">
+                    <i class="bi bi-cursor-fill"></i><span>Now</span>
+                </a>
+                <a href="/go?timing=plan" class="topbar-item {% if active_tab == 'go' and active_timing|default('now') == 'plan' %}active{% endif %}">
+                    <i class="bi bi-calendar-check"></i><span>Plan trip</span>
+                </a>
+                <a href="/insights" class="topbar-item {% if active_tab == 'insights' %}active{% endif %}">
+                    <i class="bi bi-bar-chart-line"></i><span>Insights</span>
+                </a>
+                <a href="/settings" class="topbar-item {% if active_tab == 'settings' %}active{% endif %}">
+                    <i class="bi bi-gear"></i><span>Settings</span>
+                </a>
+            </div>
+            <span class="topbar-divider"></span>
+            <span class="topbar-clock" id="nav-clock-desktop"></span>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="app-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Mobile Bottom Nav -->
+    <div class="bottom-nav-wrap">
+        <div class="bottom-nav-clock-bar" id="nav-clock-mobile"></div>
+        <nav class="bottom-nav" aria-label="Main navigation">
+            <a href="/go?timing=now" class="bottom-nav-item {% if active_tab == 'go' and active_timing|default('now') == 'now' %}active{% endif %}">
+                <i class="bi bi-cursor-fill"></i>
+                <span>Now</span>
+            </a>
+            <a href="/go?timing=plan" class="bottom-nav-item {% if active_tab == 'go' and active_timing|default('now') == 'plan' %}active{% endif %}">
+                <i class="bi bi-calendar-check"></i>
+                <span>Plan</span>
+            </a>
+            <a href="/insights" class="bottom-nav-item {% if active_tab == 'insights' %}active{% endif %}">
+                <i class="bi bi-bar-chart"></i>
+                <span>Insights</span>
+            </a>
+            <a href="/settings" class="bottom-nav-item {% if active_tab == 'settings' %}active{% endif %}">
+                <i class="bi bi-gear"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Mobile nav clock -->
+    <script>
+    (function() {
+        var mobile = document.getElementById('nav-clock-mobile');
+        var desktop = document.getElementById('nav-clock-desktop');
+        function tick() {
+            var t = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            if (mobile) mobile.textContent = t;
+            if (desktop) desktop.textContent = t;
+        }
+        tick();
+        setInterval(tick, 10000);
+    })();
+    </script>
+    <!-- Onboarding tour -->
+    <script src="{{ url_for('static', filename='js/tour.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

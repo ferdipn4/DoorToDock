@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DockSense - System Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #fff;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .diagram { max-width: 900px; width: 100%; }
+  h1 { text-align: center; font-size: 22px; font-weight: 600; margin-bottom: 4px; color: #222; }
+  .subtitle { text-align: center; font-size: 13px; color: #666; margin-bottom: 40px; }
+
+  /* Main 3-column layout */
+  .row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+  .col-sources { width: 210px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+  .col-arrows-left { width: 70px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; gap: 48px; padding-top: 10px; }
+  .col-center { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+  .col-arrows-right { width: 70px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; gap: 48px; padding-top: 10px; }
+  .col-outputs { width: 210px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Box styles */
+  .box {
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border: 1.5px solid #e0e0e0;
+  }
+  .box-title { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+  .box-detail { font-size: 11px; color: #666; line-height: 1.55; }
+
+  .box-blue { background: #f0f7ff; border-color: #378ADD; }
+  .box-blue .box-title { color: #378ADD; }
+  .box-orange { background: #fff8ef; border-color: #BA7517; }
+  .box-orange .box-title { color: #BA7517; }
+  .box-green { background: #f0faf5; border-color: #1D9E75; }
+  .box-green .box-title { color: #1D9E75; }
+
+  /* Cloud wrapper */
+  .cloud {
+    border: 2px dashed #378ADD;
+    border-radius: 16px;
+    padding: 20px;
+    background: #fafcff;
+  }
+  .cloud-label {
+    font-size: 15px; font-weight: 700; color: #378ADD;
+    text-align: center; margin-bottom: 16px;
+  }
+  .dyno {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .dyno:last-child { margin-bottom: 0; }
+  .dyno-label { font-size: 11px; font-weight: 700; color: #555; margin-bottom: 4px; }
+  .dyno-files { font-size: 11px; color: #666; font-family: "SF Mono", "Fira Code", monospace; line-height: 1.6; }
+
+  /* Database */
+  .db {
+    border: 1.5px solid #1D9E75;
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: #f0faf5;
+    text-align: center;
+  }
+  .db-title { font-size: 13px; font-weight: 700; color: #1D9E75; margin-bottom: 8px; }
+  .db-tables {
+    font-size: 10px; color: #555;
+    font-family: "SF Mono", "Fira Code", monospace;
+    line-height: 1.7; text-align: left; display: inline-block;
+  }
+
+  /* Horizontal arrows */
+  .h-arrow {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .h-arrow-line {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  .h-arrow-line .line { flex: 1; height: 2px; background: #999; }
+  .h-arrow-line .head-right {
+    width: 0; height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid #999;
+  }
+  .h-arrow-label { font-size: 9px; color: #888; font-style: italic; margin-top: 2px; white-space: nowrap; }
+
+  /* Vertical arrows */
+  .v-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 0;
+  }
+  .v-arrow .line { width: 2px; height: 16px; background: #999; }
+  .v-arrow .head-down {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid #999;
+  }
+  .v-arrow .head-up {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid #999;
+  }
+  .v-arrow-label { font-size: 9px; color: #888; font-style: italic; margin: 2px 0; }
+
+  /* Section headers */
+  .sec-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.5px; color: #aaa; text-align: center; margin-bottom: 10px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex; gap: 24px; justify-content: center; margin-top: 36px; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px;
+  }
+  .legend span { font-size: 11px; color: #666; }
+
+  @media print {
+    body { padding: 20px; }
+    .box, .cloud, .db { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="diagram">
+  <h1>System Architecture</h1>
+  <p class="subtitle">DockSense -- End-to-End Data Pipeline and Deployment</p>
+
+  <!-- Column headers -->
+  <div style="display: flex; margin-bottom: 10px;">
+    <div style="width: 210px;"><div class="sec-label">Data Sources</div></div>
+    <div style="width: 70px;"></div>
+    <div style="flex: 1;"><div class="sec-label">Heroku Cloud Platform</div></div>
+    <div style="width: 70px;"></div>
+    <div style="width: 210px;"><div class="sec-label">Consumers</div></div>
+  </div>
+
+  <div class="row">
+    <!-- LEFT: Data Sources -->
+    <div class="col-sources">
+      <div class="box box-blue">
+        <div class="box-title">TfL BikePoint API</div>
+        <div class="box-detail">800 stations, London-wide<br>21 monitored (800m radius)<br>Bikes, e-bikes, docks<br>Polling: every 1 min</div>
+      </div>
+      <div class="box box-blue">
+        <div class="box-title">Open-Meteo Weather API</div>
+        <div class="box-detail">Free tier, no API key<br>Temp, humidity, precip,<br>wind speed, WMO code<br>Polling: every 1 min</div>
+      </div>
+      <div class="box box-orange">
+        <div class="box-title">ESP32 + PIR + KY-028</div>
+        <div class="box-detail">Motion detection (PIR)<br>Temperature (KY-028)<br>LED indicator (GPIO 15)<br>Event-triggered via HTTPS</div>
+      </div>
+    </div>
+
+    <!-- ARROWS LEFT -->
+    <div class="col-arrows-left">
+      <div class="h-arrow">
+        <div class="h-arrow-line"><div class="line"></div><div class="head-right"></div></div>
+        <div class="h-arrow-label">REST 1/min</div>
+      </div>
+      <div class="h-arrow">
+        <div class="h-arrow-line"><div class="line"></div><div class="head-right"></div></div>
+        <div class="h-arrow-label">REST 1/min</div>
+      </div>
+      <div class="h-arrow">
+        <div class="h-arrow-line"><div class="line"></div><div class="head-right"></div></div>
+        <div class="h-arrow-label">HTTPS</div>
+      </div>
+    </div>
+
+    <!-- CENTER: Heroku -->
+    <div class="col-center">
+      <div class="cloud">
+        <div class="cloud-label">Heroku</div>
+        <div class="dyno">
+          <div class="dyno-label">Worker Dyno (data collection)</div>
+          <div class="dyno-files">bike_collector.py<br>weather_collector.py</div>
+        </div>
+        <div class="dyno">
+          <div class="dyno-label">Web Dyno (dashboard)</div>
+          <div class="dyno-files">Flask + Gunicorn (2 workers)<br>10 JSON API endpoints</div>
+        </div>
+      </div>
+
+      <!-- Arrow down -->
+      <div class="v-arrow">
+        <div class="head-up"></div>
+        <div class="line"></div>
+        <div class="v-arrow-label">read / write</div>
+        <div class="line"></div>
+        <div class="head-down"></div>
+      </div>
+
+      <!-- Database -->
+      <div class="db">
+        <div class="db-title">Supabase PostgreSQL</div>
+        <div class="db-tables">bike_availability &nbsp;&nbsp;&nbsp;~315,000 rows
+weather_data &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~19,000 rows
+temperature_readings &nbsp;~19,000 rows
+sensor_events &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~20 rows
+monitored_stations &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;21 rows</div>
+      </div>
+    </div>
+
+    <!-- ARROWS RIGHT -->
+    <div class="col-arrows-right">
+      <div class="h-arrow" style="margin-top: 60px;">
+        <div class="h-arrow-line"><div class="line"></div><div class="head-right"></div></div>
+        <div class="h-arrow-label">HTTPS</div>
+      </div>
+      <div class="h-arrow" style="margin-top: 40px;">
+        <div class="h-arrow-line"><div class="line"></div><div class="head-right"></div></div>
+        <div class="h-arrow-label">Bot API</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Outputs -->
+    <div class="col-outputs" style="padding-top: 40px;">
+      <div class="box box-green">
+        <div class="box-title">Browser Dashboard</div>
+        <div class="box-detail">5 pages: Live Status,<br>Trends, Weather Impact,<br>Planner, About<br>Chart.js + Leaflet.js<br>Auto-refresh every 60s</div>
+      </div>
+      <div class="box box-green">
+        <div class="box-title">Telegram Bot</div>
+        <div class="box-detail">Push notifications<br>Departure alerts with<br>live dock availability<br>Triggered by PIR sensor</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#f0f7ff; border:1.5px solid #378ADD;"></div>
+      <span>API / Cloud Service</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#fff8ef; border:1.5px solid #BA7517;"></div>
+      <span>Sensor / Hardware</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#f0faf5; border:1.5px solid #1D9E75;"></div>
+      <span>Output / Consumer</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#fafcff; border:2px dashed #378ADD;"></div>
+      <span>Cloud Platform</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,3976 @@
+{% extends "base.html" %}
+{% block title %}Insights{% endblock %}
+
+{% block content %}
+<div class="page-loader" id="page-loader">
+    <div class="page-loader-spinner"></div>
+    <div class="page-loader-text">Loading insights...</div>
+</div>
+<!-- Sticky section nav -->
+<nav class="ins-nav" id="ins-nav" style="display:none">
+    <div class="ins-nav-inner">
+        <a href="#s-problem" class="ins-nav-link active" data-section="s-problem">The Problem</a>
+        <a href="#s-solution" class="ins-nav-link" data-section="s-solution">The Solution</a>
+        <a href="#s-architecture" class="ins-nav-link" data-section="s-architecture">System Architecture</a>
+        <a href="#s-data" class="ins-nav-link" data-section="s-data">Data &amp; Patterns</a>
+        <a href="#s-models" class="ins-nav-link" data-section="s-models">Prediction Models</a>
+        <a href="#s-features" class="ins-nav-link" data-section="s-features">Feature Analysis</a>
+        <a href="#s-deeper" class="ins-nav-link" data-section="s-deeper">Deeper Analysis</a>
+        <a href="#s-limitations" class="ins-nav-link" data-section="s-limitations">Limitations</a>
+    </div>
+</nav>
+
+<div class="ins-page" id="ins-content" style="display:none">
+
+    <!-- ============================================================ -->
+    <!-- SECTION 1: THE PROBLEM -->
+    <!-- ============================================================ -->
+    <section class="ins-hero" id="s-problem">
+        <div class="ins-hero-inner">
+            <h1 class="ins-hero-headline">I cycle to Imperial every morning. Finding a dock shouldn't be this hard.</h1>
+            <p class="ins-hero-sub">Most mornings, the Santander Cycles docks closest to campus are already full by the time I arrive. I end up cycling past station after station looking for a free slot, each one adding minutes to my walk and the risk of being late. In the evening it's the reverse: I want to grab a bike and go, but the nearest stations are empty.</p>
+            <div class="ins-hero-stats">
+                <div class="ins-hero-stat">
+                    <div class="ins-hero-stat-value" id="hero-fill-time">--</div>
+                    <div class="ins-hero-stat-label">first preferred station full</div>
+                </div>
+                <div class="ins-hero-stat">
+                    <div class="ins-hero-stat-value" id="hero-docks-930">--</div>
+                    <div class="ins-hero-stat-label">avg empty docks at 9:30 AM (5 closest stations)</div>
+                </div>
+                <div class="ins-hero-stat">
+                    <div class="ins-hero-stat-value">5 + 16</div>
+                    <div class="ins-hero-stat-label">5 preferred + 16 backup Santander Cycles stations monitored</div>
+                </div>
+            </div>
+            <div class="ins-hero-footnote">The 5 preferred Santander Cycles docking stations are chosen by the user in Settings. Default: Exhibition Road Museums 1 &amp; 2, Victoria &amp; Albert Museum, South Kensington Station, and Exhibition Road.</div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 2: THE SOLUTION -->
+    <!-- ============================================================ -->
+    <section class="ins-section" id="s-solution">
+        <div class="ins-section-inner">
+            <div class="ins-section-label">The Solution</div>
+            <p class="ins-lead">Door2Dock predicts bike and dock availability at 21 Santander Cycles stations near Imperial College, so I know where to go before I leave.</p>
+
+            <!-- Two directions -->
+            <div class="ins-direction-cards">
+                <div class="ins-direction-card">
+                    <div class="ins-direction-icon"><i class="bi bi-box-arrow-in-right"></i></div>
+                    <div class="ins-direction-title">To Imperial <span class="ins-direction-tag">morning</span></div>
+                    <div class="ins-direction-desc">I need an empty dock to park my bike.</div>
+                </div>
+                <div class="ins-direction-card">
+                    <div class="ins-direction-icon"><i class="bi bi-box-arrow-right"></i></div>
+                    <div class="ins-direction-title">From Imperial <span class="ins-direction-tag">evening</span></div>
+                    <div class="ins-direction-desc">I need an available bike to ride home.</div>
+                </div>
+            </div>
+
+            <!-- Two modes -->
+            <div class="ins-mode-cards">
+                <div class="ins-mode-card">
+                    <div class="ins-mode-badge">NOW</div>
+                    <div class="ins-mode-title">Leaving now?</div>
+                    <div class="ins-mode-desc">Get an instant recommendation for the best station to head to, based on live availability and a 15-minute prediction.</div>
+                </div>
+                <div class="ins-mode-card">
+                    <div class="ins-mode-badge ins-mode-badge-plan">PLAN</div>
+                    <div class="ins-mode-title">Planning ahead?</div>
+                    <div class="ins-mode-desc">Set your arrival time and find out which station will have space when you get there.</div>
+                </div>
+            </div>
+
+            <!-- Motion sensor callout -->
+            <div class="ins-callout">
+                <div class="ins-callout-text">When I walk out my front door, a PIR motion sensor detects my departure and sends a Telegram notification with the best station and predicted availability, before I even check my phone.</div>
+                <div class="ins-callout-flow">
+                    <div class="ins-callout-step">
+                        <span class="ins-callout-emoji">🚶</span>
+                        <span class="ins-callout-step-label">Door sensor</span>
+                    </div>
+                    <div class="ins-callout-arrow"><i class="bi bi-arrow-right"></i></div>
+                    <div class="ins-callout-step">
+                        <span class="ins-callout-emoji">📡</span>
+                        <span class="ins-callout-step-label">Prediction</span>
+                    </div>
+                    <div class="ins-callout-arrow"><i class="bi bi-arrow-right"></i></div>
+                    <div class="ins-callout-step">
+                        <span class="ins-callout-emoji">📱</span>
+                        <span class="ins-callout-step-label">Telegram alert</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- App flow visualization -->
+            <div class="ins-flow-label">How it works</div>
+            <div class="ins-app-flow">
+                <div class="ins-flow-step">
+                    <div class="ins-flow-num">1</div>
+                    <div class="ins-flow-icon"><i class="bi bi-door-open"></i></div>
+                    <div class="ins-flow-title">Open app or get notified</div>
+                    <div class="ins-flow-desc">Open Door2Dock or receive an automatic Telegram alert when you leave home</div>
+                </div>
+                <div class="ins-flow-connector"></div>
+                <div class="ins-flow-step">
+                    <div class="ins-flow-num">2</div>
+                    <div class="ins-flow-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div class="ins-flow-title">See your prediction</div>
+                    <div class="ins-flow-desc">The recommended station with predicted availability and confidence level</div>
+                </div>
+                <div class="ins-flow-connector"></div>
+                <div class="ins-flow-step">
+                    <div class="ins-flow-num">3</div>
+                    <div class="ins-flow-icon"><i class="bi bi-signpost-split"></i></div>
+                    <div class="ins-flow-title">Get directions</div>
+                    <div class="ins-flow-desc">Walking distance, estimated trip time, and backup stations ranked by availability</div>
+                </div>
+                <div class="ins-flow-connector"></div>
+                <div class="ins-flow-step">
+                    <div class="ins-flow-num">4</div>
+                    <div class="ins-flow-icon"><i class="bi bi-check-circle"></i></div>
+                    <div class="ins-flow-title">Arrive with confidence</div>
+                    <div class="ins-flow-desc">Park or pick up your bike. No more cycling past full stations</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 3: SYSTEM ARCHITECTURE -->
+    <!-- ============================================================ -->
+    <section class="ins-section" id="s-architecture">
+        <div class="ins-section-inner">
+            <div class="ins-section-label">System Architecture</div>
+
+            <!-- 3a: Sensing Pipeline (data collection only) -->
+            <h2 class="ins-h2">Sensing pipeline</h2>
+            <p class="ins-body">Three data sources feed into a cloud database via automated collection scripts running on Heroku.</p>
+
+            <!-- Unified sensing diagram: source cards → arrows → Supabase -->
+            <div class="ins-sense-unified">
+                <!-- Top row: 3 source stat cards -->
+                <div class="ins-source-cards">
+                    <div class="ins-source-card">
+                        <div class="ins-source-header">
+                            <span class="ins-source-badge ins-source-badge-blue">TfL Santander Cycles API</span>
+                            <span class="ins-source-freq">every ~60s</span>
+                        </div>
+                        <div class="ins-source-value" id="ds-docks">--</div>
+                        <div class="ins-source-label">dock readings</div>
+                        <div class="ins-source-fields">21 Santander Cycles stations near Imperial, since Feb 25 2026. Fields: available_bikes, empty_docks, ebikes, total_docks, coordinates.</div>
+                    </div>
+                    <div class="ins-source-card">
+                        <div class="ins-source-header">
+                            <span class="ins-source-badge ins-source-badge-green">Open-Meteo API</span>
+                            <span class="ins-source-freq">every ~60s</span>
+                        </div>
+                        <div class="ins-source-value" id="ds-weather">--</div>
+                        <div class="ins-source-label">weather observations</div>
+                        <div class="ins-source-fields">Since Feb 25 2026. Fields: temperature, humidity, precipitation, wind_speed, weather_code.</div>
+                    </div>
+                    <div class="ins-source-card">
+                        <div class="ins-source-header">
+                            <span class="ins-source-badge ins-source-badge-amber">KY-028 sensor</span>
+                            <span class="ins-source-freq">continuous</span>
+                        </div>
+                        <div class="ins-source-value" id="ds-sensor">--</div>
+                        <div class="ins-source-label">temperature readings</div>
+                        <div class="ins-source-fields">Via ESP32 + HTTPS, Feb 25 to Mar 13 2026 (sensor disconnected after 16 days). Fields: temperature_c, raw_adc.</div>
+                    </div>
+                </div>
+                <!-- Middle row: 3 vertical arrows -->
+                <div class="ins-sense-varrows">
+                    <div class="ins-varrow">
+                        <div class="ins-varrow-shaft"></div>
+                        <div class="ins-varrow-head">▼</div>
+                        <div class="ins-arrow-label">every ~60s</div>
+                    </div>
+                    <div class="ins-varrow">
+                        <div class="ins-varrow-shaft"></div>
+                        <div class="ins-varrow-head">▼</div>
+                        <div class="ins-arrow-label">every ~60s</div>
+                    </div>
+                    <div class="ins-varrow">
+                        <div class="ins-varrow-shaft"></div>
+                        <div class="ins-varrow-head">▼</div>
+                        <div class="ins-arrow-label">HTTPS POST</div>
+                    </div>
+                </div>
+                <!-- Bottom row: Supabase card full width -->
+                <div class="ins-sense-db-wide">
+                    <div class="ins-arch-card-icon"><i class="bi bi-database"></i></div>
+                    <div class="ins-arch-card-name">Supabase PostgreSQL</div>
+                    <div class="ins-arch-card-detail">6 tables, SSL</div>
+                    <div class="ins-arch-card-freq" id="arch-total-rows">Loading...</div>
+                </div>
+            </div>
+
+            <!-- 3a-2: Processing and serving -->
+            <h2 class="ins-h2" style="margin-top: 40px;">Processing and serving</h2>
+            <p class="ins-body">The collected data feeds two paths: an offline training pipeline that produces prediction models, and a live Flask app that serves recommendations.</p>
+
+            <div class="ins-serve-grid">
+                <!-- Row 1: offline training -->
+                <div class="ins-arch-card ins-arch-card-db ins-serve-db-top">
+                    <div class="ins-arch-card-name">Supabase</div>
+                    <div class="ins-arch-card-detail">historical data</div>
+                </div>
+                <div class="ins-serve-arrow" style="display:flex;align-items:center;padding:0 4px;min-width:70px;flex-direction:column;">
+                    <span style="font-size:24px;color:var(--text-tertiary);line-height:1;">→</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">export</span>
+                </div>
+                <div class="ins-arch-card ins-arch-card-muted">
+                    <div class="ins-arch-card-name">Training Pipeline</div>
+                    <div class="ins-arch-card-detail">export_data.py</div>
+                    <div class="ins-arch-card-detail">train_model.py</div>
+                </div>
+                <div class="ins-serve-arrow" style="display:flex;align-items:center;padding:0 4px;min-width:70px;flex-direction:column;">
+                    <span style="font-size:24px;color:var(--text-tertiary);line-height:1;">→</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">produces</span>
+                </div>
+                <div class="ins-arch-card ins-serve-pkl">
+                    <div class="ins-arch-card-name">.pkl models</div>
+                    <div class="ins-arch-card-detail">model_nowcast.pkl</div>
+                    <div class="ins-arch-card-detail">model_forecast.pkl</div>
+                </div>
+
+                <!-- Vertical dotted arrow: pkl → Flask -->
+                <div class="ins-serve-vert-arrow" style="display:flex;flex-direction:column;align-items:center;padding:12px 0;">
+                    <span style="font-size:18px;color:var(--text-tertiary);line-height:1;">⋮</span>
+                    <span style="font-size:18px;color:var(--text-tertiary);line-height:1;">↓</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">loaded on startup</span>
+                </div>
+
+                <!-- Row 2: live serving -->
+                <div class="ins-arch-card ins-arch-card-db ins-serve-db-bot">
+                    <div class="ins-arch-card-name">Supabase</div>
+                    <div class="ins-arch-card-detail">live queries</div>
+                </div>
+                <div class="ins-serve-arrow ins-serve-arrow-bot" style="display:flex;align-items:center;padding:0 4px;min-width:70px;flex-direction:column;">
+                    <span style="font-size:24px;color:var(--text-tertiary);line-height:1;">→</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">SELECT</span>
+                </div>
+                <div class="ins-arch-card ins-arch-card-blue ins-serve-flask">
+                    <div class="ins-arch-card-name">Flask App on Heroku</div>
+                    <div class="ins-arch-card-detail">Gunicorn, 2 workers</div>
+                </div>
+                <div class="ins-serve-arrow ins-serve-arrow-bot2" style="display:flex;align-items:center;padding:0 4px;min-width:70px;flex-direction:column;">
+                    <span style="font-size:24px;color:var(--text-tertiary);line-height:1;">→</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">serves</span>
+                </div>
+                <div class="ins-arch-card ins-arch-card-blue ins-serve-outputs">
+                    <div class="ins-arch-card-name">Outputs</div>
+                    <div class="ins-arch-card-detail">Dashboard (5 pages)</div>
+                    <div class="ins-arch-card-detail">18 API endpoints</div>
+                    <div class="ins-arch-card-detail">Telegram alerts</div>
+                </div>
+            </div>
+
+            <!-- 3b: Actuation Pipeline -->
+            <h2 class="ins-h2" style="margin-top: 48px;">Actuation pipeline</h2>
+            <p class="ins-body">When the PIR sensor detects departure, the system triggers a real-time prediction and sends a Telegram notification with the best station.</p>
+
+            <div class="ins-act-flow">
+                <div class="ins-act-card">
+                    <div class="ins-act-card-icon ins-act-card-icon-amber"><i class="bi bi-broadcast"></i></div>
+                    <div class="ins-act-card-name">PIR sensor</div>
+                    <div class="ins-act-card-detail">HC-SR501 + ESP32</div>
+                </div>
+                <div class="ins-act-connector">
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">departure event</div>
+                </div>
+                <div class="ins-act-card">
+                    <div class="ins-act-card-icon ins-act-card-icon-green"><i class="bi bi-database"></i></div>
+                    <div class="ins-act-card-name">Supabase</div>
+                    <div class="ins-act-card-detail">sensor_events table</div>
+                </div>
+                <div class="ins-act-connector">
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">triggers prediction</div>
+                </div>
+                <div class="ins-act-card">
+                    <div class="ins-act-card-icon ins-act-card-icon-purple"><i class="bi bi-cpu"></i></div>
+                    <div class="ins-act-card-name" id="act-model-name">Nowcast model</div>
+                    <div class="ins-act-card-detail">T+15 min forecast</div>
+                </div>
+                <div class="ins-act-connector">
+                    <div class="ins-harrow-line"></div>
+                    <div class="ins-harrow-head">→</div>
+                    <div class="ins-arrow-label">sends notification</div>
+                </div>
+                <div class="ins-act-card">
+                    <div class="ins-act-card-icon ins-act-card-icon-blue"><i class="bi bi-telegram"></i></div>
+                    <div class="ins-act-card-name">Telegram</div>
+                    <div class="ins-act-card-detail">push notification</div>
+                </div>
+            </div>
+
+            <!-- 3c: App modes and model mapping -->
+            <h2 class="ins-h2" style="margin-top: 48px;">App modes and model mapping</h2>
+            <p class="ins-body">Two directions and two timing modes combine into four prediction scenarios, each with its own model strategy.</p>
+            <div class="ins-modes-matrix">
+                <!-- Column headers -->
+                <div class="ins-modes-corner"></div>
+                <div class="ins-modes-col-head">To Imperial</div>
+                <div class="ins-modes-col-head">From Imperial</div>
+                <!-- Row 1: Now -->
+                <div class="ins-modes-row-head">Now</div>
+                <div class="ins-mode-card ins-mode-card-dock">
+                    <div class="ins-mode-q">"Where do I dock my bike?"</div>
+                    <div class="ins-mode-model" id="matrix-now-to-model">Loading...</div>
+                    <div class="ins-mode-detail">Predicts empty docks in 15 min using current count + weather</div>
+                </div>
+                <div class="ins-mode-card ins-mode-card-bike">
+                    <div class="ins-mode-q">"Where do I pick up a bike?"</div>
+                    <div class="ins-mode-model">No model needed</div>
+                    <div class="ins-mode-detail">Live data from TfL API. Shows current available bikes</div>
+                </div>
+                <!-- Row 2: Plan -->
+                <div class="ins-modes-row-head">Plan</div>
+                <div class="ins-mode-card ins-mode-card-dock">
+                    <div class="ins-mode-q">"When should I leave to arrive by 10:15?"</div>
+                    <div class="ins-mode-model" id="matrix-plan-to-model">Loading...</div>
+                    <div class="ins-mode-detail">Predicts empty docks at arrival time using time patterns + weather forecast</div>
+                </div>
+                <div class="ins-mode-card ins-mode-card-bike">
+                    <div class="ins-mode-q">"Which station will have bikes at 4 PM?"</div>
+                    <div class="ins-mode-model" id="matrix-plan-from-model">Loading...</div>
+                    <div class="ins-mode-detail">Predicts available bikes at departure using time patterns + weather forecast</div>
+                </div>
+            </div>
+
+            <!-- 3d: Infrastructure -->
+            <div class="ins-infra">
+                <div class="ins-infra-item"><i class="bi bi-cloud"></i> <strong>Heroku</strong>: Worker dyno (data collection) + Web dyno (Flask app, Gunicorn)</div>
+                <div class="ins-infra-item"><i class="bi bi-database"></i> <strong>Supabase PostgreSQL</strong>: 6 tables, SSL required, ~650k+ rows</div>
+                <div class="ins-infra-item"><i class="bi bi-braces"></i> <strong>18 API endpoints</strong>: live data, forecasts, insights, sensor events, settings</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 4: DATA & PATTERNS -->
+    <!-- ============================================================ -->
+    <section class="ins-section" id="s-data">
+        <div class="ins-section-inner">
+            <div class="ins-section-label">Data &amp; Patterns</div>
+
+            <!-- 4a: Morning Problem (warm/orange) -->
+            <div class="ins-subsection ins-subsection-warm">
+                <h2 class="ins-h2 ins-h2-warm">Morning: where can I park?</h2>
+                <p class="ins-body">Every weekday morning, commuters flood the stations near campus. Docks that had 15+ free slots at 7 AM are completely full by 9:30. Here's what the data shows.</p>
+
+                <!-- Morning line chart -->
+                <div class="ins-chart-wrap">
+                    <div class="ins-chart-title">Empty docks through the morning (weekday average, preferred stations)</div>
+                    <canvas id="chart-morning-docks" height="280"></canvas>
+                    <div class="ins-chart-takeaway" id="morning-takeaway">Loading...</div>
+                </div>
+
+                <!-- Station comparison at 9:30 -->
+                <div class="ins-chart-wrap">
+                    <div class="ins-chart-title">Station comparison at 9:30 AM (weekday average, all 21 stations)</div>
+                    <canvas id="chart-station-930" height="420"></canvas>
+                    <div class="ins-chart-takeaway" id="station-930-takeaway">Loading...</div>
+                </div>
+
+                <!-- Heatmap: empty docks -->
+                <div class="ins-chart-wrap">
+                    <div class="ins-chart-title">Empty docks by hour and day of week (preferred stations)</div>
+                    <div class="ins-heatmap-container" id="heatmap-docks"></div>
+                    <div class="ins-chart-takeaway">Weekday mornings are consistently the tightest window. The red band from 8 AM to 11 AM on Mon–Fri shows near-zero dock availability.</div>
+                </div>
+            </div>
+
+            <!-- 4b: Evening Problem (cool/blue) -->
+            <div class="ins-subsection ins-subsection-cool">
+                <h2 class="ins-h2 ins-h2-cool">Evening: where can I find a bike?</h2>
+                <p class="ins-body">In the evening, the problem reverses. Bikes disappear from stations near campus as everyone heads home. By 6 PM, finding an available bike at the closest station is a gamble.</p>
+
+                <!-- Evening line chart -->
+                <div class="ins-chart-wrap">
+                    <div class="ins-chart-title">Available bikes through the evening (weekday average, preferred stations)</div>
+                    <canvas id="chart-evening-bikes" height="280"></canvas>
+                    <div class="ins-chart-takeaway" id="evening-takeaway">Loading...</div>
+                </div>
+
+                <!-- Heatmap: available bikes -->
+                <div class="ins-chart-wrap">
+                    <div class="ins-chart-title">Available bikes by hour and day of week (preferred stations)</div>
+                    <div class="ins-heatmap-container" id="heatmap-bikes"></div>
+                    <div class="ins-chart-takeaway">Weekday evenings show the lowest bike availability, the mirror image of the morning dock shortage.</div>
+                </div>
+            </div>
+
+            <!-- Weather effect -->
+            <div class="ins-subsection ins-subsection-neutral">
+                <h2 class="ins-h2">Does weather change the pattern?</h2>
+                <p class="ins-body" id="weather-intro">Weather shifts the daily curve without changing its shape. Here's how dry and rainy days compare.</p>
+
+                <div class="ins-chart-wrap">
+                    <div class="ins-chart-title">Dry vs rainy weekdays – empty docks at preferred stations (6 AM – 8 PM)</div>
+                    <canvas id="chart-weather-compare" height="260"></canvas>
+                    <div class="ins-chart-note">Note: Lines may appear incomplete due to limited rainy days in the 24-day collection period. Only days with measurable precipitation (&gt; 0.1mm) are classified as rainy.</div>
+                    <div class="ins-chart-takeaway" id="weather-takeaway">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 5: PREDICTION MODELS -->
+    <!-- ============================================================ -->
+    <section class="ins-section" id="s-models">
+        <div class="ins-section-inner">
+            <div class="ins-section-label">Prediction Models</div>
+            <p class="ins-lead">Two models serve different use cases. One reacts to what's happening now, the other plans ahead using historical patterns.</p>
+
+            <!-- Model cards side by side -->
+            <div class="ins-model-cards">
+                <!-- Nowcast card -->
+                <div class="ins-model-card">
+                    <div class="ins-model-family">Nowcast</div>
+                    <div class="ins-model-usecase">Now mode: predicts 15 minutes ahead using live data</div>
+                    <div class="ins-model-name" id="model-nc-name">Loading...</div>
+                    <div class="ins-model-metrics">
+                        <div class="ins-model-metric">
+                            <div class="ins-model-metric-value" id="model-nc-mae">--</div>
+                            <div class="ins-model-metric-label">MAE</div>
+                        </div>
+                        <div class="ins-model-metric">
+                            <div class="ins-model-metric-value" id="model-nc-rmse">--</div>
+                            <div class="ins-model-metric-label">RMSE</div>
+                        </div>
+                        <div class="ins-model-metric">
+                            <div class="ins-model-metric-value" id="model-nc-r2">--</div>
+                            <div class="ins-model-metric-label">R&sup2;</div>
+                        </div>
+                        <div class="ins-model-metric">
+                            <div class="ins-model-metric-value" id="model-nc-features">--</div>
+                            <div class="ins-model-metric-label">features</div>
+                        </div>
+                    </div>
+                    <div class="ins-model-why" id="model-nc-why">Loading...</div>
+                    <!-- Benchmarks (always visible) -->
+                    <div class="ins-model-bench">
+                        <div class="ins-model-bench-heading">Benchmarked against:</div>
+                        <div class="ins-model-runnerup-list" id="model-nc-runners"></div>
+                    </div>
+                </div>
+
+                <!-- Forecast card -->
+                <div class="ins-model-card">
+                    <div class="ins-model-family ins-model-family-plan">Forecast</div>
+                    <div class="ins-model-usecase">Plan mode: predicts hours ahead from time and weather patterns</div>
+                    <div class="ins-model-name" id="model-fc-name">Loading...</div>
+                    <div class="ins-model-metrics">
+                        <div class="ins-model-metric">
+                            <div class="ins-model-metric-value" id="model-fc-mae">--</div>
+                            <div class="ins-model-metric-label">MAE</div>
+                        </div>
+                        <div class="ins-model-metric">
+                            <div class="ins-model-metric-value" id="model-fc-rmse">--</div>
+                            <div class="ins-model-metric-label">RMSE</div>
+                        </div>
+                        <div class="ins-model-metric">
+                            <div class="ins-model-metric-value" id="model-fc-r2">--</div>
+                            <div class="ins-model-metric-label">R&sup2;</div>
+                        </div>
+                        <div class="ins-model-metric">
+                            <div class="ins-model-metric-value" id="model-fc-features">--</div>
+                            <div class="ins-model-metric-label">features</div>
+                        </div>
+                    </div>
+                    <div class="ins-model-why" id="model-fc-why">Loading...</div>
+                    <!-- Benchmarks (always visible) -->
+                    <div class="ins-model-bench">
+                        <div class="ins-model-bench-heading">Benchmarked against:</div>
+                        <div class="ins-model-runnerup-list" id="model-fc-runners"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model comparison bar chart -->
+            <div class="ins-chart-wrap">
+                <div class="ins-chart-title">Model comparison – MAE across all benchmarked models</div>
+                <canvas id="chart-model-compare" height="240"></canvas>
+                <div class="ins-chart-takeaway">Models validated with TimeSeriesSplit (3-fold expanding window) to prevent data leakage and confirm stability across time periods.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 6: FEATURE ANALYSIS -->
+    <!-- ============================================================ -->
+    <section class="ins-section ins-section-alt" id="s-features">
+        <div class="ins-section-inner">
+            <div class="ins-section-label">Feature Analysis</div>
+            <p class="ins-lead">What drives each prediction? Understanding feature importance reveals what the models actually learn, and what they can't.</p>
+
+            <div class="ins-inverse-callout"><i class="bi bi-info-circle"></i> Analysis below is shown for empty dock predictions. Available bike patterns are the direct inverse: when empty docks decrease, available bikes increase by the same amount.</div>
+
+            <!-- 6a: Nowcast Feature Importance -->
+            <h2 class="ins-h2">Nowcast feature importance</h2>
+            <p class="ins-body" id="feat-nc-intro">Which features matter most for the nowcast model's 15-minute predictions?</p>
+
+            <div class="ins-chart-wrap">
+                <div class="ins-chart-title" id="feat-nc-chart-title">Feature importance – Nowcast model</div>
+                <canvas id="chart-feat-nc" height="300"></canvas>
+                <div class="ins-chart-takeaway" id="feat-nc-takeaway">Loading...</div>
+            </div>
+
+            <!-- 6b: Forecast Feature Importance -->
+            <h2 class="ins-h2" style="margin-top: 40px;">Forecast feature importance</h2>
+            <p class="ins-body" id="feat-fc-intro">How does the forecast model make predictions without live dock data?</p>
+
+            <div class="ins-chart-wrap" id="feat-fc-wrap">
+                <div class="ins-chart-title" id="feat-fc-chart-title">Feature breakdown – Forecast model</div>
+                <div id="feat-fc-content"></div>
+                <div class="ins-chart-takeaway" id="feat-fc-takeaway">Loading...</div>
+            </div>
+
+            <!-- 6c: Weather Correlations -->
+            <h2 class="ins-h2" style="margin-top: 40px;">Weather correlations</h2>
+            <p class="ins-body">Pearson correlation coefficients measure the linear relationship between each weather variable and dock availability across all stations.</p>
+
+            <div class="ins-chart-wrap">
+                <div class="ins-chart-title">Pearson r – weather variables vs. empty docks</div>
+                <div style="position:relative; height:300px;">
+                    <canvas id="chart-corr"></canvas>
+                </div>
+                <div class="corr-note" id="corr-note" style="display:none;"></div>
+            </div>
+
+            <!-- 6d: Sensor Validation -->
+            <h2 class="ins-h2" style="margin-top: 40px;">Sensor validation</h2>
+            <p class="ins-body">The KY-028 temperature sensor on the ESP32 was deployed to validate the Open-Meteo API as a reliable data source for model training.</p>
+
+            <div class="ins-chart-wrap">
+                <div class="ins-chart-title">KY-028 sensor vs. Open-Meteo API temperature (hourly averages)</div>
+                <canvas id="chart-sensor" height="260"></canvas>
+                <div class="ins-chart-takeaway" id="sensor-takeaway">Loading...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION: DEEPER ANALYSIS -->
+    <!-- ============================================================ -->
+    <section class="ins-section" id="s-deeper">
+        <div class="ins-section-inner">
+            <div class="ins-section-label">Deeper Analysis</div>
+            <p class="ins-lead">Beyond the basic patterns, this section examines how demand shifts across contexts: weekdays vs weekends, cold vs warm weather, and which stations prove most dependable.</p>
+
+            <!-- Row 1: Weekday vs Weekend + Temperature Effect -->
+            <div class="ins-chart-pair">
+                <div class="ins-chart-wrap ins-chart-half">
+                    <div class="ins-chart-title">Weekday vs weekend – empty docks (preferred stations)</div>
+                    <canvas id="chart-weekday-weekend" height="260"></canvas>
+                    <div class="ins-chart-takeaway" id="weekday-weekend-takeaway">Loading...</div>
+                </div>
+                <div class="ins-chart-wrap ins-chart-half">
+                    <div class="ins-chart-title">Cold (&lt;10°C) vs warm (&gt;15°C) weekdays – empty docks</div>
+                    <canvas id="chart-temp-bins" height="260"></canvas>
+                    <div class="ins-chart-takeaway" id="temp-bins-takeaway">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Row 2: Station Volatility + Reliability -->
+            <div class="ins-chart-pair">
+                <div class="ins-chart-wrap ins-chart-half">
+                    <div class="ins-chart-title">Station volatility – std deviation of docks (weekday 8–10 AM)</div>
+                    <canvas id="chart-volatility" height="420"></canvas>
+                    <div class="ins-chart-takeaway" id="volatility-takeaway">Loading...</div>
+                </div>
+                <div class="ins-chart-wrap ins-chart-half">
+                    <div class="ins-chart-title">Reliability – % of 9 AM readings with 5+ docks available</div>
+                    <canvas id="chart-reliability" height="420"></canvas>
+                    <div class="ins-chart-takeaway" id="reliability-takeaway">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 7: LIMITATIONS & TRADE-OFFS -->
+    <!-- ============================================================ -->
+    <section class="ins-section" id="s-limitations">
+        <div class="ins-section-inner">
+            <div class="ins-section-label">Limitations &amp; Trade-offs</div>
+
+            <!-- 7a: Data Limitations -->
+            <h2 class="ins-h2">Data limitations</h2>
+            <div class="ins-limit-cards">
+                <div class="ins-limit-card ins-limit-card-red">
+                    <div class="ins-limit-icon"><i class="bi bi-calendar3"></i></div>
+                    <div class="ins-limit-text"><strong>24 days of training data.</strong> Limits weather diversity, seasonal pattern detection, and ML model performance. The forecast model is particularly bottlenecked. More data would likely improve tree-based models over the baseline.</div>
+                </div>
+                <div class="ins-limit-card ins-limit-card-red">
+                    <div class="ins-limit-icon"><i class="bi bi-cloud-rain"></i></div>
+                    <div class="ins-limit-text"><strong>Minimal heavy rainfall</strong> in the collection period. We observed rain on a handful of days, but no sustained storms or snow. Weather features in the model are undertrained.</div>
+                </div>
+                <div class="ins-limit-card ins-limit-card-yellow">
+                    <div class="ins-limit-icon"><i class="bi bi-thermometer-half"></i></div>
+                    <div class="ins-limit-text"><strong>Sensor active for 16 of 24 days.</strong> The KY-028 temperature sensor validated the API data source and was retired. The model uses API temperature for production reliability.</div>
+                </div>
+                <div class="ins-limit-card ins-limit-card-yellow">
+                    <div class="ins-limit-icon"><i class="bi bi-graph-down"></i></div>
+                    <div class="ins-limit-text"><strong>Forecast accuracy is approximate</strong> (<span id="limit-fc-mae">--</span> docks MAE). The system communicates this uncertainty through confidence indicators rather than hiding it.</div>
+                </div>
+            </div>
+
+            <!-- 7b: Architecture Decisions -->
+            <h2 class="ins-h2" style="margin-top: 40px;">Architecture decisions</h2>
+            <p class="ins-body">Each technical choice involved a trade-off.</p>
+
+            <div class="ins-decision-grid">
+                <div class="ins-decision-card">
+                    <div class="ins-decision-label">Polling frequency</div>
+                    <div class="ins-decision-choice">1/min (not 5/min)</div>
+                    <div class="ins-decision-reason">Higher resolution captures station transitions that 5-min polling would miss. Storage cost is negligible on PostgreSQL.</div>
+                </div>
+                <div class="ins-decision-card">
+                    <div class="ins-decision-label">Model architecture</div>
+                    <div class="ins-decision-choice">Two models (not one)</div>
+                    <div class="ins-decision-reason">Nowcast needs live dock state; forecast can't have it. Separate models let each family use optimal features.</div>
+                </div>
+                <div class="ins-decision-card">
+                    <div class="ins-decision-label">Weather API</div>
+                    <div class="ins-decision-choice">Open-Meteo (not OpenWeatherMap)</div>
+                    <div class="ins-decision-reason">No API key required, unlimited requests. Sensor validation confirmed data quality matches our needs.</div>
+                </div>
+                <div class="ins-decision-card">
+                    <div class="ins-decision-label">Database</div>
+                    <div class="ins-decision-choice">Supabase PostgreSQL (not MongoDB)</div>
+                    <div class="ins-decision-reason">SQL joins essential for time-series analysis. GROUP BY hour/weekday aggregations power the dashboard and model training.</div>
+                </div>
+                <div class="ins-decision-card">
+                    <div class="ins-decision-label">Hosting</div>
+                    <div class="ins-decision-choice">Heroku (not Raspberry Pi)</div>
+                    <div class="ins-decision-reason">24/7 uptime with student credits. Worker dyno collects data, web dyno serves the dashboard, independent scaling.</div>
+                </div>
+                <div class="ins-decision-card">
+                    <div class="ins-decision-label">Temperature source</div>
+                    <div class="ins-decision-choice">API (sensor retired after validation)</div>
+                    <div class="ins-decision-reason">KY-028 confirmed API reliability (r = <span id="decision-sensor-r">0.95</span>). API temperature is more stable for production.</div>
+                </div>
+            </div>
+
+            <!-- 7c: Honest Model Assessment -->
+            <h2 class="ins-h2" style="margin-top: 40px;">Model assessment</h2>
+            <div class="ins-assess-cards">
+                <div class="ins-assess-card">
+                    <div class="ins-assess-badge" style="background: var(--info);">Nowcast</div>
+                    <div class="ins-assess-title" id="assess-nc-name">Loading...</div>
+                    <div class="ins-assess-body">High accuracy (<span id="assess-nc-mae">--</span> MAE), but dominated by the lag feature: the current dock count is the strongest predictor. The model's practical value isn't the raw prediction number. It's the <strong>automated pipeline</strong>: sensor detects departure, model predicts, Telegram delivers a ranked station recommendation, all before checking the phone.</div>
+                </div>
+                <div class="ins-assess-card">
+                    <div class="ins-assess-badge" style="background: var(--warning);">Forecast</div>
+                    <div class="ins-assess-title" id="assess-fc-name">Loading...</div>
+                    <div class="ins-assess-body">Approximate accuracy (<span id="assess-fc-mae">--</span> MAE). Without live data, the model relies on historical patterns, which means it captures the predictable commuter rhythm but misses one-off events. The system communicates this uncertainty through confidence indicators and always shows alternatives.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+/* ================================================================
+   INSIGHTS PAGE - Complete Styles
+   ================================================================ */
+
+/* ── Sticky section nav ── */
+.ins-nav {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.ins-nav::-webkit-scrollbar { display: none; }
+
+/* On desktop the topbar is outside .app-content's scroll container,
+   so the sticky nav still sticks at top: 0 of the scrollable area. */
+
+.ins-nav-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    padding: 0 24px;
+    white-space: nowrap;
+}
+
+.ins-nav-link {
+    padding: 12px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+}
+
+.ins-nav-link:hover { color: var(--text-secondary); }
+
+.ins-nav-link.active {
+    color: var(--info);
+    border-bottom-color: var(--info);
+}
+
+/* ── Page container ── */
+.ins-page {
+    padding-bottom: 80px;
+}
+
+/* ── Card shadow (shared) ── */
+.ins-direction-card,
+.ins-mode-card,
+.ins-callout,
+.ins-chart-wrap,
+.ins-source-card,
+.ins-model-card,
+.ins-limit-card,
+.ins-decision-card,
+.ins-assess-card,
+.ins-infra,
+.ins-arch-card,
+.ins-act-card,
+.ins-sense-db-wide {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* ── Common section styles ── */
+.ins-section,
+.ins-hero {
+    scroll-margin-top: 48px;
+}
+
+.ins-section {
+    padding: 80px 24px;
+}
+
+.ins-section-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.ins-section-label {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--info);
+    margin-bottom: 10px;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+.ins-lead {
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0 0 32px 0;
+}
+
+.ins-h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.ins-body {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0 0 24px 0;
+}
+
+/* ================================================================
+   SECTION 1: HERO
+   ================================================================ */
+.ins-hero {
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 40%, #16213e 100%);
+    padding: 80px 24px 64px;
+    position: relative;
+    overflow: hidden;
+}
+
+.ins-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(55, 138, 221, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ins-hero .ins-hero-headline,
+.ins-hero .ins-hero-stat-value {
+    color: #f0f0f0;
+}
+
+.ins-hero .ins-hero-sub,
+.ins-hero .ins-hero-footnote {
+    color: #a0a0b0;
+}
+
+.ins-hero .ins-hero-stat-label {
+    color: #8888a0;
+}
+
+.ins-hero .ins-hero-stat {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(4px);
+}
+
+.ins-hero .ins-hero-stats {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.ins-hero-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.ins-hero-headline {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.25;
+    margin: 0 0 16px 0;
+}
+
+@media (min-width: 640px) {
+    .ins-hero-headline { font-size: 40px; }
+}
+
+.ins-hero-sub {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin: 0 0 40px 0;
+}
+
+.ins-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+@media (max-width: 639px) {
+    .ins-hero-stats { grid-template-columns: 1fr; }
+}
+
+.ins-hero-stat {
+    background: var(--bg-primary);
+    padding: 24px 20px;
+    text-align: center;
+}
+
+.ins-hero-stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.ins-hero-stat-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.ins-hero-footnote {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    margin-top: 20px;
+    text-align: left;
+}
+
+/* ================================================================
+   SECTION 2: THE SOLUTION
+   ================================================================ */
+
+/* Direction cards */
+.ins-direction-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 639px) {
+    .ins-direction-cards { grid-template-columns: 1fr; }
+}
+
+.ins-direction-card {
+    background: var(--bg-primary);
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid var(--border);
+}
+
+.ins-direction-icon {
+    font-size: 24px;
+    color: var(--info);
+    margin-bottom: 10px;
+}
+
+.ins-direction-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.ins-direction-tag {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-left: 4px;
+}
+
+.ins-direction-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Mode cards */
+.ins-mode-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+@media (max-width: 639px) {
+    .ins-mode-cards { grid-template-columns: 1fr; }
+}
+
+.ins-mode-card {
+    background: var(--bg-primary);
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid var(--border);
+}
+
+.ins-mode-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: var(--info);
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.ins-mode-badge-plan { background: var(--warning); }
+
+.ins-mode-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.ins-mode-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* (matrix styles replaced by ins-modes-grid above) */
+
+/* Motion sensor callout */
+.ins-callout {
+    background: var(--bg-primary);
+    border-radius: 14px;
+    padding: 28px 24px;
+    border: 1px solid var(--border);
+    margin-bottom: 40px;
+}
+
+.ins-callout-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 20px;
+}
+
+.ins-callout-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.ins-callout-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.ins-callout-emoji { font-size: 28px; }
+
+.ins-callout-step-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+}
+
+.ins-callout-arrow {
+    color: var(--text-tertiary);
+    font-size: 16px;
+}
+
+/* App flow visualization */
+.ins-flow-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+.ins-app-flow {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+}
+
+@media (max-width: 767px) {
+    .ins-app-flow {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+.ins-flow-step {
+    flex: 1;
+    text-align: center;
+    padding: 0 12px;
+    position: relative;
+}
+
+.ins-flow-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--info);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.ins-flow-icon {
+    font-size: 24px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.ins-flow-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.ins-flow-desc {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+}
+
+.ins-flow-connector {
+    width: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 12px;
+}
+
+.ins-flow-connector::after {
+    content: '';
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+}
+
+@media (max-width: 767px) {
+    .ins-flow-step {
+        text-align: left;
+        display: flex;
+        gap: 16px;
+        padding: 0;
+        align-items: flex-start;
+    }
+    .ins-flow-step > .ins-flow-num {
+        flex-shrink: 0;
+        margin-bottom: 0;
+        margin-top: 2px;
+    }
+    .ins-flow-icon { display: none; }
+    .ins-flow-connector {
+        width: auto;
+        height: 20px;
+        padding-top: 0;
+        padding-left: 13px;
+    }
+    .ins-flow-connector::after {
+        width: 2px;
+        height: 100%;
+    }
+}
+
+/* ================================================================
+   SECTION 3: SYSTEM ARCHITECTURE
+   ================================================================ */
+
+/* ── Shared architecture card styles ── */
+.ins-arch-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--text-tertiary);
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.ins-arch-card-blue { border-left-color: var(--info); }
+.ins-arch-card-green { border-left-color: var(--success); }
+.ins-arch-card-amber { border-left-color: var(--warning); }
+.ins-arch-card-db {
+    border-left-color: var(--success);
+    text-align: center;
+}
+.ins-arch-card-muted {
+    border-left-color: var(--text-tertiary);
+    opacity: 0.75;
+}
+
+.ins-arch-card-icon {
+    font-size: 24px;
+    color: var(--success);
+    margin-bottom: 4px;
+}
+
+.ins-arch-card-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ins-arch-card-detail {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.3;
+}
+
+.ins-arch-card-freq {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-style: italic;
+    margin-top: 2px;
+}
+
+/* ── Shared arrow label ── */
+.ins-arrow-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* ── Horizontal arrow (line + → head) ── */
+.ins-harrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0 4px;
+}
+
+.ins-harrow-line {
+    width: 100%;
+    height: 2px;
+    background: var(--text-tertiary);
+    border-radius: 1px;
+}
+
+.ins-harrow-head {
+    display: none;
+}
+
+/* Show arrow as line + → together in a row */
+.ins-harrow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 0;
+}
+
+.ins-harrow .ins-harrow-line {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.ins-harrow .ins-harrow-head {
+    grid-column: 2;
+    grid-row: 1;
+    display: block;
+    font-size: 16px;
+    color: var(--text-tertiary);
+    line-height: 1;
+    margin-left: -2px;
+}
+
+.ins-harrow .ins-arrow-label {
+    grid-column: 1 / -1;
+    grid-row: 2;
+}
+
+/* ── Diagram 1: Unified sensing pipeline ── */
+.ins-sense-unified {
+    margin-bottom: 32px;
+}
+
+/* ── Vertical arrow (solid shaft + ▼ head) ── */
+.ins-sense-varrows {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.ins-varrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 6px 0;
+}
+
+.ins-varrow-shaft {
+    width: 2px;
+    height: 20px;
+    background: var(--text-tertiary);
+    border-radius: 1px;
+}
+
+.ins-varrow-head {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    line-height: 1;
+    margin-top: -2px;
+}
+
+/* Dashed vertical shaft (for "loaded on startup") */
+.ins-varrow-dashed-shaft {
+    width: 0;
+    height: 22px;
+    border-left: 2px dashed var(--text-tertiary);
+}
+
+/* Full-width Supabase card */
+.ins-sense-db-wide {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--success);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+
+@media (max-width: 639px) {
+    .ins-sense-varrows { grid-template-columns: 1fr; gap: 0; }
+    .ins-varrow { padding: 4px 0; }
+}
+
+/* ── Diagram 2: Processing and serving ── */
+.ins-serve-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    gap: 10px 0;
+    margin-bottom: 32px;
+    padding: 8px 0;
+}
+
+/* Row 1: training path */
+.ins-serve-db-top   { grid-area: 1 / 1; }
+.ins-serve-grid > .ins-serve-arrow:nth-child(2) { grid-area: 1 / 2; }
+.ins-serve-grid > .ins-arch-card-muted { grid-area: 1 / 3; }
+.ins-serve-grid > .ins-serve-arrow:nth-child(4) { grid-area: 1 / 4; }
+.ins-serve-pkl { grid-area: 1 / 5; border-left-color: #7B61FF; }
+
+/* Vertical arrow between rows */
+.ins-serve-vert-arrow { grid-area: 2 / 3 / 3 / 6; }
+
+/* Row 3: live serving path */
+.ins-serve-db-bot    { grid-area: 3 / 1; }
+.ins-serve-arrow-bot { grid-area: 3 / 2; }
+.ins-serve-flask     { grid-area: 3 / 3; }
+.ins-serve-arrow-bot2 { grid-area: 3 / 4; }
+.ins-serve-outputs   { grid-area: 3 / 5; }
+
+@media (max-width: 579px) {
+    .ins-serve-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 0;
+    }
+    .ins-serve-grid > * { grid-area: auto !important; }
+    .ins-serve-vert-arrow { padding: 6px 0; }
+}
+
+/* ── Actuation pipeline (horizontal flow) ── */
+.ins-act-flow {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    margin-bottom: 32px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 0;
+}
+
+.ins-act-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.ins-act-card-icon {
+    font-size: 28px;
+    margin-bottom: 4px;
+}
+
+.ins-act-card-icon-amber { color: var(--warning); }
+.ins-act-card-icon-green { color: var(--success); }
+.ins-act-card-icon-purple { color: #7B61FF; }
+.ins-act-card-icon-blue { color: var(--info); }
+
+.ins-act-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ins-act-card-detail {
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+.ins-act-connector {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+    min-width: 50px;
+    padding: 20px 2px 0;
+}
+
+.ins-act-connector .ins-harrow-line {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.ins-act-connector .ins-harrow-head {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 16px;
+    color: var(--text-tertiary);
+    line-height: 1;
+    margin-left: -2px;
+}
+
+.ins-act-connector .ins-arrow-label {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: 10px;
+}
+
+@media (max-width: 639px) {
+    .ins-act-flow { flex-direction: column; align-items: stretch; gap: 0; }
+    .ins-act-card { min-width: 0; flex-direction: row; padding: 14px 16px; gap: 12px; text-align: left; }
+    .ins-act-card-icon { font-size: 22px; margin-bottom: 0; }
+    .ins-act-connector {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+        min-width: 0;
+        height: auto;
+    }
+    .ins-act-connector .ins-harrow-line {
+        width: 2px;
+        height: 16px;
+    }
+    .ins-act-connector .ins-harrow-head {
+        font-size: 10px;
+        margin-left: 0;
+        margin-top: -3px;
+        transform: rotate(90deg);
+    }
+    .ins-act-connector .ins-arrow-label { display: none; }
+}
+
+/* ── App modes (2×2 matrix with headers) ── */
+.ins-modes-matrix {
+    display: grid;
+    grid-template-columns: 48px 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 40px;
+}
+
+.ins-modes-corner {
+    /* empty top-left cell */
+}
+
+.ins-modes-col-head {
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    padding-bottom: 4px;
+}
+.ins-modes-col-head:nth-child(2) { color: #f59e0b; }
+.ins-modes-col-head:nth-child(3) { color: #06b6d4; }
+
+.ins-modes-row-head {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #d1d5db;
+    writing-mode: horizontal-tb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ins-modes-matrix .ins-mode-card {
+    padding: 18px;
+    border-top: 3px solid transparent;
+}
+
+.ins-modes-matrix .ins-mode-card-dock {
+    border-top-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.04);
+}
+
+.ins-modes-matrix .ins-mode-card-bike {
+    border-top-color: #06b6d4;
+    background: rgba(6, 182, 212, 0.04);
+}
+
+[data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-dock {
+    background: rgba(245, 158, 11, 0.08);
+}
+
+[data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-bike {
+    background: rgba(6, 182, 212, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-dock {
+        background: rgba(245, 158, 11, 0.08);
+    }
+    :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-bike {
+        background: rgba(6, 182, 212, 0.08);
+    }
+}
+
+.ins-mode-q {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.ins-mode-model {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.ins-mode-card-dock .ins-mode-model { color: #f59e0b; }
+.ins-mode-card-bike .ins-mode-model { color: #06b6d4; }
+
+.ins-mode-detail {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+}
+
+@media (max-width: 639px) {
+    .ins-modes-matrix {
+        grid-template-columns: 1fr;
+    }
+    .ins-modes-corner { display: none; }
+    .ins-modes-col-head { display: none; }
+    .ins-modes-row-head {
+        justify-content: flex-start;
+        padding: 8px 0 0;
+    }
+}
+
+/* Data source cards */
+.ins-source-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 0;
+}
+
+@media (max-width: 639px) {
+    .ins-source-cards { grid-template-columns: 1fr; }
+}
+
+.ins-source-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+}
+
+.ins-source-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.ins-source-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    color: #fff;
+}
+
+.ins-source-badge-blue { background: var(--info); }
+.ins-source-badge-green { background: var(--success); }
+.ins-source-badge-amber { background: var(--warning); }
+
+.ins-source-freq {
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.ins-source-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+}
+
+.ins-source-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.ins-source-fields {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    text-align: left;
+}
+
+/* (actuation pipeline styles moved above with ins-act-flow) */
+
+/* Infrastructure block */
+.ins-infra {
+    background: var(--bg-primary);
+    border-radius: 14px;
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ins-infra-item {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.ins-infra-item i {
+    color: var(--text-tertiary);
+    width: 18px;
+    text-align: center;
+    margin-right: 4px;
+}
+
+/* ================================================================
+   SECTION 4: DATA & PATTERNS
+   ================================================================ */
+
+/* Subsections with accent tints */
+.ins-subsection {
+    padding: 32px 0 40px;
+    border-top: 1px solid var(--border);
+}
+
+.ins-subsection:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+.ins-subsection-warm {
+    --accent: #E88D3F;
+    --accent-faint: rgba(232, 141, 63, 0.06);
+}
+
+.ins-subsection-cool {
+    --accent: var(--info);
+    --accent-faint: rgba(55, 138, 221, 0.06);
+}
+
+.ins-subsection-neutral {
+    --accent: var(--text-secondary);
+}
+
+.ins-h2-warm { color: #E88D3F; }
+.ins-h2-cool { color: var(--info); }
+
+/* Chart containers */
+.ins-chart-wrap {
+    margin-bottom: 32px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 20px 16px;
+}
+
+.ins-chart-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.ins-chart-takeaway {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-left: 3px solid var(--info);
+    background: rgba(55, 138, 221, 0.06);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    line-height: 1.55;
+}
+
+/* ── Pearson correlation bar chart (HTML/CSS) ── */
+
+.corr-note {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-left: 3px solid #e0e0e0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+}
+
+[data-bs-theme="dark"] .corr-note { border-left-color: #555; }
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .corr-note { border-left-color: #555; }
+}
+
+[data-bs-theme="dark"] .ins-chart-takeaway {
+    background: rgba(55, 138, 221, 0.08);
+}
+
+.ins-chart-pair {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 8px;
+}
+
+.ins-chart-half {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 767px) {
+    .ins-chart-pair {
+        flex-direction: column;
+    }
+}
+
+.ins-chart-note {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-tertiary);
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    border-left: 3px solid var(--text-tertiary);
+    line-height: 1.4;
+}
+
+/* Heatmap (CSS grid) */
+.ins-heatmap-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ins-heatmap {
+    display: grid;
+    gap: 2px;
+    min-width: 600px;
+}
+
+.ins-heatmap-cell {
+    border-radius: 3px;
+    aspect-ratio: 1;
+    position: relative;
+    cursor: default;
+    min-width: 18px;
+}
+
+.ins-heatmap-cell[title]:hover {
+    outline: 2px solid var(--text-primary);
+    outline-offset: -1px;
+    z-index: 1;
+}
+
+.ins-heatmap-label-row,
+.ins-heatmap-label-col {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.ins-heatmap-label-row {
+    justify-content: flex-end;
+    padding-right: 6px;
+}
+
+.ins-heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.ins-heatmap-legend-bar {
+    width: 120px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+/* ================================================================
+   SECTION 5: PREDICTION MODELS
+   ================================================================ */
+
+.ins-model-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 699px) {
+    .ins-model-cards { grid-template-columns: 1fr; }
+}
+
+.ins-model-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ins-model-family {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: var(--info);
+    color: #fff;
+    margin-bottom: 10px;
+    align-self: flex-start;
+}
+
+.ins-model-family-plan { background: var(--warning); }
+
+.ins-model-usecase {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.ins-model-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.ins-model-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.ins-model-metric {
+    text-align: center;
+    padding: 10px 4px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+.ins-model-metric-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.ins-model-metric-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.ins-model-why {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 12px;
+    flex: 1;
+}
+
+/* Benchmark list (always visible) */
+.ins-model-bench {
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 4px;
+}
+
+.ins-model-bench-heading {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ins-model-runnerup-list {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.ins-model-runnerup-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+}
+
+.ins-model-runnerup-item span:last-child {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-tertiary);
+}
+
+/* ================================================================
+   SECTION 6: FEATURE ANALYSIS
+   ================================================================ */
+
+/* Inverse note callout */
+.ins-inverse-callout {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+}
+
+.ins-inverse-callout i {
+    color: #3b82f6;
+    margin-right: 6px;
+}
+
+[data-bs-theme="dark"] .ins-inverse-callout,
+:root:not([data-bs-theme="light"]) .ins-inverse-callout {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-inverse-callout {
+        background: rgba(59, 130, 246, 0.15);
+    }
+}
+
+.ins-section-alt {
+    background: var(--bg-tertiary);
+}
+
+[data-bs-theme="dark"] .ins-section-alt,
+:root:not([data-bs-theme="light"]) .ins-section-alt {
+    background: rgba(255,255,255,0.015);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-section-alt {
+        background: rgba(255,255,255,0.015);
+    }
+}
+
+/* Conceptual diagram for baseline model */
+.ins-baseline-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px 16px;
+    flex-wrap: wrap;
+}
+
+.ins-baseline-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    text-align: center;
+    min-width: 100px;
+}
+
+.ins-baseline-box-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.ins-baseline-box-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.ins-baseline-arrow {
+    color: var(--text-tertiary);
+    font-size: 18px;
+}
+
+/* ================================================================
+   SECTION 7: LIMITATIONS & TRADE-OFFS
+   ================================================================ */
+
+/* Limitation cards */
+.ins-limit-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 639px) {
+    .ins-limit-cards { grid-template-columns: 1fr; }
+}
+
+.ins-limit-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.ins-limit-card-red { border-left: 3px solid var(--danger); }
+.ins-limit-card-yellow { border-left: 3px solid var(--warning); }
+
+.ins-limit-icon {
+    font-size: 18px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.ins-limit-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Architecture decision cards */
+.ins-decision-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 639px) {
+    .ins-decision-grid { grid-template-columns: 1fr; }
+}
+
+.ins-decision-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.ins-decision-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+}
+
+.ins-decision-choice {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.ins-decision-reason {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Honest assessment cards */
+.ins-assess-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 639px) {
+    .ins-assess-cards { grid-template-columns: 1fr; }
+}
+
+.ins-assess-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+}
+
+.ins-assess-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 10px;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.ins-assess-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.ins-assess-body {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+}
+
+/* ================================================================
+   MOBILE OVERRIDES (< 640px)
+   ================================================================ */
+@media (max-width: 639px) {
+    /* Reduce section padding */
+    .ins-section { padding: 48px 16px; }
+    .ins-hero { padding: 48px 16px 40px; }
+
+    /* Hero text legibility */
+    .ins-hero-headline { font-size: 24px; line-height: 1.3; }
+    .ins-hero .ins-hero-sub { color: #c0c0cc; font-size: 15px; line-height: 1.6; }
+    .ins-hero .ins-hero-footnote { color: #9898aa; font-size: 11px; }
+    .ins-hero-stat-value { font-size: 24px; }
+    .ins-hero-stat { padding: 16px 14px; }
+
+    /* Typography scale-down */
+    .ins-lead { font-size: 17px; }
+    .ins-h2 { font-size: 16px; }
+    .ins-body { font-size: 14px; }
+
+    /* Chart containers */
+    .ins-chart-wrap { padding: 14px 12px 12px; border-radius: 10px; }
+    .ins-chart-title { font-size: 12px; }
+    .ins-chart-takeaway { font-size: 13px; padding: 10px 14px; }
+    .ins-chart-note { font-size: 11px; padding: 6px 10px; }
+
+    /* Cards */
+    .ins-direction-card,
+    .ins-mode-card,
+    .ins-model-card,
+    .ins-limit-card,
+    .ins-decision-card,
+    .ins-assess-card,
+    .ins-callout { padding: 16px; border-radius: 10px; }
+
+    .ins-source-card { padding: 14px; border-radius: 10px; }
+
+    /* Model card metrics */
+    .ins-model-metrics { grid-template-columns: repeat(2, 1fr); }
+    .ins-model-name { font-size: 18px; }
+
+    /* Architecture diagrams - tighter */
+    .ins-arch-card { padding: 8px 10px; }
+    .ins-arch-card-name { font-size: 11px; }
+    .ins-arch-card-detail { font-size: 10px; }
+    .ins-arch-card-freq { font-size: 9px; }
+    .ins-act-card { padding: 14px 12px; min-width: 110px; }
+    .ins-act-card-icon { font-size: 22px; }
+
+    /* Nav */
+    .ins-nav-inner { padding: 0 12px; }
+    .ins-nav-link { padding: 10px 10px; font-size: 11px; }
+
+    /* Heatmap cells smaller */
+    .ins-heatmap-cell { min-width: 14px; }
+    .ins-heatmap { min-width: 480px; }
+
+    /* Flow steps */
+    .ins-app-flow { gap: 0; }
+    .ins-flow-step { padding: 14px 12px; }
+    .ins-flow-title { font-size: 13px; }
+    .ins-flow-desc { font-size: 12px; }
+
+    /* Section label */
+    .ins-section-label { font-size: 10px; letter-spacing: 1.5px; }
+
+    /* Limit/decision cards text */
+    .ins-limit-text { font-size: 12px; }
+    .ins-decision-reason { font-size: 12px; }
+    .ins-assess-body { font-size: 12px; }
+}
+
+/* ================================================================
+   DARK MODE: NEON TECH OVERRIDES
+   ================================================================ */
+
+/* Neon CSS variables for dark mode */
+[data-bs-theme="dark"] .ins-page {
+    --neon-cyan: #00e5ff;
+    --neon-purple: #a855f7;
+    --neon-teal: #22d3ee;
+    --neon-pink: #f472b6;
+    --neon-lime: #34d399;
+    --neon-amber: #fbbf24;
+    --neon-blue: #60a5fa;
+    --neon-glow-sm: 0 0 8px rgba(0, 229, 255, 0.15);
+    --neon-glow-md: 0 0 16px rgba(0, 229, 255, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-page {
+        --neon-cyan: #00e5ff;
+        --neon-purple: #a855f7;
+        --neon-teal: #22d3ee;
+        --neon-pink: #f472b6;
+        --neon-lime: #34d399;
+        --neon-amber: #fbbf24;
+        --neon-blue: #60a5fa;
+        --neon-glow-sm: 0 0 8px rgba(0, 229, 255, 0.15);
+        --neon-glow-md: 0 0 16px rgba(0, 229, 255, 0.12);
+    }
+}
+
+/* Nav – glassmorphism dark */
+[data-bs-theme="dark"] .ins-nav {
+    background: rgba(26, 26, 26, 0.8);
+    border-bottom-color: rgba(0, 229, 255, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-nav {
+        background: rgba(26, 26, 26, 0.8);
+        border-bottom-color: rgba(0, 229, 255, 0.1);
+    }
+}
+
+[data-bs-theme="dark"] .ins-nav-link.active {
+    color: var(--neon-cyan);
+    border-bottom-color: var(--neon-cyan);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-nav-link.active {
+        color: var(--neon-cyan);
+        border-bottom-color: var(--neon-cyan);
+    }
+}
+
+/* Section labels – neon */
+[data-bs-theme="dark"] .ins-section-label {
+    color: var(--neon-cyan);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-section-label {
+        color: var(--neon-cyan);
+    }
+}
+
+/* Hero – deeper gradient with neon glow */
+[data-bs-theme="dark"] .ins-hero {
+    background: linear-gradient(135deg, #080816 0%, #0d1117 40%, #0a1929 100%);
+}
+
+[data-bs-theme="dark"] .ins-hero::before {
+    background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
+}
+
+[data-bs-theme="dark"] .ins-hero .ins-hero-stat-value {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+}
+
+[data-bs-theme="dark"] .ins-hero .ins-hero-stats {
+    background: rgba(0, 229, 255, 0.04);
+    border: 1px solid rgba(0, 229, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .ins-hero .ins-hero-stat {
+    background: rgba(0, 229, 255, 0.03);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-hero {
+        background: linear-gradient(135deg, #080816 0%, #0d1117 40%, #0a1929 100%);
+    }
+    :root:not([data-bs-theme="light"]) .ins-hero::before {
+        background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
+    }
+    :root:not([data-bs-theme="light"]) .ins-hero .ins-hero-stat-value {
+        color: var(--neon-cyan);
+        text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+    }
+    :root:not([data-bs-theme="light"]) .ins-hero .ins-hero-stats {
+        background: rgba(0, 229, 255, 0.04);
+        border: 1px solid rgba(0, 229, 255, 0.08);
+    }
+    :root:not([data-bs-theme="light"]) .ins-hero .ins-hero-stat {
+        background: rgba(0, 229, 255, 0.03);
+    }
+}
+
+/* Cards – neon glow borders */
+[data-bs-theme="dark"] .ins-direction-card,
+[data-bs-theme="dark"] .ins-mode-card,
+[data-bs-theme="dark"] .ins-callout,
+[data-bs-theme="dark"] .ins-source-card,
+[data-bs-theme="dark"] .ins-model-card,
+[data-bs-theme="dark"] .ins-limit-card,
+[data-bs-theme="dark"] .ins-decision-card,
+[data-bs-theme="dark"] .ins-assess-card,
+[data-bs-theme="dark"] .ins-infra,
+[data-bs-theme="dark"] .ins-act-card,
+[data-bs-theme="dark"] .ins-sense-db-wide {
+    border-color: rgba(0, 229, 255, 0.08);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(0, 229, 255, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-direction-card,
+    :root:not([data-bs-theme="light"]) .ins-mode-card,
+    :root:not([data-bs-theme="light"]) .ins-callout,
+    :root:not([data-bs-theme="light"]) .ins-source-card,
+    :root:not([data-bs-theme="light"]) .ins-model-card,
+    :root:not([data-bs-theme="light"]) .ins-limit-card,
+    :root:not([data-bs-theme="light"]) .ins-decision-card,
+    :root:not([data-bs-theme="light"]) .ins-assess-card,
+    :root:not([data-bs-theme="light"]) .ins-infra,
+    :root:not([data-bs-theme="light"]) .ins-act-card,
+    :root:not([data-bs-theme="light"]) .ins-sense-db-wide {
+        border-color: rgba(0, 229, 255, 0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(0, 229, 255, 0.04);
+    }
+}
+
+/* Chart wraps – subtle neon border */
+[data-bs-theme="dark"] .ins-chart-wrap {
+    border-color: rgba(0, 229, 255, 0.08);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-chart-wrap {
+        border-color: rgba(0, 229, 255, 0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Chart takeaway – neon left border */
+[data-bs-theme="dark"] .ins-chart-takeaway {
+    border-left-color: var(--neon-cyan);
+    background: rgba(0, 229, 255, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-chart-takeaway {
+        border-left-color: var(--neon-cyan);
+        background: rgba(0, 229, 255, 0.05);
+    }
+}
+
+/* Direction card icons – neon */
+[data-bs-theme="dark"] .ins-direction-icon { color: var(--neon-cyan); }
+[data-bs-theme="dark"] .ins-flow-num { background: var(--neon-cyan); color: #080816; }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-direction-icon { color: var(--neon-cyan); }
+    :root:not([data-bs-theme="light"]) .ins-flow-num { background: var(--neon-cyan); color: #080816; }
+}
+
+/* Mode badges – neon variants */
+[data-bs-theme="dark"] .ins-mode-badge { background: var(--neon-cyan); color: #080816; }
+[data-bs-theme="dark"] .ins-mode-badge-plan { background: var(--neon-amber); color: #080816; }
+[data-bs-theme="dark"] .ins-model-family { background: var(--neon-cyan); color: #080816; }
+[data-bs-theme="dark"] .ins-model-family-plan { background: var(--neon-amber); color: #080816; }
+[data-bs-theme="dark"] .ins-assess-badge { color: #080816; }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-mode-badge { background: var(--neon-cyan); color: #080816; }
+    :root:not([data-bs-theme="light"]) .ins-mode-badge-plan { background: var(--neon-amber); color: #080816; }
+    :root:not([data-bs-theme="light"]) .ins-model-family { background: var(--neon-cyan); color: #080816; }
+    :root:not([data-bs-theme="light"]) .ins-model-family-plan { background: var(--neon-amber); color: #080816; }
+    :root:not([data-bs-theme="light"]) .ins-assess-badge { color: #080816; }
+}
+
+/* Source badges – neon */
+[data-bs-theme="dark"] .ins-source-badge-blue { background: var(--neon-cyan); color: #080816; }
+[data-bs-theme="dark"] .ins-source-badge-green { background: var(--neon-lime); color: #080816; }
+[data-bs-theme="dark"] .ins-source-badge-amber { background: var(--neon-amber); color: #080816; }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-source-badge-blue { background: var(--neon-cyan); color: #080816; }
+    :root:not([data-bs-theme="light"]) .ins-source-badge-green { background: var(--neon-lime); color: #080816; }
+    :root:not([data-bs-theme="light"]) .ins-source-badge-amber { background: var(--neon-amber); color: #080816; }
+}
+
+/* Source values – neon glow */
+[data-bs-theme="dark"] .ins-source-value {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-source-value {
+        color: var(--neon-cyan);
+        text-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+    }
+}
+
+/* Architecture cards – neon accents */
+[data-bs-theme="dark"] .ins-arch-card-blue { border-left-color: var(--neon-cyan); }
+[data-bs-theme="dark"] .ins-arch-card-green,
+[data-bs-theme="dark"] .ins-arch-card-db { border-left-color: var(--neon-lime); }
+[data-bs-theme="dark"] .ins-arch-card-amber { border-left-color: var(--neon-amber); }
+[data-bs-theme="dark"] .ins-arch-card-icon { color: var(--neon-lime); }
+[data-bs-theme="dark"] .ins-serve-pkl { border-left-color: var(--neon-purple); }
+[data-bs-theme="dark"] .ins-sense-db-wide { border-left-color: var(--neon-lime); }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-arch-card-blue { border-left-color: var(--neon-cyan); }
+    :root:not([data-bs-theme="light"]) .ins-arch-card-green,
+    :root:not([data-bs-theme="light"]) .ins-arch-card-db { border-left-color: var(--neon-lime); }
+    :root:not([data-bs-theme="light"]) .ins-arch-card-amber { border-left-color: var(--neon-amber); }
+    :root:not([data-bs-theme="light"]) .ins-arch-card-icon { color: var(--neon-lime); }
+    :root:not([data-bs-theme="light"]) .ins-serve-pkl { border-left-color: var(--neon-purple); }
+    :root:not([data-bs-theme="light"]) .ins-sense-db-wide { border-left-color: var(--neon-lime); }
+}
+
+/* Actuation icons – neon */
+[data-bs-theme="dark"] .ins-act-card-icon-amber { color: var(--neon-amber); }
+[data-bs-theme="dark"] .ins-act-card-icon-green { color: var(--neon-lime); }
+[data-bs-theme="dark"] .ins-act-card-icon-purple { color: var(--neon-purple); }
+[data-bs-theme="dark"] .ins-act-card-icon-blue { color: var(--neon-cyan); }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-act-card-icon-amber { color: var(--neon-amber); }
+    :root:not([data-bs-theme="light"]) .ins-act-card-icon-green { color: var(--neon-lime); }
+    :root:not([data-bs-theme="light"]) .ins-act-card-icon-purple { color: var(--neon-purple); }
+    :root:not([data-bs-theme="light"]) .ins-act-card-icon-blue { color: var(--neon-cyan); }
+}
+
+/* Arrows – neon */
+[data-bs-theme="dark"] .ins-harrow-line,
+[data-bs-theme="dark"] .ins-varrow-shaft {
+    background: rgba(0, 229, 255, 0.3);
+}
+
+[data-bs-theme="dark"] .ins-harrow-head,
+[data-bs-theme="dark"] .ins-varrow-head {
+    color: rgba(0, 229, 255, 0.5);
+}
+
+[data-bs-theme="dark"] .ins-varrow-dashed-shaft {
+    border-left-color: rgba(0, 229, 255, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-harrow-line,
+    :root:not([data-bs-theme="light"]) .ins-varrow-shaft {
+        background: rgba(0, 229, 255, 0.3);
+    }
+    :root:not([data-bs-theme="light"]) .ins-harrow-head,
+    :root:not([data-bs-theme="light"]) .ins-varrow-head {
+        color: rgba(0, 229, 255, 0.5);
+    }
+    :root:not([data-bs-theme="light"]) .ins-varrow-dashed-shaft {
+        border-left-color: rgba(0, 229, 255, 0.3);
+    }
+}
+
+/* Model metric boxes – neon tint */
+[data-bs-theme="dark"] .ins-model-metric {
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .ins-model-metric-value {
+    color: var(--neon-cyan);
+}
+
+[data-bs-theme="dark"] .ins-model-name {
+    color: #f0f0f0;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-model-metric {
+        background: rgba(0, 229, 255, 0.05);
+        border: 1px solid rgba(0, 229, 255, 0.06);
+    }
+    :root:not([data-bs-theme="light"]) .ins-model-metric-value {
+        color: var(--neon-cyan);
+    }
+    :root:not([data-bs-theme="light"]) .ins-model-name {
+        color: #f0f0f0;
+    }
+}
+
+/* App modes matrix – distinct column colours */
+[data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-dock {
+    border-top-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.08);
+}
+
+[data-bs-theme="dark"] .ins-modes-matrix .ins-mode-card-bike {
+    border-top-color: #06b6d4;
+    background: rgba(6, 182, 212, 0.08);
+}
+
+[data-bs-theme="dark"] .ins-mode-card-dock .ins-mode-model { color: #f59e0b; }
+[data-bs-theme="dark"] .ins-mode-card-bike .ins-mode-model { color: #06b6d4; }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-dock {
+        border-top-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.08);
+    }
+    :root:not([data-bs-theme="light"]) .ins-modes-matrix .ins-mode-card-bike {
+        border-top-color: #06b6d4;
+        background: rgba(6, 182, 212, 0.08);
+    }
+    :root:not([data-bs-theme="light"]) .ins-mode-card-dock .ins-mode-model { color: #f59e0b; }
+    :root:not([data-bs-theme="light"]) .ins-mode-card-bike .ins-mode-model { color: #06b6d4; }
+}
+
+/* Warm/cool subsection headings – neon */
+[data-bs-theme="dark"] .ins-h2-warm { color: var(--neon-amber); }
+[data-bs-theme="dark"] .ins-h2-cool { color: var(--neon-cyan); }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-h2-warm { color: var(--neon-amber); }
+    :root:not([data-bs-theme="light"]) .ins-h2-cool { color: var(--neon-cyan); }
+}
+
+/* Limit cards – neon border accents */
+[data-bs-theme="dark"] .ins-limit-card-red { border-left-color: var(--neon-pink); }
+[data-bs-theme="dark"] .ins-limit-card-yellow { border-left-color: var(--neon-amber); }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-limit-card-red { border-left-color: var(--neon-pink); }
+    :root:not([data-bs-theme="light"]) .ins-limit-card-yellow { border-left-color: var(--neon-amber); }
+}
+
+/* Inverse callout – neon */
+[data-bs-theme="dark"] .ins-inverse-callout {
+    border-left-color: var(--neon-blue);
+    background: rgba(96, 165, 250, 0.08);
+}
+
+[data-bs-theme="dark"] .ins-inverse-callout i { color: var(--neon-blue); }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-inverse-callout {
+        border-left-color: var(--neon-blue);
+        background: rgba(96, 165, 250, 0.08);
+    }
+    :root:not([data-bs-theme="light"]) .ins-inverse-callout i { color: var(--neon-blue); }
+}
+
+/* Infrastructure items – neon icons */
+[data-bs-theme="dark"] .ins-infra-item i { color: var(--neon-cyan); }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-infra-item i { color: var(--neon-cyan); }
+}
+
+/* Assess badges – neon */
+[data-bs-theme="dark"] .ins-assess-card .ins-assess-badge[style*="info"] {
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+}
+
+/* (dotted arrow neon handled by .ins-varrow-dashed-shaft above) */
+
+/* Flow connector – neon in dark */
+[data-bs-theme="dark"] .ins-flow-connector::after {
+    background: rgba(0, 229, 255, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .ins-flow-connector::after {
+        background: rgba(0, 229, 255, 0.2);
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+import { getInsightsCh1, getInsightsCh3, getInsightsCh4, getInsightsCh5, getInsightsCh6, getHeatmap, getCorrelationStats } from './static/js/api/client.js';
+
+// ============================================================
+// Helpers
+// ============================================================
+
+function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el && text != null) el.textContent = text;
+}
+
+function setHtml(id, html) {
+    const el = document.getElementById(id);
+    if (el && html != null) el.innerHTML = html;
+}
+
+function formatCount(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return Math.round(n / 1000) + 'k';
+    return String(n);
+}
+
+function isDark() {
+    if (document.documentElement.getAttribute('data-bs-theme') === 'dark') return true;
+    if (document.documentElement.getAttribute('data-bs-theme') === 'light') return false;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function chartColors() {
+    const dark = isDark();
+    const style = getComputedStyle(document.documentElement);
+    return {
+        grid: dark ? 'rgba(0, 229, 255, 0.06)' : 'rgba(0,0,0,0.06)',
+        text: dark ? '#a0a0a0' : (style.getPropertyValue('--text-secondary').trim() || '#666'),
+        textFaint: dark ? '#6b6b6b' : (style.getPropertyValue('--text-tertiary').trim() || '#999'),
+    };
+}
+
+// Neon palettes for dark mode, warm/muted for light
+const WARM_PALETTE_LIGHT = ['#e63946', '#f4845f', '#f9a825', '#d4580a', '#7c2d12'];
+const WARM_PALETTE_DARK  = ['#ff6b81', '#ff9f43', '#fbbf24', '#f472b6', '#a855f7'];
+const COOL_PALETTE_LIGHT = ['#1d4ed8', '#3b82f6', '#06b6d4', '#8b5cf6', '#64748b'];
+const COOL_PALETTE_DARK  = ['#00e5ff', '#60a5fa', '#22d3ee', '#a855f7', '#34d399'];
+
+function getWarmPalette() { return isDark() ? WARM_PALETTE_DARK : WARM_PALETTE_LIGHT; }
+function getCoolPalette() { return isDark() ? COOL_PALETTE_DARK : COOL_PALETTE_LIGHT; }
+
+// Keep static references for compatibility
+const WARM_PALETTE = WARM_PALETTE_LIGHT;
+const COOL_PALETTE = COOL_PALETTE_LIGHT;
+
+// Neon-aware named colors for charts
+function neonColor(name) {
+    const dark = isDark();
+    const map = {
+        orange:    dark ? '#ff9f43' : '#E88D3F',
+        orangeBg:  dark ? 'rgba(255,159,67,0.15)' : 'rgba(232,141,63,0.1)',
+        orangeBar: dark ? 'rgba(255,159,67,0.7)' : 'rgba(232,141,63,0.7)',
+        blue:      dark ? '#00e5ff' : '#378ADD',
+        blueBg:    dark ? 'rgba(0,229,255,0.12)' : 'rgba(55,138,221,0.1)',
+        blueBar:   dark ? 'rgba(0,229,255,0.7)' : 'rgba(55,138,221,0.7)',
+        red:       dark ? '#ff6b81' : '#e63946',
+        redBg:     dark ? 'rgba(255,107,129,0.1)' : 'rgba(230,57,70,0.06)',
+        cyan:      dark ? '#22d3ee' : '#3b82f6',
+        cyanBg:    dark ? 'rgba(34,211,238,0.1)' : 'rgba(59,130,246,0.06)',
+        green:     dark ? '#34d399' : '#1D9E75',
+        greenBar:  dark ? 'rgba(52,211,153,0.7)' : 'rgba(29,158,117,0.7)',
+        purple:    dark ? '#a855f7' : '#8b5cf6',
+        amber:     dark ? '#fbbf24' : '#BA7517',
+        amberBar:  dark ? 'rgba(251,191,36,0.6)' : 'rgba(232,141,63,0.6)',
+        pink:      dark ? '#f472b6' : '#d4580a',
+        lime:      dark ? '#34d399' : '#22c55e',
+        grey:      dark ? 'rgba(200,200,200,0.35)' : 'rgba(200,200,200,0.5)',
+        // Preferred station highlight
+        highlight: dark ? '#00e5ff' : '#378ADD',
+    };
+    return map[name] || name;
+}
+const PREFERRED_IDS = ['BikePoints_432', 'BikePoints_482', 'BikePoints_878', 'BikePoints_356', 'BikePoints_428'];
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// ============================================================
+// Sticky nav – IntersectionObserver
+// ============================================================
+
+function setupScrollSpy() {
+    const nav = document.getElementById('ins-nav');
+    if (!nav) return;
+    const links = [...nav.querySelectorAll('.ins-nav-link')];
+    const scroller = document.querySelector('.app-content');
+    if (!scroller) return;
+
+    const sections = links.map(link => {
+        const el = document.getElementById(link.getAttribute('data-section'));
+        return el ? { el, link } : null;
+    }).filter(Boolean);
+
+    function setActive(link) {
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        // Scroll nav strip horizontally to center the active link.
+        // Do NOT use scrollIntoView — it scrolls all ancestor containers
+        // (including .app-content) which fights with our manual scrollTo.
+        const linkLeft = link.offsetLeft;
+        const linkW = link.offsetWidth;
+        const navW = nav.offsetWidth;
+        nav.scrollTo({ left: linkLeft - navW / 2 + linkW / 2, behavior: 'smooth' });
+    }
+
+    // Click handler – use getBoundingClientRect (always correct regardless of DOM nesting)
+    links.forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            const target = document.getElementById(link.getAttribute('data-section'));
+            if (!target) return;
+            setActive(link);
+            const navH = nav.offsetHeight || 44;
+            // How far target is from the top of the scroller's viewport
+            const scrollerRect = scroller.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
+            const offset = targetRect.top - scrollerRect.top;
+            scroller.scrollTo({
+                top: scroller.scrollTop + offset - navH - 4,
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Scroll spy – highlight the section currently in view
+    let ticking = false;
+    scroller.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            const navH = nav.offsetHeight || 44;
+            const threshold = navH + 80;
+            let current = sections[0];
+            for (const s of sections) {
+                const rect = s.el.getBoundingClientRect();
+                const scrollerRect = scroller.getBoundingClientRect();
+                if (rect.top - scrollerRect.top <= threshold) current = s;
+            }
+            if (current) setActive(current.link);
+            ticking = false;
+        });
+    });
+}
+
+// ============================================================
+// Sections 1–3 data loading
+// ============================================================
+
+async function loadHeroStats() {
+    try {
+        const data = await getInsightsCh1();
+        if (data.stats.first_zero) {
+            setText('hero-fill-time', data.stats.first_zero.first_zero_time || '--');
+        }
+        if (data.stats.avg_docks_930 != null) {
+            setText('hero-docks-930', data.stats.avg_docks_930.toFixed(1));
+        }
+    } catch (e) {
+        console.error('Hero stats failed:', e);
+    }
+}
+
+async function loadDataSources() {
+    try {
+        const data = await getInsightsCh3();
+        setText('ds-docks', formatCount(data.bike_rows));
+        setText('ds-weather', formatCount(data.weather_rows));
+        setText('ds-sensor', formatCount(data.temp_rows));
+        setText('arch-total-rows', formatCount(data.bike_rows + data.weather_rows + data.temp_rows) + ' rows');
+    } catch (e) {
+        console.error('Data sources failed:', e);
+    }
+}
+
+async function loadModelInfo() {
+    try {
+        const data = await getInsightsCh5();
+
+        if (data.nowcast) {
+            const ncName = data.nowcast.name || 'Nowcast';
+            setText('matrix-now-to-model', ncName + ' model');
+            setText('act-model-name', ncName);
+            setText('arch-model-names', ncName + ' + ' + (data.forecast?.name || 'Forecast'));
+        }
+        if (data.forecast) {
+            const fcName = data.forecast.name || 'Forecast';
+            setText('matrix-plan-to-model', fcName + ' model');
+            setText('matrix-plan-from-model', fcName + ' model');
+        }
+    } catch (e) {
+        console.error('Model info failed:', e);
+    }
+}
+
+// ============================================================
+// Section 4: Data & Patterns
+// ============================================================
+
+function groupByStation(rows, valueKey) {
+    const map = {};
+    rows.forEach(r => {
+        const name = r.station_name.split(',')[0];
+        if (!map[name]) map[name] = { name, id: r.station_id, data: [] };
+        const t = r.hour + (r.minute || 0) / 60;
+        map[name].data.push({ t, v: parseFloat(r[valueKey]) });
+    });
+    return Object.values(map);
+}
+
+function timeLabel(h) {
+    const hh = Math.floor(h);
+    const mm = Math.round((h - hh) * 60);
+    return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+
+async function loadSection4() {
+    const cc = chartColors();
+
+    // Load data in parallel
+    const [ch1, ch4, heatmapDocks, heatmapBikes] = await Promise.all([
+        getInsightsCh1().catch(() => null),
+        getInsightsCh4().catch(() => null),
+        getHeatmap({ stationIds: PREFERRED_IDS.join(','), metric: 'empty_docks' }).catch(() => null),
+        getHeatmap({ stationIds: PREFERRED_IDS.join(','), metric: 'available_bikes' }).catch(() => null),
+    ]);
+
+    // --- Morning line chart ---
+    if (ch1 && ch1.morning) {
+        const wp = getWarmPalette();
+        const stations = groupByStation(ch1.morning, 'avg_empty_docks');
+        const datasets = stations.map((st, i) => ({
+            label: st.name,
+            data: st.data.map(d => ({ x: d.t, y: d.v })),
+            borderColor: wp[i % wp.length],
+            backgroundColor: wp[i % wp.length] + '22',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            tension: 0.3,
+            fill: false,
+        }));
+
+        const criticalWindowPlugin = {
+            id: 'criticalWindow',
+            beforeDraw(chart) {
+                const { ctx, chartArea, scales: { x, y } } = chart;
+                if (!chartArea) return;
+                const left = x.getPixelForValue(8);
+                const right = x.getPixelForValue(10);
+                const dark = isDark();
+                const cwFill = dark ? 'rgba(255, 159, 67, 0.1)' : 'rgba(232, 141, 63, 0.08)';
+                const cwStroke = dark ? 'rgba(255, 159, 67, 0.4)' : 'rgba(232, 141, 63, 0.3)';
+                const cwText = dark ? '#ff9f43' : '#E88D3F';
+                ctx.save();
+                ctx.fillStyle = cwFill;
+                ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
+                ctx.strokeStyle = cwStroke;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 3]);
+                ctx.strokeRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
+                ctx.setLineDash([]);
+                ctx.fillStyle = cwText;
+                ctx.font = 'bold 10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Critical window', (left + right) / 2, chartArea.top + 14);
+                ctx.restore();
+            },
+        };
+
+        new Chart(document.getElementById('chart-morning-docks'), {
+            type: 'line',
+            data: { datasets },
+            plugins: [criticalWindowPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        min: 6, max: 14,
+                        ticks: {
+                            stepSize: 1,
+                            callback: v => timeLabel(v),
+                            color: cc.textFaint,
+                        },
+                        grid: { color: cc.grid },
+                        title: { display: true, text: 'Time of day', color: cc.textFaint, font: { size: 11 } },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: cc.textFaint },
+                        grid: { color: cc.grid },
+                        title: { display: true, text: 'Empty docks (avg)', color: cc.textFaint, font: { size: 11 } },
+                    },
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: false, boxWidth: 14, boxHeight: 4, padding: 12, font: { size: 11 }, color: cc.text } },
+                    tooltip: {
+                        itemSort: (a, b) => b.parsed.y - a.parsed.y,
+                        callbacks: {
+                            title: items => timeLabel(items[0].parsed.x),
+                            label: item => `${item.dataset.label}: ${item.parsed.y.toFixed(1)} docks`,
+                        },
+                    },
+                },
+            },
+        });
+
+        // Takeaway
+        const allMin = stations.flatMap(s => s.data.filter(d => d.t >= 9 && d.t <= 10));
+        const minVal = allMin.length > 0 ? Math.min(...allMin.map(d => d.v)) : 0;
+        setText('morning-takeaway',
+            `Docks drop sharply between 8:00 and 9:30 AM. The lowest average across preferred stations hits ${minVal.toFixed(1)} docks, making late arrivals a gamble.`
+        );
+    }
+
+    // --- Station comparison at 9:30 ---
+    if (ch4 && ch4.station_930) {
+        const sorted = [...ch4.station_930].sort((a, b) => a.avg_empty_docks - b.avg_empty_docks);
+        const labels = sorted.map(s => s.station_name.split(',')[0]);
+        const values = sorted.map(s => parseFloat(s.avg_empty_docks));
+        const colors = sorted.map(s => PREFERRED_IDS.includes(s.station_id) ? neonColor('orange') : neonColor('grey'));
+
+        new Chart(document.getElementById('chart-station-930'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderRadius: 4,
+                }],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { color: cc.textFaint },
+                        grid: { color: cc.grid },
+                        title: { display: true, text: 'Avg empty docks at 9:30 AM', color: cc.textFaint, font: { size: 11 } },
+                    },
+                    y: {
+                        ticks: { color: cc.textFaint, font: { size: 10 } },
+                        grid: { display: false },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: item => `${item.parsed.x.toFixed(1)} empty docks`,
+                        },
+                    },
+                },
+            },
+        });
+
+        const belowThree = sorted.filter(s => s.avg_empty_docks < 3).length;
+        setText('station-930-takeaway',
+            `By 9:30 AM, ${belowThree} of ${sorted.length} stations have fewer than 3 empty docks on average. Orange bars = preferred stations closest to campus.`
+        );
+    }
+
+    // --- Heatmap: empty docks ---
+    if (heatmapDocks) {
+        renderHeatmap('heatmap-docks', heatmapDocks, 'empty_docks');
+    }
+
+    // --- Evening line chart ---
+    if (ch1 && ch1.evening) {
+        const cp = getCoolPalette();
+        const stations = groupByStation(ch1.evening, 'avg_bikes');
+        const datasets = stations.map((st, i) => ({
+            label: st.name,
+            data: st.data.map(d => ({ x: d.t, y: d.v })),
+            borderColor: cp[i % cp.length],
+            backgroundColor: cp[i % cp.length] + '22',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            tension: 0.3,
+            fill: false,
+        }));
+
+        new Chart(document.getElementById('chart-evening-bikes'), {
+            type: 'line',
+            data: { datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        min: 14, max: 21,
+                        ticks: {
+                            stepSize: 1,
+                            callback: v => timeLabel(v),
+                            color: cc.textFaint,
+                        },
+                        grid: { color: cc.grid },
+                        title: { display: true, text: 'Time of day', color: cc.textFaint, font: { size: 11 } },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: cc.textFaint },
+                        grid: { color: cc.grid },
+                        title: { display: true, text: 'Available bikes (avg)', color: cc.textFaint, font: { size: 11 } },
+                    },
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: false, boxWidth: 14, boxHeight: 4, padding: 12, font: { size: 11 }, color: cc.text } },
+                    tooltip: {
+                        itemSort: (a, b) => b.parsed.y - a.parsed.y,
+                        callbacks: {
+                            title: items => timeLabel(items[0].parsed.x),
+                            label: item => `${item.dataset.label}: ${item.parsed.y.toFixed(1)} bikes`,
+                        },
+                    },
+                },
+            },
+        });
+
+        const allEvening = stations.flatMap(s => s.data.filter(d => d.t >= 17 && d.t <= 19));
+        const minBikes = allEvening.length > 0 ? Math.min(...allEvening.map(d => d.v)) : 0;
+        setText('evening-takeaway',
+            `Bike availability drops through the evening as commuters ride home. The lowest average at preferred stations reaches ${minBikes.toFixed(1)} bikes between 5–7 PM.`
+        );
+    }
+
+    // --- Heatmap: available bikes ---
+    if (heatmapBikes) {
+        renderHeatmap('heatmap-bikes', heatmapBikes, 'available_bikes');
+    }
+
+    // --- Weather comparison ---
+    if (ch4) {
+        const { rain_dry, rain_wet, rain_day_counts } = ch4;
+        const dryDays = rain_day_counts?.dry_days || 0;
+        const rainyDays = rain_day_counts?.rainy_days || 0;
+
+        setText('weather-intro',
+            `Over ${dryDays + rainyDays} weekdays of data (${dryDays} dry, ${rainyDays} with rain), weather shifts the daily curve without changing its shape. Here's how dry and rainy days compare.`
+        );
+
+        if (rain_dry && rain_wet) {
+            const hours = [...new Set([...rain_dry, ...rain_wet].map(r => r.hour))].sort((a, b) => a - b);
+            const dryMap = {};
+            rain_dry.forEach(r => { dryMap[r.hour] = parseFloat(r.avg_empty_docks); });
+            const wetMap = {};
+            rain_wet.forEach(r => { wetMap[r.hour] = parseFloat(r.avg_empty_docks); });
+
+            new Chart(document.getElementById('chart-weather-compare'), {
+                type: 'line',
+                data: {
+                    labels: hours.map(h => timeLabel(h)),
+                    datasets: [
+                        {
+                            label: 'Dry days',
+                            data: hours.map(h => dryMap[h] ?? null),
+                            borderColor: neonColor('orange'),
+                            backgroundColor: neonColor('orangeBg'),
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            tension: 0.3,
+                            fill: true,
+                        },
+                        {
+                            label: 'Rainy days',
+                            data: hours.map(h => wetMap[h] ?? null),
+                            borderColor: neonColor('blue'),
+                            backgroundColor: neonColor('blueBg'),
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            borderDash: [5, 3],
+                            tension: 0.3,
+                            fill: true,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { ticks: { color: cc.textFaint }, grid: { color: cc.grid } },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: cc.textFaint },
+                            grid: { color: cc.grid },
+                            title: { display: true, text: 'Empty docks (avg)', color: cc.textFaint, font: { size: 11 } },
+                        },
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 }, color: cc.text } },
+                    },
+                },
+            });
+
+            setText('weather-takeaway',
+                `Rain shifts the pattern in both directions. In the morning, docks stay emptier longer on rainy days as fewer cyclists commute by bike. By the evening, the effect reverses: fewer bikes were taken out, so fewer return. The overall shape follows the same commuter schedule regardless of weather, confirming that time of day dominates dock dynamics. With only ${rainyDays} rainy weekday${rainyDays !== 1 ? 's' : ''} in the dataset, these observations are preliminary.`
+            );
+        }
+    }
+}
+
+// --- Heatmap renderer ---
+function renderHeatmap(containerId, data, metric) {
+    const container = document.getElementById(containerId);
+    if (!container || !data || data.length === 0) return;
+
+    // Aggregate to hour level (combine :00 and :30)
+    const hourMap = {};
+    data.forEach(r => {
+        const key = `${r.weekday}-${r.hour}`;
+        if (!hourMap[key]) hourMap[key] = { weekday: r.weekday, hour: r.hour, values: [] };
+        hourMap[key].values.push(r.avg_docks);
+    });
+    const hourData = Object.values(hourMap).map(h => ({
+        weekday: h.weekday,
+        hour: h.hour,
+        value: h.values.reduce((a, b) => a + b, 0) / h.values.length,
+    }));
+
+    const maxVal = Math.max(...hourData.map(d => d.value), 1);
+    const isDocksMetric = metric === 'empty_docks';
+
+    // Color: for docks, red=0 green=high. For bikes, red=0 green=high.
+    function cellColor(val) {
+        const ratio = Math.min(val / maxVal, 1);
+        if (isDocksMetric) {
+            // Red (bad) to green (good)
+            const r = Math.round(220 - ratio * 180);
+            const g = Math.round(60 + ratio * 140);
+            const b = Math.round(60 + ratio * 20);
+            return `rgb(${r},${g},${b})`;
+        } else {
+            const r = Math.round(220 - ratio * 180);
+            const g = Math.round(60 + ratio * 120);
+            const b = Math.round(100 + ratio * 120);
+            return `rgb(${r},${g},${b})`;
+        }
+    }
+
+    const hours = [];
+    for (let h = 0; h < 24; h++) hours.push(h);
+
+    // Build grid: rows = days (Mon-Sun), cols = hours (0-23)
+    // Grid: label column + 24 hour columns
+    const cols = 25;
+    let html = `<div class="ins-heatmap" style="grid-template-columns: 36px repeat(24, 1fr); grid-template-rows: auto repeat(7, 1fr);">`;
+
+    // Header row: empty corner + hour labels
+    html += `<div></div>`;
+    hours.forEach(h => {
+        const label = h % 3 === 0 ? `${h}` : '';
+        html += `<div class="ins-heatmap-label-col">${label}</div>`;
+    });
+
+    // Data rows: 7 days (Mon=1 first)
+    const dayOrder = [1, 2, 3, 4, 5, 6, 0]; // Mon-Sun
+    const dataMap = {};
+    hourData.forEach(d => { dataMap[`${d.weekday}-${d.hour}`] = d.value; });
+
+    dayOrder.forEach(day => {
+        html += `<div class="ins-heatmap-label-row">${DAY_LABELS[day]}</div>`;
+        hours.forEach(h => {
+            const val = dataMap[`${day}-${h}`] ?? 0;
+            const color = cellColor(val);
+            const label = isDocksMetric ? 'empty docks' : 'available bikes';
+            html += `<div class="ins-heatmap-cell" style="background:${color};" title="${DAY_LABELS[day]} ${timeLabel(h)}: ${val.toFixed(1)} ${label}"></div>`;
+        });
+    });
+
+    html += `</div>`;
+
+    // Legend
+    const lowLabel = isDocksMetric ? '0 docks (bad)' : '0 bikes (bad)';
+    const highLabel = isDocksMetric ? `${Math.round(maxVal)}+ docks` : `${Math.round(maxVal)}+ bikes`;
+    const gradientColors = isDocksMetric
+        ? 'linear-gradient(to right, rgb(220,60,60), rgb(140,130,70), rgb(40,200,80))'
+        : 'linear-gradient(to right, rgb(220,60,100), rgb(140,120,160), rgb(40,180,220))';
+    html += `<div class="ins-heatmap-legend"><span>${lowLabel}</span><div class="ins-heatmap-legend-bar" style="background:${gradientColors};"></div><span>${highLabel}</span></div>`;
+
+    container.innerHTML = html;
+}
+
+// ============================================================
+// Section 5: Prediction Models
+// ============================================================
+
+async function loadSection5() {
+    try {
+        const data = await getInsightsCh5();
+        const cc = chartColors();
+
+        // --- Nowcast card ---
+        if (data.nowcast) {
+            const nc = data.nowcast;
+            setText('model-nc-name', nc.name);
+            setText('model-nc-mae', nc.mae.toFixed(2));
+            setText('model-nc-rmse', nc.rmse.toFixed(2));
+            setText('model-nc-r2', nc.r2.toFixed(3));
+            setText('model-nc-features', nc.features?.length || '--');
+            setText('model-nc-why',
+                `Wins on accuracy (lowest MAE) because it uses the current dock count as its strongest input: the best predictor of where docks will be in 15 minutes is where they are right now.`
+            );
+
+            // Runner-ups
+            if (data.all_nowcast) {
+                const runners = data.all_nowcast.filter(m => !m.model.includes(nc.name));
+                setHtml('model-nc-runners', runners.map(m =>
+                    `<div class="ins-model-runnerup-item"><span>${m.model.replace('Nowcast / ', '')}</span><span>MAE ${m.mae.toFixed(2)}</span></div>`
+                ).join(''));
+            }
+        }
+
+        // --- Forecast card ---
+        if (data.forecast) {
+            const fc = data.forecast;
+            setText('model-fc-name', fc.name);
+            setText('model-fc-mae', fc.mae.toFixed(2));
+            setText('model-fc-rmse', fc.rmse.toFixed(2));
+            setText('model-fc-r2', fc.r2.toFixed(3));
+            setText('model-fc-features', fc.features?.length || '--');
+            setText('model-fc-why',
+                `Without live dock counts, tree models overfit to noise in temporal features. The baseline, averaging historical patterns by station, hour, and weekday, proves most robust for planning ahead.`
+            );
+
+            if (data.all_forecast) {
+                const runners = data.all_forecast.filter(m => !m.model.includes(fc.name));
+                setHtml('model-fc-runners', runners.map(m =>
+                    `<div class="ins-model-runnerup-item"><span>${m.model.replace('Forecast / ', '')}</span><span>MAE ${m.mae.toFixed(2)}</span></div>`
+                ).join(''));
+            }
+        }
+
+        // --- Model comparison bar chart ---
+        if (data.all_nowcast && data.all_forecast) {
+            // Get unique model short names
+            const ncModels = data.all_nowcast.map(m => ({ label: m.model.replace('Nowcast / ', ''), mae: m.mae }));
+            const fcModels = data.all_forecast.map(m => ({ label: m.model.replace('Forecast / ', ''), mae: m.mae }));
+            const labels = ncModels.map(m => m.label);
+
+            new Chart(document.getElementById('chart-model-compare'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Nowcast MAE',
+                            data: ncModels.map(m => m.mae),
+                            backgroundColor: neonColor('blueBar'),
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Forecast MAE',
+                            data: fcModels.map(m => m.mae),
+                            backgroundColor: neonColor('orangeBar'),
+                            borderRadius: 4,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: cc.textFaint }, grid: { display: false } },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: cc.textFaint },
+                            grid: { color: cc.grid },
+                            title: { display: true, text: 'MAE (docks)', color: cc.textFaint, font: { size: 11 } },
+                        },
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 }, color: cc.text } },
+                        tooltip: {
+                            callbacks: {
+                                label: item => `${item.dataset.label}: ${item.parsed.y.toFixed(2)}`,
+                            },
+                        },
+                    },
+                },
+            });
+        }
+    } catch (e) {
+        console.error('Section 5 failed:', e);
+    }
+}
+
+// ============================================================
+// Section 6: Feature Analysis
+// ============================================================
+
+async function loadSection6() {
+    const cc = chartColors();
+
+    // Load all data in parallel
+    const [ch5, ch3, corrStats] = await Promise.all([
+        getInsightsCh5().catch(() => null),
+        getInsightsCh3().catch(() => null),
+        getCorrelationStats().catch(() => null),
+    ]);
+
+    // --- 6a: Nowcast feature importance ---
+    if (ch5 && ch5.feature_importance && ch5.feature_importance.length > 0) {
+        const ncName = ch5.nowcast?.name || 'Nowcast';
+        setText('feat-nc-chart-title', `Feature importance – ${ncName} model`);
+
+        const feats = ch5.feature_importance;
+        const topFeat = feats[0];
+        const isLagDominant = topFeat && topFeat.feature.includes('lag');
+
+        if (isLagDominant) {
+            setText('feat-nc-intro',
+                `The ${ncName} model relies heavily on one feature: the current dock count. In short-horizon time-series forecasting, the most recent observation is the strongest signal. The model's value is in the precise adjustments it makes for time-of-day, station characteristics, and weather.`
+            );
+        } else {
+            setText('feat-nc-intro',
+                `The ${ncName} model distributes importance across several features, with ${topFeat.feature} leading.`
+            );
+        }
+
+        const labels = feats.map(f => f.feature.replace(/_/g, ' '));
+        const values = feats.map(f => f.importance);
+
+        new Chart(document.getElementById('chart-feat-nc'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: feats.map((f, i) => {
+                        const c = neonColor('blue');
+                        return i === 0 ? c : (c + '66');
+                    }),
+                    borderRadius: 4,
+                }],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { color: cc.textFaint },
+                        grid: { color: cc.grid },
+                        title: { display: true, text: 'Importance (Gini)', color: cc.textFaint, font: { size: 11 } },
+                    },
+                    y: {
+                        ticks: { color: cc.textFaint, font: { size: 10 } },
+                        grid: { display: false },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: item => `Importance: ${item.parsed.x.toFixed(4)}`,
+                        },
+                    },
+                },
+            },
+        });
+
+        if (isLagDominant) {
+            const pct = (topFeat.importance * 100).toFixed(0);
+            setText('feat-nc-takeaway',
+                `The lag feature (current empty docks) accounts for ${pct}% of model importance. Temporal and weather features make the critical difference in edge cases, predicting the transition from "space available" to "full" 15 minutes before it happens.`
+            );
+        } else {
+            setText('feat-nc-takeaway',
+                `${topFeat.feature.replace(/_/g, ' ')} is the most important feature at ${(topFeat.importance * 100).toFixed(0)}% importance.`
+            );
+        }
+    }
+
+    // --- 6b: Forecast feature importance ---
+    if (ch5 && ch5.forecast) {
+        const fcName = ch5.forecast?.name || 'Forecast';
+        setText('feat-fc-chart-title', `Feature breakdown – ${fcName} model`);
+
+        const isBaseline = fcName.toLowerCase().includes('baseline') || fcName.toLowerCase().includes('historical') || fcName.toLowerCase().includes('average');
+
+        if (isBaseline) {
+            setText('feat-fc-intro',
+                `The ${fcName} model groups historical observations by station, hour, and weekday, then predicts the mean of each group. No weather features are used, because with 24 days of data the historical average outperforms tree-based models that try to learn weather effects.`
+            );
+
+            setHtml('feat-fc-content', `
+                <div class="ins-baseline-diagram">
+                    <div class="ins-baseline-box">
+                        <div class="ins-baseline-box-label">Station</div>
+                        <div class="ins-baseline-box-value">21 stations</div>
+                    </div>
+                    <div class="ins-baseline-arrow">&times;</div>
+                    <div class="ins-baseline-box">
+                        <div class="ins-baseline-box-label">Hour</div>
+                        <div class="ins-baseline-box-value">24 hours</div>
+                    </div>
+                    <div class="ins-baseline-arrow">&times;</div>
+                    <div class="ins-baseline-box">
+                        <div class="ins-baseline-box-label">Weekday</div>
+                        <div class="ins-baseline-box-value">7 days</div>
+                    </div>
+                    <div class="ins-baseline-arrow">&rarr;</div>
+                    <div class="ins-baseline-box">
+                        <div class="ins-baseline-box-label">Prediction</div>
+                        <div class="ins-baseline-box-value">mean(docks)</div>
+                    </div>
+                </div>
+            `);
+
+            setText('feat-fc-takeaway',
+                `3,528 lookup groups (21 × 24 × 7). Simple but effective. Commuter patterns are highly regular, and the historical average captures this structure with zero risk of overfitting.`
+            );
+        } else if (ch5.forecast_importance && ch5.forecast_importance.length > 0) {
+            // Tree-based model - show actual importances
+            const feats = ch5.forecast_importance;
+            const labels = feats.map(f => f.feature.replace(/_/g, ' '));
+            const values = feats.map(f => f.importance);
+
+            setText('feat-fc-intro',
+                `The ${fcName} model uses temporal and weather features to predict dock availability hours ahead.`
+            );
+
+            setHtml('feat-fc-content', `<canvas id="chart-feat-fc" height="220"></canvas>`);
+
+            new Chart(document.getElementById('chart-feat-fc'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: neonColor('amberBar'),
+                        borderRadius: 4,
+                    }],
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true, ticks: { color: cc.textFaint }, grid: { color: cc.grid } },
+                        y: { ticks: { color: cc.textFaint, font: { size: 10 } }, grid: { display: false } },
+                    },
+                    plugins: { legend: { display: false } },
+                },
+            });
+
+            setText('feat-fc-takeaway', `${feats[0].feature.replace(/_/g, ' ')} is the dominant feature for the forecast model.`);
+        }
+    }
+
+    // --- 6c: Weather correlations (Chart.js horizontal bar) ---
+    if (corrStats) {
+        const corrVars = [
+            { key: 'temp_corr', label: 'Temperature', color: '#2563eb' },
+            { key: 'wind_corr', label: 'Wind speed', color: '#0d9488' },
+            { key: 'humidity_corr', label: 'Humidity', color: '#d97706' },
+            { key: 'rain_corr', label: 'Precipitation', color: '#7c3aed' },
+        ];
+
+        const values = corrVars.map(v => corrStats[v.key] ?? 0);
+        const minVal = Math.min(...values);
+        const maxVal = Math.max(...values);
+        // Tight axis: round outward to nearest 0.1 with one tick of padding
+        const xMin = Math.floor(minVal * 10 - 1) / 10;
+        const xMax = Math.ceil(maxVal * 10 + 1) / 10;
+
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark' ||
+            (!document.documentElement.getAttribute('data-bs-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+        const tickColor = isDark ? '#a8a8a8' : '#666';
+        const zeroColor = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)';
+
+        const ctx = document.getElementById('chart-corr');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: corrVars.map(v => v.label),
+                datasets: [{
+                    data: values,
+                    backgroundColor: corrVars.map(v => v.color),
+                    borderRadius: 4,
+                    barThickness: 36,
+                    maxBarThickness: 40,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { right: 8 } },
+                scales: {
+                    x: {
+                        min: xMin,
+                        max: xMax,
+                        grid: {
+                            color: ctx => ctx.tick.value === 0 ? zeroColor : gridColor,
+                            lineWidth: ctx => ctx.tick.value === 0 ? 2 : 1,
+                        },
+                        ticks: {
+                            color: tickColor,
+                            font: { size: 11 },
+                            callback: v => v === 0 ? '0' : (v > 0 ? '+' : '') + v.toFixed(1),
+                            stepSize: 0.1,
+                        },
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            color: tickColor,
+                            font: { size: 13, weight: 500 },
+                        },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => 'r = ' + (ctx.raw >= 0 ? '+' : '') + ctx.raw.toFixed(3),
+                        }
+                    },
+                    // Inline data labels on bars
+                    afterDraw: null,
+                },
+            },
+            plugins: [{
+                id: 'barLabels',
+                afterDraw(chart) {
+                    const { ctx: c, data, scales: { x, y } } = chart;
+                    c.save();
+                    c.font = '700 12px system-ui, sans-serif';
+                    c.textBaseline = 'middle';
+                    data.datasets[0].data.forEach((val, i) => {
+                        const meta = chart.getDatasetMeta(0).data[i];
+                        const yPos = meta.y;
+                        const xZero = x.getPixelForValue(0);
+                        const xEnd = meta.x;
+                        const barW = Math.abs(xEnd - xZero);
+                        const label = (val >= 0 ? '+' : '') + val.toFixed(3);
+                        const textW = c.measureText(label).width;
+                        if (barW > textW + 12) {
+                            // Inside bar
+                            c.fillStyle = '#fff';
+                            c.textAlign = val < 0 ? 'left' : 'right';
+                            const xText = val < 0 ? xEnd + 6 : xEnd - 6;
+                            c.fillText(label, xText, yPos);
+                        } else {
+                            // Outside bar
+                            c.fillStyle = tickColor;
+                            c.textAlign = val < 0 ? 'right' : 'left';
+                            const xText = val < 0 ? xEnd - 6 : xEnd + 6;
+                            c.fillText(label, xText, yPos);
+                        }
+                    });
+                    c.restore();
+                }
+            }],
+        });
+
+        // Dynamic interpretation text
+        const labeled = corrVars.map(v => ({
+            label: v.label,
+            r: corrStats[v.key] ?? 0,
+        }));
+        const strong = labeled.filter(v => Math.abs(v.r) >= 0.5);
+        const moderate = labeled.filter(v => Math.abs(v.r) >= 0.3 && Math.abs(v.r) < 0.5);
+        const weak = labeled.filter(v => Math.abs(v.r) < 0.3);
+
+        function describeCorr(v) {
+            const dir = v.r < 0 ? 'negative' : 'positive';
+            const strength = Math.abs(v.r) >= 0.5 ? 'strong' : 'moderate';
+            return `${v.label} shows a ${strength} ${dir} correlation (${v.r >= 0 ? '+' : ''}${v.r.toFixed(2)})`;
+        }
+
+        let noteText = '';
+        const notable = [...strong, ...moderate];
+        if (notable.length === 0) {
+            noteText = 'All correlations are weak (|r| < 0.3). Time of day and station location dominate dock availability far more than weather.';
+        } else {
+            noteText = notable.map(describeCorr).join('. ') + '.';
+            if (weak.length > 0) {
+                const weakNames = weak.map(v => v.label).join(' and ');
+                noteText += ` ${weakNames.charAt(0).toUpperCase() + weakNames.slice(1)} show${weak.length === 1 ? 's' : ''} weak effects.`;
+            }
+        }
+
+        const noteEl = document.getElementById('corr-note');
+        noteEl.textContent = noteText;
+        noteEl.style.display = '';
+    }
+
+    // --- 6d: Sensor validation scatter plot ---
+    if (ch3 && ch3.sensor_vs_api && ch3.sensor_vs_api.length > 0) {
+        const points = ch3.sensor_vs_api.map(p => ({
+            x: parseFloat(p.api_temp),
+            y: parseFloat(p.sensor_temp),
+        }));
+
+        new Chart(document.getElementById('chart-sensor'), {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    data: points,
+                    backgroundColor: neonColor('orangeBg'),
+                    borderColor: neonColor('orange'),
+                    borderWidth: 1,
+                    pointRadius: 3,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: { color: cc.textFaint },
+                        grid: { color: cc.grid },
+                        title: { display: true, text: 'Open-Meteo API temperature (°C)', color: cc.textFaint, font: { size: 11 } },
+                    },
+                    y: {
+                        ticks: { color: cc.textFaint },
+                        grid: { color: cc.grid },
+                        title: { display: true, text: 'KY-028 sensor temperature (°C)', color: cc.textFaint, font: { size: 11 } },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: item => `API: ${item.parsed.x.toFixed(1)}°C, Sensor: ${item.parsed.y.toFixed(1)}°C`,
+                        },
+                    },
+                },
+            },
+        });
+
+        const r = ch3.sensor_corr;
+        if (r != null) {
+            setText('sensor-takeaway',
+                `The IoT sensor validated the weather API data source with r = ${r.toFixed(2)}, confirming the API is reliable for model training. The sensor was retired after 16 days. The model uses API temperature for production reliability.`
+            );
+        }
+    } else {
+        setText('sensor-takeaway', 'Sensor validation data not available (requires database connection).');
+    }
+}
+
+// ============================================================
+// Section 7: Limitations (dynamic values)
+// ============================================================
+
+async function loadSection7() {
+    try {
+        const [ch5, ch3] = await Promise.all([
+            getInsightsCh5().catch(() => null),
+            getInsightsCh3().catch(() => null),
+        ]);
+
+        if (ch5) {
+            // Forecast MAE in limitations
+            if (ch5.forecast) {
+                const mae = ch5.forecast.mae;
+                setText('limit-fc-mae', `\u00B1${mae.toFixed(1)}`);
+            }
+
+            // Honest assessment
+            if (ch5.nowcast) {
+                setText('assess-nc-name', ch5.nowcast.name);
+                setText('assess-nc-mae', ch5.nowcast.mae.toFixed(2));
+            }
+            if (ch5.forecast) {
+                setText('assess-fc-name', ch5.forecast.name);
+                setText('assess-fc-mae', ch5.forecast.mae.toFixed(2));
+            }
+        }
+
+        // Sensor correlation in decision card
+        if (ch3 && ch3.sensor_corr != null) {
+            setText('decision-sensor-r', ch3.sensor_corr.toFixed(2));
+        }
+    } catch (e) {
+        console.error('Section 7 failed:', e);
+    }
+}
+
+// ============================================================
+// Init
+// ============================================================
+
+let _revealed = false;
+function revealPage() {
+    if (_revealed) return;
+    _revealed = true;
+    const loader = document.getElementById('page-loader');
+    const nav = document.getElementById('ins-nav');
+    const content = document.getElementById('ins-content');
+    if (loader) loader.classList.add('fade-out');
+    setTimeout(() => {
+        if (loader) loader.style.display = 'none';
+        if (nav) nav.style.display = '';
+        if (content) content.style.display = '';
+        // Set up scroll spy after elements are visible so offsetTop works
+        requestAnimationFrame(() => setupScrollSpy());
+    }, 300);
+}
+
+// ============================================================
+// Deeper Analysis (Section 8)
+// ============================================================
+
+async function loadDeeperAnalysis() {
+    const cc = chartColors();
+    try {
+        const data = await getInsightsCh6();
+
+        // --- Weekday vs Weekend ---
+        if (data.weekday_hourly && data.weekend_hourly) {
+            const hours = [];
+            for (let h = 6; h <= 21; h++) hours.push(h);
+            const wdMap = {};
+            data.weekday_hourly.forEach(r => { wdMap[r.hour] = parseFloat(r.avg_empty_docks); });
+            const weMap = {};
+            data.weekend_hourly.forEach(r => { weMap[r.hour] = parseFloat(r.avg_empty_docks); });
+
+            new Chart(document.getElementById('chart-weekday-weekend'), {
+                type: 'line',
+                data: {
+                    labels: hours.map(h => `${String(h).padStart(2,'0')}:00`),
+                    datasets: [
+                        {
+                            label: 'Weekdays (Mon–Fri)',
+                            data: hours.map(h => wdMap[h] ?? null),
+                            borderColor: neonColor('red'),
+                            borderWidth: 2.5,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.3,
+                            backgroundColor: 'transparent',
+                        },
+                        {
+                            label: 'Weekends (Sat–Sun)',
+                            data: hours.map(h => weMap[h] ?? null),
+                            borderColor: neonColor('blue'),
+                            borderWidth: 2.5,
+                            borderDash: [5, 3],
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.3,
+                            backgroundColor: neonColor('blueBg'),
+                            fill: true,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: cc.textFaint, maxRotation: 0 } },
+                        y: { beginAtZero: true, grid: { color: cc.grid }, ticks: { color: cc.textFaint, stepSize: 5 }, title: { display: true, text: 'Avg empty docks', color: cc.textFaint, font: { size: 10 } } },
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'line', font: { size: 10 }, color: cc.text, padding: 14 } },
+                        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} docks` } },
+                    },
+                },
+            });
+
+            const wdMorning = hours.filter(h => h >= 8 && h <= 10).map(h => wdMap[h] || 0);
+            const weMorning = hours.filter(h => h >= 8 && h <= 10).map(h => weMap[h] || 0);
+            const wdAvg = wdMorning.reduce((a, b) => a + b, 0) / (wdMorning.length || 1);
+            const weAvg = weMorning.reduce((a, b) => a + b, 0) / (weMorning.length || 1);
+            setText('weekday-weekend-takeaway',
+                `Weekend mornings show ${(weAvg - wdAvg).toFixed(1)} more docks available on average (8–10 AM). The commuter rush disappears, making morning scarcity a purely weekday phenomenon.`
+            );
+        }
+
+        // --- Temperature bins ---
+        if (data.cold_hourly && data.warm_hourly) {
+            const hours = [];
+            for (let h = 6; h <= 19; h++) hours.push(h);
+            const coldMap = {};
+            data.cold_hourly.forEach(r => { coldMap[r.hour] = parseFloat(r.avg_empty_docks); });
+            const warmMap = {};
+            data.warm_hourly.forEach(r => { warmMap[r.hour] = parseFloat(r.avg_empty_docks); });
+
+            const counts = data.temp_day_counts || {};
+
+            new Chart(document.getElementById('chart-temp-bins'), {
+                type: 'line',
+                data: {
+                    labels: hours.map(h => `${String(h).padStart(2,'0')}:00`),
+                    datasets: [
+                        {
+                            label: `Cold days <10°C (${counts.cold_days || 0} days)`,
+                            data: hours.map(h => coldMap[h] ?? null),
+                            borderColor: neonColor('cyan'),
+                            borderWidth: 2.5,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.3,
+                            backgroundColor: neonColor('cyanBg'),
+                            fill: true,
+                        },
+                        {
+                            label: `Warm days >15°C (${counts.warm_days || 0} days)`,
+                            data: hours.map(h => warmMap[h] ?? null),
+                            borderColor: neonColor('red'),
+                            borderWidth: 2.5,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.3,
+                            backgroundColor: neonColor('redBg'),
+                            fill: true,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: cc.textFaint, maxRotation: 0 } },
+                        y: { beginAtZero: true, grid: { color: cc.grid }, ticks: { color: cc.textFaint, stepSize: 5 }, title: { display: true, text: 'Avg empty docks', color: cc.textFaint, font: { size: 10 } } },
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'line', font: { size: 10 }, color: cc.text, padding: 14 } },
+                        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} docks` } },
+                    },
+                },
+            });
+
+            setText('temp-bins-takeaway',
+                `Warmer days tend to have fewer available docks, likely due to increased cycling activity. Cold mornings may discourage casual riders, leaving more parking for regular commuters.`
+            );
+        }
+
+        // --- Volatility ---
+        if (data.volatility && data.volatility.length > 0) {
+            const sorted = [...data.volatility].sort((a, b) => b.stddev_docks - a.stddev_docks);
+            const top = sorted.slice(0, 12);
+            const labels = top.map(s => s.station_name.split(',')[0]);
+            const values = top.map(s => parseFloat(s.stddev_docks));
+            const colors = top.map(s =>
+                PREFERRED_IDS.includes(s.station_id) ? neonColor('highlight') : neonColor('grey')
+            );
+
+            new Chart(document.getElementById('chart-volatility'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderRadius: 3,
+                        borderSkipped: false,
+                        barPercentage: 0.65,
+                    }],
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: ctx => `Std dev: ${ctx.parsed.x} docks` } },
+                    },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: cc.grid }, ticks: { color: cc.textFaint } },
+                        y: { grid: { display: false }, ticks: { color: cc.textFaint, font: { size: 10 } } },
+                    },
+                },
+            });
+
+            const mostVolatile = sorted[0]?.station_name.split(',')[0];
+            const leastVolatile = sorted[sorted.length - 1]?.station_name.split(',')[0];
+            setText('volatility-takeaway',
+                `${mostVolatile} is the most unpredictable station during morning rush (highest standard deviation). ${leastVolatile} is the most stable. High-volatility stations carry greater risk for commuters.`
+            );
+        }
+
+        // --- Reliability ---
+        if (data.reliability && data.reliability.length > 0) {
+            const sorted = [...data.reliability].sort((a, b) => b.pct_reliable - a.pct_reliable);
+            const labels = sorted.map(s => s.station_name.split(',')[0]);
+            const values = sorted.map(s => parseFloat(s.pct_reliable));
+            const colors = sorted.map(s => {
+                const v = parseFloat(s.pct_reliable);
+                if (PREFERRED_IDS.includes(s.station_id)) return neonColor('highlight');
+                return v >= 80 ? neonColor('green') : v >= 50 ? neonColor('amber') : neonColor('red');
+            });
+
+            new Chart(document.getElementById('chart-reliability'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderRadius: 3,
+                        borderSkipped: false,
+                        barPercentage: 0.65,
+                    }],
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: ctx => `${ctx.parsed.x}% of mornings with ≥5 docks` } },
+                    },
+                    scales: {
+                        x: { beginAtZero: true, max: 100, grid: { color: cc.grid }, ticks: { color: cc.textFaint, callback: v => v + '%' } },
+                        y: { grid: { display: false }, ticks: { color: cc.textFaint, font: { size: 10 } } },
+                    },
+                },
+            });
+
+            const best = sorted[0];
+            const worst = sorted[sorted.length - 1];
+            setText('reliability-takeaway',
+                `${best?.station_name.split(',')[0]} has docking space at 9 AM on ${best?.pct_reliable}% of weekdays. ${worst?.station_name.split(',')[0]} only manages ${worst?.pct_reliable}%. Station selection based on reliability, not just proximity, reduces the chance of arriving at a full dock.`
+            );
+        }
+
+    } catch (e) {
+        console.error('Deeper analysis load failed:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    Promise.all([
+        loadHeroStats().catch(() => {}),
+        loadDataSources().catch(() => {}),
+        loadModelInfo().catch(() => {}),
+    ]).then(revealPage);
+    loadSection4();
+    loadSection5();
+    loadSection6();
+    loadSection7();
+    loadDeeperAnalysis();
+});
+</script>
+{% endblock %}

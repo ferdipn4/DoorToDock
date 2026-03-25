@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Map{% endblock %}
+
+{% block content %}
+<div class="map-tab">
+    <div id="map-full" class="map-tab-canvas"></div>
+
+    <!-- Legend overlay -->
+    <div class="map-tab-legend" id="map-tab-legend">
+        <div class="map-tab-legend-row">
+            <div class="map-legend-item">
+                <span class="map-legend-dot" style="background: var(--danger);"></span>Full
+            </div>
+            <div class="map-legend-item">
+                <span class="map-legend-dot" style="background: var(--warning);"></span>Low
+            </div>
+            <div class="map-legend-item">
+                <span class="map-legend-dot" style="background: var(--success);"></span>Available
+            </div>
+            <div class="map-legend-item">
+                <span class="map-legend-dot map-legend-dot-rec"></span>Recommended
+            </div>
+        </div>
+        <div class="map-tab-legend-time" id="map-prediction-time">--</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+.map-tab {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.map-tab-canvas {
+    width: 100%;
+    height: 100%;
+    /* Mobile: fill viewport minus bottom nav */
+    min-height: calc(100vh - var(--bottomnav-height) - env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+    .map-tab-canvas {
+        min-height: 100vh;
+    }
+}
+
+/* ── Legend overlay ── */
+.map-tab-legend {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 800;
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: var(--radius-lg);
+    padding: 8px 16px;
+    border: 0.5px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme="light"]) .map-tab-legend {
+        background-color: rgba(26, 26, 26, 0.92);
+    }
+}
+[data-bs-theme="dark"] .map-tab-legend {
+    background-color: rgba(26, 26, 26, 0.92);
+}
+
+[data-bs-theme="dark"] .map-legend-dot-rec {
+    box-shadow: 0 0 0 2px rgba(26,26,26,0.9), 0 0 0 3.5px var(--info);
+}
+
+/* Dark popup fix */
+[data-bs-theme="dark"] .map-tab .leaflet-popup-content-wrapper,
+[data-bs-theme="dark"] .map-tab .leaflet-popup-tip {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Mobile: push legend above bottom nav */
+@media (max-width: 1023px) {
+    .map-tab-legend {
+        bottom: 16px;
+    }
+}
+
+.map-tab-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.map-tab-legend-time {
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+/* ── Shared legend dots (reuse from go.html) ── */
+.map-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.map-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.map-legend-dot-rec {
+    background: var(--info);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 0 0 3.5px var(--info);
+}
+
+/* ── Custom popup styling ── */
+.map-tab .leaflet-popup-content-wrapper {
+    border-radius: var(--radius-lg);
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    border: 0.5px solid var(--border);
+}
+
+.map-tab .leaflet-popup-content {
+    margin: 0;
+    min-width: 180px;
+}
+
+.map-tab .leaflet-popup-tip {
+    box-shadow: none;
+}
+
+.station-popup {
+    padding: 12px 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.station-popup-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.station-popup-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 500;
+    background-color: var(--info-bg);
+    color: var(--info);
+}
+
+.station-popup-docks {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.station-popup-docks-num {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.station-popup-docks-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.station-popup-meta {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.station-popup-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/map_tab.js') }}"></script>
+{% endblock %}

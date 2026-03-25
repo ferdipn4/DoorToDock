@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="page-loader" id="page-loader">
+    <div class="page-loader-spinner"></div>
+    <div class="page-loader-text">Loading settings...</div>
+</div>
+<div class="settings-page" id="settings-content" style="display:none">
+
+    <!-- Header -->
+    <h1 class="settings-title">Settings</h1>
+
+    <!-- ═══ Station preferences ═══ -->
+    <div class="settings-section">
+        <div class="settings-section-header">
+            <div class="settings-section-label">Station priority order</div>
+            <div class="settings-section-desc">Drag to reorder. Top stations get priority in recommendations.</div>
+        </div>
+        <div class="station-reorder-list" id="station-reorder-list">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+
+    <!-- ═══ Commute defaults ═══ -->
+    <div class="settings-section">
+        <div class="settings-section-header">
+            <div class="settings-section-label">Commute defaults</div>
+        </div>
+
+        <div class="settings-field">
+            <label class="settings-field-label" for="cycling-time">Cycling time</label>
+            <div class="settings-field-row">
+                <input type="number" class="settings-input settings-input-num" id="cycling-time" min="1" max="60" value="15">
+                <span class="settings-field-unit">min</span>
+            </div>
+            <div class="settings-field-help">Estimated ride time from home to the Imperial College area</div>
+        </div>
+
+        <div class="settings-field">
+            <label class="settings-field-label" for="walking-speed">Walking speed</label>
+            <select class="settings-input settings-input-select" id="walking-speed">
+                <option value="5">Slow (5 min/km)</option>
+                <option value="4" selected>Normal (4 min/km)</option>
+                <option value="3">Fast (3 min/km)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ═══ Telegram connection ═══ -->
+    <div class="settings-section">
+        <div class="settings-section-header">
+            <div class="settings-section-label">Telegram connection</div>
+        </div>
+
+        <div class="settings-status-row">
+            <span class="settings-status-dot" id="tg-dot"></span>
+            <span class="settings-status-text" id="tg-status">--</span>
+        </div>
+        <div class="settings-meta" id="tg-bot"></div>
+        <div class="settings-meta" id="tg-last"></div>
+        <button class="settings-btn" id="tg-test-btn">
+            <i class="bi bi-send"></i> Test notification
+        </button>
+        <div class="settings-meta" style="margin-top: 6px; font-size: 12px; color: var(--text-tertiary);">
+            This will send a push notification to your phone instantly.
+        </div>
+    </div>
+
+    <!-- ═══ Motion sensor ═══ -->
+    <div class="settings-section">
+        <div class="settings-section-header">
+            <div class="settings-section-label">Motion sensor</div>
+        </div>
+
+        <div class="settings-status-row">
+            <span class="settings-status-dot" id="sensor-dot"></span>
+            <span class="settings-status-text" id="sensor-status">--</span>
+        </div>
+        <div class="settings-meta" id="sensor-last"></div>
+        <div class="settings-meta" id="sensor-count"></div>
+    </div>
+
+    <!-- ═══ Mode auto-switching ═══ -->
+    <div class="settings-section">
+        <div class="settings-section-header">
+            <div class="settings-section-label">Mode auto-switching</div>
+        </div>
+
+        <div class="settings-toggle-row">
+            <label class="settings-field-label" for="auto-switch-toggle">Auto-switch morning/evening mode</label>
+            <label class="settings-toggle">
+                <input type="checkbox" id="auto-switch-toggle" checked>
+                <span class="settings-toggle-slider"></span>
+            </label>
+        </div>
+
+        <div class="settings-field" id="switch-time-field">
+            <label class="settings-field-label" for="switch-time">Switch time</label>
+            <input type="time" class="settings-input settings-input-time" id="switch-time" value="12:00">
+        </div>
+    </div>
+
+    <!-- ═══ Appearance ═══ -->
+    <div class="settings-section">
+        <div class="settings-section-header">
+            <div class="settings-section-label">Appearance</div>
+        </div>
+
+        <div class="ds-segmented settings-appearance" id="appearance-control">
+            <button class="ds-segmented-btn" data-theme="light">
+                <i class="bi bi-sun"></i> Light
+            </button>
+            <button class="ds-segmented-btn" data-theme="dark">
+                <i class="bi bi-moon"></i> Dark
+            </button>
+            <button class="ds-segmented-btn active" data-theme="system">
+                <i class="bi bi-circle-half"></i> System
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══ Tour ═══ -->
+    <div class="settings-section">
+        <button class="settings-btn" id="replay-tour-btn" onclick="if(window.startTour)startTour()">
+            <i class="bi bi-signpost-2"></i> Replay tour
+        </button>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+/* ── Settings page ── */
+.settings-page {
+    padding: 16px 16px 80px;
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+    .settings-page {
+        padding: 24px 32px 40px;
+    }
+}
+
+.settings-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 0 20px 0;
+}
+
+/* ── Sections ── */
+.settings-section {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.settings-section-header {
+    margin-bottom: 12px;
+}
+
+.settings-section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.settings-section-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+}
+
+/* ── Station reorder list ── */
+.station-reorder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.reorder-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    cursor: grab;
+    user-select: none;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
+.reorder-item:active {
+    cursor: grabbing;
+}
+
+.reorder-item.dragging {
+    background: var(--bg-tertiary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    z-index: 10;
+}
+
+.reorder-item.drag-over {
+    border-top: 2px solid var(--info);
+    padding-top: 6px;
+}
+
+.reorder-handle {
+    color: var(--text-tertiary);
+    font-size: 14px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.reorder-rank {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.reorder-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reorder-walk {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.reorder-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex-shrink: 0;
+}
+
+.reorder-arrow-btn {
+    background: none;
+    border: none;
+    padding: 0 2px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    line-height: 1;
+    border-radius: 3px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.reorder-arrow-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+.reorder-arrow-btn:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+/* ── Form fields ── */
+.settings-field {
+    margin-bottom: 14px;
+}
+
+.settings-field:last-child {
+    margin-bottom: 0;
+}
+
+.settings-field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.settings-field-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.settings-field-unit {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.settings-field-help {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+}
+
+.settings-input {
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.settings-input:focus {
+    border-color: var(--info);
+}
+
+.settings-input-num {
+    width: 70px;
+    text-align: center;
+}
+
+.settings-input-select {
+    width: 180px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239B9B9B' d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 26px;
+}
+
+.settings-input-time {
+    width: 120px;
+}
+
+/* ── Status rows ── */
+.settings-status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.settings-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.settings-status-dot.online {
+    background: var(--success);
+    box-shadow: 0 0 4px rgba(29, 158, 117, 0.4);
+}
+
+.settings-status-dot.offline {
+    background: var(--danger);
+    box-shadow: 0 0 4px rgba(226, 75, 74, 0.4);
+}
+
+.settings-status-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.settings-meta {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+    padding-left: 16px;
+}
+
+.settings-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--info);
+    background: var(--info-bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.settings-btn:hover {
+    opacity: 0.85;
+}
+
+.settings-btn:active {
+    opacity: 0.7;
+}
+
+.settings-btn.sent {
+    color: var(--success);
+    background: var(--success-bg);
+}
+
+/* ── Toggle switch ── */
+.settings-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.settings-toggle {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.settings-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.settings-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--bg-tertiary);
+    border-radius: 11px;
+    transition: background 0.2s;
+}
+
+.settings-toggle-slider::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s;
+}
+
+.settings-toggle input:checked + .settings-toggle-slider {
+    background: var(--info);
+}
+
+.settings-toggle input:checked + .settings-toggle-slider::before {
+    transform: translateX(18px);
+}
+
+/* ── Appearance segmented ── */
+.settings-appearance {
+    max-width: 320px;
+}
+
+.settings-appearance .ds-segmented-btn {
+    flex: 1;
+    gap: 4px;
+}
+
+.settings-appearance .ds-segmented-btn i {
+    font-size: 13px;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

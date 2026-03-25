@@ -1,0 +1,110 @@
+Door2Dock -- Model Evaluation Report
+======================================================================
+
+1. TEST SET RESULTS (80/20 chronological split)
+----------------------------------------------------------------------
+
+FORECAST models (temporal + weather + station, NO current state):
+                       model      MAE     RMSE       R2
+         Forecast / Baseline 3.146164 4.450530 0.792515
+    Forecast / Random Forest 3.579360 5.133035 0.723998
+Forecast / Gradient Boosting 3.497194 4.818413 0.756795
+
+Best: Baseline
+  -> Used for: Plan page (predicting hours/days ahead)
+
+NOWCAST models (same + current empty_docks):
+                      model      MAE     RMSE       R2
+         Nowcast / Baseline 3.146164 4.450530 0.792515
+    Nowcast / Random Forest 1.003589 1.674499 0.970628
+Nowcast / Gradient Boosting 0.916517 1.549373 0.974854
+
+Best: Gradient Boosting
+  -> Used for: Now page (predicting 15 min ahead with live data)
+
+
+2. CROSS-VALIDATION (TimeSeriesSplit, 3 folds)
+----------------------------------------------------------------------
+
+Forecast family (MAE per fold):
+  Baseline                5.13 / 3.49 / 3.24  mean=3.95 +/- 0.84
+  Random Forest           4.01 / 3.60 / 3.61  mean=3.74 +/- 0.19
+  Gradient Boosting       3.83 / 3.65 / 3.52  mean=3.67 +/- 0.13
+
+Nowcast family (MAE per fold):
+  Baseline                5.13 / 3.49 / 3.24  mean=3.95 +/- 0.84
+  Random Forest           1.07 / 1.01 / 0.96  mean=1.01 +/- 0.04
+  Gradient Boosting       0.95 / 1.01 / 0.87  mean=0.94 +/- 0.06
+
+
+3. RESIDUAL ANALYSIS
+----------------------------------------------------------------------
+
+Forecast:
+  Median residual:       -0.68 docks
+  Residual std:          4.38 docks
+  Worst hour:            18:00 (MAE=3.98)
+  Best hour:             06:00 (MAE=2.40)
+  Worst station:         Sloane Avenue (MAE=6.27)
+  Predictions within 2:  47.5%
+  Predictions within 5:  80.4%
+
+Nowcast:
+  Median residual:       -0.06 docks
+  Residual std:          1.55 docks
+  Worst hour:            12:00 (MAE=1.51)
+  Best hour:             02:00 (MAE=0.13)
+  Worst station:         Natural History Museum (MAE=1.47)
+  Predictions within 2:  87.5%
+  Predictions within 5:  98.7%
+
+
+4. SHAP FEATURE IMPORTANCE (mean |SHAP value|)
+----------------------------------------------------------------------
+
+Forecast:
+  total_docks             5.4782
+  hour_cos                3.4567
+  hour_sin                1.2510
+  station_enc             1.0834
+  weekday                 0.6611
+  hour                    0.4600
+  humidity                0.3919
+  is_weekend              0.3885
+  temperature             0.3800
+  wind_speed              0.3403
+  precipitation           0.0182
+
+Nowcast:
+  empty_docks_lag1        7.6941
+  hour_cos                0.4309
+  total_docks             0.2264
+  hour_sin                0.1622
+  station_enc             0.1461
+  hour                    0.1077
+  humidity                0.0941
+  weekday                 0.0736
+  temperature             0.0558
+  wind_speed              0.0431
+  is_weekend              0.0288
+  precipitation           0.0011
+
+
+5. DATASET
+----------------------------------------------------------------------
+  Total rows:  621,711
+  Train rows:  497,368
+  Test rows:   124,343
+  Stations:    21
+  Time span:   2026-02-25 17:12:00+00:00 -- 2026-03-21 00:11:00+00:00
+  Prediction horizon: T+15 min
+
+
+6. HYPERPARAMETERS
+----------------------------------------------------------------------
+  Random Forest:      n_estimators=200, max_depth=15, min_samples_leaf=5
+  Gradient Boosting:  n_estimators=300, max_depth=6, lr=0.1, min_samples_leaf=10
+  Baseline:           mean per (station, hour_rounded, weekday) group
+
+  Note: Hyperparameters were not tuned (no GridSearchCV).
+  TimeSeriesSplit CV confirms stability across folds.

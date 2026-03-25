@@ -1,0 +1,1309 @@
+{% extends "base.html" %}
+{% block title %}Go{% endblock %}
+
+{% block content %}
+<div class="go-layout">
+
+    <!-- Two-column body -->
+    <div class="go-body">
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- LEFT COLUMN: recommendation + map          -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="go-left">
+
+            <!-- Direction toggle -->
+            <div class="go-dir-toggle">
+                <button class="go-dir-btn go-dir-to active" id="btn-to">
+                    <i class="bi bi-arrow-down-circle"></i> To Imperial
+                </button>
+                <button class="go-dir-btn go-dir-from" id="btn-from">
+                    <i class="bi bi-bicycle"></i> From Imperial
+                </button>
+            </div>
+
+            <!-- STATE 1: To Imperial + Now -->
+            <div id="state-to-now">
+                <div id="to-now-skeleton" class="skel-hero-card skel-hero-blue">
+                    <div class="skel-bar" style="width: 100px; height: 10px;"></div>
+                    <div class="skel-bar" style="width: 70%; height: 20px; margin: 8px 0 12px;"></div>
+                    <div style="display: flex; gap: 16px; margin-bottom: 10px;">
+                        <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                        <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                    </div>
+                    <div class="skel-bar" style="width: 100%; height: 28px;"></div>
+                </div>
+                <div class="hero-card hero-blue" id="to-now-hero" style="display: none;">
+                    <div class="hero-label">DOCK YOUR BIKE AT</div>
+                    <div class="hero-station-name" id="to-now-name">--</div>
+                    <div class="hero-metrics">
+                        <div class="hero-metric">
+                            <span class="hero-metric-value text-ds-info" id="to-now-docks">--</span>
+                            <span class="hero-metric-label">empty docks in 15 min</span>
+                        </div>
+                        <div class="hero-metric">
+                            <span class="hero-metric-value" id="to-now-walk">--</span>
+                            <span class="hero-metric-label">walk to uni</span>
+                        </div>
+                    </div>
+                    <div class="hero-trip" id="to-now-trip">--</div>
+                </div>
+                <div id="to-now-error" style="display: none;">
+                    <div class="ds-error-state">
+                        <i class="bi bi-cloud-slash"></i>
+                        <p class="ds-error-title">Couldn't load predictions</p>
+                        <p class="ds-error-desc">Check your connection and try again</p>
+                        <button class="ds-retry-btn" id="to-now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
+                    </div>
+                </div>
+                <div id="to-now-all-full" class="ds-empty-state" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p class="ds-empty-title">All nearby stations are predicted full</p>
+                    <p class="ds-empty-desc">Consider leaving 10 minutes earlier or trying an alternative route</p>
+                </div>
+                <div id="to-now-weather-skeleton" class="weather-strip"><i class="bi bi-cloud"></i><span><span class="skel-bar-inline" style="width: 180px;"></span></span></div>
+                <div class="weather-strip" id="to-now-weather" style="display: none;">
+                    <i class="bi bi-cloud-rain"></i>
+                    <span id="to-now-weather-text">--</span>
+                </div>
+            </div>
+
+            <!-- STATE 2: From Imperial + Now -->
+            <div id="state-from-now" style="display: none;">
+                <div id="from-now-skeleton" class="skel-hero-card skel-hero-green">
+                    <div class="skel-bar" style="width: 100px; height: 10px;"></div>
+                    <div class="skel-bar" style="width: 70%; height: 20px; margin: 8px 0 12px;"></div>
+                    <div style="display: flex; gap: 16px; margin-bottom: 10px;">
+                        <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                        <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                    </div>
+                    <div class="skel-bar" style="width: 100%; height: 28px;"></div>
+                </div>
+                <div class="hero-card hero-green" id="from-now-hero" style="display: none;">
+                    <div class="hero-label">PICK UP A BIKE AT</div>
+                    <div class="hero-station-name" id="from-now-name">--</div>
+                    <div class="hero-metrics">
+                        <div class="hero-metric">
+                            <span class="hero-metric-value text-ds-info" id="from-now-bikes">--</span>
+                            <span class="hero-metric-label">bikes available now</span>
+                        </div>
+                        <div class="hero-metric">
+                            <span class="hero-metric-value" id="from-now-walk">--</span>
+                            <span class="hero-metric-label">walk from uni</span>
+                        </div>
+                    </div>
+                    <div class="hero-trip hero-trip-live">Live Santander Cycles data, no prediction needed</div>
+                </div>
+                <div id="from-now-error" style="display: none;">
+                    <div class="ds-error-state">
+                        <i class="bi bi-cloud-slash"></i>
+                        <p class="ds-error-title">Couldn't load station data</p>
+                        <p class="ds-error-desc">Check your connection and try again</p>
+                        <button class="ds-retry-btn" id="from-now-retry-btn"><i class="bi bi-arrow-clockwise"></i> Retry</button>
+                    </div>
+                </div>
+                <div id="from-now-weather-skeleton" class="weather-strip"><i class="bi bi-cloud"></i><span><span class="skel-bar-inline" style="width: 180px;"></span></span></div>
+                <div class="weather-strip" id="from-now-weather" style="display: none;">
+                    <i class="bi bi-cloud"></i>
+                    <span id="from-now-weather-text">--</span>
+                </div>
+            </div>
+
+            <!-- STATE 3: To Imperial + Plan -->
+            <div id="state-to-plan" style="display: none;">
+                <div class="plan-card">
+                    <div class="plan-step">
+                        <span class="plan-step-num">1</span>
+                        <div class="plan-step-content">
+                            <label class="plan-field-label">I NEED TO ARRIVE BY</label>
+                            <div class="plan-time-row">
+                                <div class="plan-time-picker">
+                                    <select class="plan-select" id="to-plan-hour"></select>
+                                    <span class="plan-time-sep">:</span>
+                                    <select class="plan-select" id="to-plan-minute"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="plan-step">
+                        <span class="plan-step-num">2</span>
+                        <div class="plan-step-content">
+                            <div class="plan-day-selector" id="to-plan-days"></div>
+                        </div>
+                    </div>
+                    <div class="weather-strip plan-weather-inline" id="to-plan-weather">
+                        <i class="bi bi-cloud"></i>
+                        <span id="to-plan-weather-text">Select a time to see forecast</span>
+                    </div>
+                    <div class="plan-step plan-step-btn">
+                        <span class="plan-step-num">3</span>
+                        <div class="plan-step-content">
+                            <button class="plan-scan-btn" id="to-plan-scan-btn">
+                                <i class="bi bi-search"></i> Get recommendation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Plan skeleton / empty state (static grey placeholders) -->
+                <div id="to-plan-empty" class="plan-empty-state">
+                    <i class="bi bi-clock plan-empty-icon"></i>
+                    <div class="plan-empty-text">Enter your time and tap Get recommendation</div>
+                    <div class="plan-empty-sub">We'll find the best station for you</div>
+                </div>
+                <!-- Plan loading skeleton (animated) -->
+                <div id="to-plan-loading" style="display: none;">
+                    <div class="skel-hero-card skel-hero-blue">
+                        <div class="skel-bar" style="width: 100px; height: 10px;"></div>
+                        <div class="skel-bar" style="width: 60%; height: 20px; margin: 8px 0 6px;"></div>
+                        <div class="skel-bar" style="width: 80%; height: 12px; margin-bottom: 12px;"></div>
+                        <div class="skel-bar" style="width: 100%; height: 8px; margin-bottom: 4px; border-radius: 4px;"></div>
+                        <div class="skel-bar" style="width: 100%; height: 28px;"></div>
+                    </div>
+                </div>
+                <div id="to-plan-result" style="display: none;">
+                    <div class="hero-card hero-blue" id="to-plan-hero">
+                        <div class="hero-label">LEAVE HOME BY</div>
+                        <div class="plan-hero-leave" id="to-plan-leave-by">--</div>
+                        <div class="plan-hero-subtitle" id="to-plan-subtitle">--</div>
+                        <div class="plan-timeline">
+                            <div class="plan-timeline-bar">
+                                <div class="plan-tl-seg plan-tl-cycle" id="to-plan-tl-cycle"></div>
+                                <div class="plan-tl-seg plan-tl-dock" id="to-plan-tl-dock"></div>
+                                <div class="plan-tl-seg plan-tl-walk" id="to-plan-tl-walk"></div>
+                            </div>
+                            <div class="plan-timeline-labels" id="to-plan-tl-labels"></div>
+                        </div>
+                        <div class="hero-trip" id="to-plan-arrival-strip">--</div>
+                    </div>
+                    <div class="plan-why-card" id="to-plan-why" style="display: none;">
+                        <div class="plan-why-label">WHY NOT CLOSER?</div>
+                        <div class="plan-why-text" id="to-plan-why-text"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE 4: From Imperial + Plan -->
+            <div id="state-from-plan" style="display: none;">
+                <div class="plan-card">
+                    <div class="plan-step">
+                        <span class="plan-step-num">1</span>
+                        <div class="plan-step-content">
+                            <label class="plan-field-label">I WANT TO LEAVE UNI AT</label>
+                            <div class="plan-time-row">
+                                <div class="plan-time-picker">
+                                    <select class="plan-select" id="from-plan-hour"></select>
+                                    <span class="plan-time-sep">:</span>
+                                    <select class="plan-select" id="from-plan-minute"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="plan-step">
+                        <span class="plan-step-num">2</span>
+                        <div class="plan-step-content">
+                            <div class="plan-day-selector" id="from-plan-days"></div>
+                        </div>
+                    </div>
+                    <div class="weather-strip plan-weather-inline" id="from-plan-weather">
+                        <i class="bi bi-cloud"></i>
+                        <span id="from-plan-weather-text">Select a time to see forecast</span>
+                    </div>
+                    <div class="plan-step plan-step-btn">
+                        <span class="plan-step-num">3</span>
+                        <div class="plan-step-content">
+                            <button class="plan-scan-btn" id="from-plan-scan-btn">
+                                <i class="bi bi-search"></i> Get recommendation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="from-plan-empty" class="plan-empty-state">
+                    <i class="bi bi-clock plan-empty-icon"></i>
+                    <div class="plan-empty-text">Enter your time and tap Get recommendation</div>
+                    <div class="plan-empty-sub">We'll find the best station for you</div>
+                </div>
+                <div id="from-plan-loading" style="display: none;">
+                    <div class="skel-hero-card skel-hero-green">
+                        <div class="skel-bar" style="width: 100px; height: 10px;"></div>
+                        <div class="skel-bar" style="width: 60%; height: 20px; margin: 8px 0 12px;"></div>
+                        <div style="display: flex; gap: 16px; margin-bottom: 10px;">
+                            <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                            <div style="flex:1; text-align:center;"><div class="skel-bar" style="width: 36px; height: 24px; margin: 0 auto 4px;"></div><div class="skel-bar" style="width: 60px; height: 8px; margin: 0 auto;"></div></div>
+                        </div>
+                        <div class="skel-bar" style="width: 100%; height: 28px;"></div>
+                    </div>
+                </div>
+                <div id="from-plan-result" style="display: none;">
+                    <div class="hero-card hero-green" id="from-plan-hero">
+                        <div class="hero-label">PICK UP A BIKE AT</div>
+                        <div class="hero-station-name" id="from-plan-name">--</div>
+                        <div class="hero-metrics">
+                            <div class="hero-metric">
+                                <span class="hero-metric-value text-ds-info" id="from-plan-bikes">--</span>
+                                <span class="hero-metric-label" id="from-plan-bikes-label">predicted bikes</span>
+                            </div>
+                            <div class="hero-metric">
+                                <span class="hero-metric-value" id="from-plan-walk">--</span>
+                                <span class="hero-metric-label">walk from uni</span>
+                            </div>
+                        </div>
+                        <div class="hero-trip">Walk to station only, no cycle time</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAP (fills remaining left column height) -->
+            <div class="go-map-wrap" id="minimap-wrap">
+                <div class="go-map" id="go-minimap"></div>
+                <button class="minimap-expand-btn" id="minimap-expand" title="Expand map">
+                    <i class="bi bi-arrows-angle-expand"></i>
+                </button>
+                <div class="map-legend" id="map-legend">
+                    <div class="map-legend-item">
+                        <span class="map-legend-dot" style="background: var(--danger);"></span>Full
+                    </div>
+                    <div class="map-legend-item">
+                        <span class="map-legend-dot" style="background: var(--warning);"></span>Low
+                    </div>
+                    <div class="map-legend-item">
+                        <span class="map-legend-dot" style="background: var(--success);"></span>Available
+                    </div>
+                    <div class="map-legend-item">
+                        <span class="map-legend-dot map-legend-dot-rec"></span>Recommended
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- RIGHT COLUMN: station list                 -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="go-right">
+
+            <!-- Now mode stations -->
+            <div id="stations-now">
+                <div class="station-list-sort-row" id="to-now-sort-row">
+                    <span class="station-list-header">OTHER SANTANDER CYCLES STATIONS</span>
+                    <div class="sort-toggle" id="to-now-sort">
+                        <button class="sort-btn active" data-sort="preference">By preference</button>
+                        <button class="sort-btn" data-sort="availability">By availability</button>
+                        <button class="sort-btn" data-sort="distance">By distance</button>
+                    </div>
+                </div>
+                <div class="station-list" id="to-now-stations"></div>
+                <div class="station-list-sort-row" id="from-now-sort-row" style="display: none;">
+                    <span class="station-list-header">OTHER SANTANDER CYCLES STATIONS</span>
+                    <div class="sort-toggle" id="from-now-sort">
+                        <button class="sort-btn active" data-sort="preference">By preference</button>
+                        <button class="sort-btn" data-sort="availability">By availability</button>
+                        <button class="sort-btn" data-sort="distance">By distance</button>
+                    </div>
+                </div>
+                <div class="station-list" id="from-now-stations" style="display: none;"></div>
+            </div>
+
+            <!-- Plan mode stations -->
+            <div id="stations-plan" style="display: none;">
+                <div id="plan-stations-empty" class="plan-stations-empty">
+                    <span>Stations will appear after you get a recommendation</span>
+                </div>
+                <div class="station-list-sort-row" id="to-plan-alts-header" style="display:none;">
+                    <span class="station-list-header">OTHER SANTANDER CYCLES STATIONS</span>
+                </div>
+                <div class="station-list" id="to-plan-alternatives" style="display:none;"></div>
+                <div class="station-list-sort-row" id="from-plan-alts-header" style="display: none;">
+                    <span class="station-list-header">OTHER SANTANDER CYCLES STATIONS</span>
+                </div>
+                <div class="station-list" id="from-plan-alternatives" style="display: none;"></div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+/* ═══════════════════════════════════════════════════
+   GO PAGE — Two-column layout on desktop
+   ═══════════════════════════════════════════════════ */
+
+.go-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 16px;
+}
+
+@media (min-width: 900px) {
+    .go-layout {
+        padding: 16px 24px;
+        height: calc(100vh - var(--topbar-height));
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+/* -- Direction toggle -- */
+.go-dir-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 8px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.go-dir-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    min-height: 48px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.go-dir-btn i {
+    font-size: 16px;
+}
+
+.go-dir-btn:hover:not(.active) {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.go-dir-btn.active {
+    background: var(--info);
+    color: #fff;
+}
+
+/* -- Two-column body -- */
+.go-body {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 900px) {
+    .go-body {
+        flex-direction: row;
+        gap: 24px;
+        flex: 1;
+        min-height: 0;
+    }
+}
+
+/* -- Left column -- */
+.go-left {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 900px) {
+    .go-left {
+        width: 55%;
+        min-width: 0;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+    }
+    .go-left:hover {
+        scrollbar-color: var(--border) transparent;
+    }
+}
+
+.go-left::-webkit-scrollbar { width: 4px; }
+.go-left::-webkit-scrollbar-track { background: transparent; }
+.go-left::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+.go-left:hover::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* -- Right column -- */
+.go-right {
+    margin-top: 16px;
+}
+
+@media (min-width: 900px) {
+    .go-right {
+        width: 45%;
+        min-width: 0;
+        margin-top: 0;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+    }
+    .go-right:hover {
+        scrollbar-color: var(--border) transparent;
+    }
+}
+
+.go-right::-webkit-scrollbar { width: 4px; }
+.go-right::-webkit-scrollbar-track { background: transparent; }
+.go-right::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+.go-right:hover::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* ═══════════════════════════════════════════════
+   SKELETON LOADING
+   ═══════════════════════════════════════════════ */
+@keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.skel-bar {
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 4px;
+}
+
+.skel-bar-inline {
+    display: inline-block;
+    height: 10px;
+    vertical-align: middle;
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 4px;
+}
+
+[data-bs-theme="dark"] .skel-bar,
+[data-bs-theme="dark"] .skel-bar-inline {
+    background: linear-gradient(90deg, #303036 25%, #3e3e44 50%, #303036 75%);
+    background-size: 800px 100%;
+}
+
+/* Static skeleton bars (no animation) */
+.skel-static-bar {
+    background: #e5e7eb !important;
+    animation: none !important;
+}
+
+[data-bs-theme="dark"] .skel-static-bar {
+    background: #303036 !important;
+}
+
+/* Skeleton hero card */
+.skel-hero-card {
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-top: 3px solid transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    background: var(--bg-primary);
+}
+
+.skel-hero-blue { border-top-color: var(--info); }
+.skel-hero-green { border-top-color: var(--info); }
+
+.skel-hint {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin: 12px 0 0;
+}
+
+/* Plan empty states (pre-interaction) */
+.plan-empty-state {
+    border-radius: var(--radius-lg);
+    padding: 32px 18px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-primary);
+    text-align: center;
+}
+
+.plan-empty-icon {
+    font-size: 40px;
+    color: var(--text-tertiary);
+    opacity: 0.5;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.plan-empty-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.plan-empty-sub {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.plan-stations-empty {
+    padding: 40px 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-tertiary);
+}
+
+/* Skeleton station rows */
+.skel-station-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    min-height: 56px;
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-md);
+    gap: 10px;
+    border-left: 3px solid transparent;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.skel-station-row-static .skel-bar {
+    background: #e5e7eb !important;
+    animation: none !important;
+}
+
+[data-bs-theme="dark"] .skel-station-row-static .skel-bar {
+    background: #303036 !important;
+}
+
+/* ═══════════════════════════════════════════════
+   HERO RECOMMENDATION CARD
+   ═══════════════════════════════════════════════ */
+.hero-card {
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-top: 3px solid transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.hero-blue {
+    border-top-color: var(--info);
+    background: var(--info-bg);
+}
+
+.hero-green {
+    border-top-color: var(--info);
+    background: var(--info-bg);
+}
+
+[data-bs-theme="dark"] .hero-blue {
+    background: rgba(55, 138, 221, 0.08);
+}
+
+[data-bs-theme="dark"] .hero-green {
+    background: rgba(55, 138, 221, 0.08);
+}
+
+.hero-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.hero-station-name {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    line-height: 1.2;
+}
+
+.hero-metrics {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.hero-metric {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 2px;
+}
+
+.hero-metric-value {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.hero-metric-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    line-height: 1.2;
+}
+
+.hero-trip {
+    background-color: rgba(55, 138, 221, 0.08);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--info);
+    text-align: center;
+}
+
+[data-bs-theme="dark"] .hero-trip {
+    background-color: rgba(96, 165, 250, 0.1);
+    color: #60a5fa;
+}
+
+.hero-trip-live {
+    font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════
+   WEATHER STRIP
+   ═══════════════════════════════════════════════ */
+.weather-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.weather-strip i {
+    font-size: 16px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   MAP
+   ═══════════════════════════════════════════════ */
+.go-map-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    border: 0.5px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.go-map {
+    width: 100%;
+    height: 220px;
+    transition: height 0.3s ease;
+}
+
+.go-map-wrap.expanded .go-map {
+    height: 420px;
+}
+
+@media (min-width: 900px) {
+    .go-map-wrap {
+        flex: 1;
+        min-height: 350px;
+        margin-bottom: 0;
+    }
+    .go-map {
+        height: 100%;
+    }
+    .go-map-wrap.expanded .go-map {
+        height: 100%;
+    }
+}
+
+.minimap-expand-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1001;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    transition: background-color 0.12s;
+}
+
+.minimap-expand-btn:hover {
+    background: var(--bg-secondary);
+}
+
+@media (min-width: 900px) {
+    .minimap-expand-btn {
+        display: none;
+    }
+}
+
+.go-map-wrap .map-legend {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    border-radius: var(--radius-lg);
+    padding: 6px 12px;
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 0.5px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+[data-bs-theme="dark"] .go-map-wrap .map-legend {
+    background-color: rgba(30, 30, 34, 0.92);
+}
+
+.map-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.map-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.map-legend-dot-rec {
+    background: var(--info);
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 3.5px var(--info);
+}
+
+/* ═══════════════════════════════════════════════
+   STATION LIST
+   ═══════════════════════════════════════════════ */
+.station-list-sort-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.station-list-sort-row .station-list-header {
+    margin-bottom: 0;
+}
+
+.sort-toggle {
+    display: flex;
+    gap: 2px;
+}
+
+.sort-btn {
+    font-size: 10px;
+    padding: 2px 8px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.12s;
+}
+
+.sort-btn.active {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.sort-btn:hover:not(.active) {
+    color: var(--text-secondary);
+}
+
+.station-list-header {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--info);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.station-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* -- Station row -- */
+.station-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    min-height: 56px;
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-md);
+    gap: 10px;
+    border-left: 3px solid transparent;
+    transition: background-color 0.12s;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.station-row:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.station-row.recommended {
+    background-color: var(--info-bg);
+    border-left-color: var(--info);
+}
+
+.station-row.recommended:hover {
+    background-color: var(--info-bg);
+    filter: brightness(0.95);
+}
+
+.station-row.recommended-green {
+    background-color: var(--info-bg);
+    border-left-color: var(--info);
+}
+
+.station-row.recommended-green:hover {
+    background-color: var(--info-bg);
+    filter: brightness(0.95);
+}
+
+.station-row-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+}
+
+.station-row-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.station-row-meta {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.station-row-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.station-row-docks {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+}
+
+.dock-number {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.dock-number.dock-red { color: var(--danger); }
+.dock-number.dock-amber { color: var(--warning); }
+.dock-number.dock-green { color: var(--success); }
+
+.dock-sublabel {
+    font-size: 9px;
+    color: var(--danger);
+    font-weight: 500;
+}
+
+.dock-label {
+    font-size: 9px;
+    color: var(--text-tertiary);
+}
+
+/* ═══════════════════════════════════════════════
+   PLAN FORM
+   ═══════════════════════════════════════════════ */
+.plan-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 12px;
+}
+
+/* Step numbers */
+.plan-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.plan-step-btn {
+    align-items: center;
+}
+
+.plan-step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--info);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.plan-step-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Weather inline (inside card) */
+.plan-weather-inline {
+    margin: -4px 0 0 34px;
+    font-size: 13px;
+}
+
+/* Dimmed pre-results area */
+.plan-results-dim {
+    opacity: 0.35;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.plan-results-dim.plan-results-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.plan-weather-strip {
+    margin-bottom: 12px;
+}
+
+.plan-helper {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: -4px 0 0;
+}
+
+.plan-helper i {
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.plan-scan-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--radius-md);
+    background-color: var(--info);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+.plan-scan-btn:hover:not(:disabled):not(.loading) { opacity: 0.9; }
+.plan-scan-btn:active:not(:disabled):not(.loading) { opacity: 0.8; }
+.plan-scan-btn.loading { opacity: 0.6; pointer-events: none; }
+
+.plan-scan-btn:disabled {
+    background-color: #d1d5db;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+[data-bs-theme="dark"] .plan-scan-btn:disabled {
+    background-color: #374151;
+    color: #6b7280;
+}
+
+.plan-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.plan-field-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.plan-time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.plan-time-picker {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.plan-select {
+    background-color: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: center;
+    min-width: 52px;
+}
+
+.plan-time-sep {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+}
+
+.plan-day-selector {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    overflow-x: auto;
+}
+
+.plan-day-btn {
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: none;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    transition: all 0.12s;
+    flex-shrink: 0;
+}
+
+.plan-day-btn.active {
+    background-color: var(--info-bg);
+    color: var(--info);
+}
+
+.plan-day-btn:hover:not(.active) {
+    background-color: var(--bg-tertiary);
+}
+
+/* -- Plan hero -- */
+.plan-hero-leave {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.plan-hero-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+/* -- Timeline bar -- */
+.plan-timeline { margin-bottom: 10px; }
+
+.plan-timeline-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    gap: 2px;
+    margin-bottom: 4px;
+}
+
+.plan-tl-seg { border-radius: 3px; min-width: 8px; }
+.plan-tl-cycle { background-color: var(--info); }
+.plan-tl-dock { background-color: var(--warning); }
+.plan-tl-walk { background-color: var(--success); }
+
+.plan-timeline-labels {
+    display: flex;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+}
+
+.plan-tl-label {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.plan-tl-label-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* -- Why not closer -- */
+.plan-why-card {
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.plan-why-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.plan-why-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+/* -- Plan alternatives -- */
+.alt-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    min-height: 56px;
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-md);
+    gap: 10px;
+    border-left: 3px solid transparent;
+    transition: background-color 0.12s;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.alt-row:hover { background-color: var(--bg-secondary); }
+
+.alt-row.alt-recommended {
+    background-color: var(--info-bg);
+    border-left-color: var(--info);
+}
+.alt-row.alt-recommended:hover {
+    background-color: var(--info-bg);
+    filter: brightness(0.95);
+}
+
+.alt-row.alt-recommended-green {
+    background-color: var(--info-bg);
+    border-left-color: var(--info);
+}
+.alt-row.alt-recommended-green:hover {
+    background-color: var(--info-bg);
+    filter: brightness(0.95);
+}
+
+.alt-row-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+}
+
+.alt-row-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.alt-row-reason {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.alt-row-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* -- State transitions -- */
+#state-to-now, #state-from-now, #state-to-plan, #state-from-plan {
+    transition: opacity 0.2s ease;
+}
+#state-to-now.fading, #state-from-now.fading, #state-to-plan.fading, #state-from-plan.fading {
+    opacity: 0;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/go.js') }}"></script>
+{% endblock %}

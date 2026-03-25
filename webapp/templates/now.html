@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Now{% endblock %}
+
+{% block content %}
+<!-- Quick Recommendation Banner -->
+<div class="card mb-3" id="quick-rec-card">
+    <div class="card-body py-3 text-center">
+        <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+            <div class="rec-signal" id="quick-rec-signal"></div>
+            <div class="fs-5 fw-bold" id="quick-rec-text">Checking dock availability...</div>
+        </div>
+        <div class="text-muted small" id="quick-rec-detail"></div>
+        <div class="mt-1 small text-muted">
+            <span id="banner-temp">--</span>°C · <span id="banner-weather-desc">--</span>
+            <span class="ms-2"><span class="live-dot"></span> Live</span>
+        </div>
+    </div>
+</div>
+
+<!-- Your Stations (top 3 priority) -->
+<div class="row g-2 mb-3" id="priority-stations">
+    <div class="text-center text-muted py-3">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+        Loading...
+    </div>
+</div>
+
+<!-- Expandable: More stations + Map -->
+<div class="mb-3">
+    <button class="btn btn-outline-secondary btn-sm w-100" type="button"
+            data-bs-toggle="collapse" data-bs-target="#more-stations"
+            aria-expanded="false" id="expand-btn">
+        <i class="bi bi-chevron-down"></i> Show all stations & map
+    </button>
+</div>
+
+<div class="collapse" id="more-stations">
+    <!-- Status Legend -->
+    <div class="d-flex gap-3 mb-2 small text-muted">
+        <span><span class="legend-dot bg-success"></span> 5+ free</span>
+        <span><span class="legend-dot bg-warning"></span> 1-4 free</span>
+        <span><span class="legend-dot bg-danger"></span> Full</span>
+    </div>
+
+    <div class="row g-3">
+        <!-- Map -->
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-geo-alt"></i> Station Map</span>
+                    <span class="badge bg-light text-dark border">800m radius</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height: 380px; border-radius: 0 0 11px 11px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Stations List -->
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-bicycle"></i> All Stations</span>
+                    </div>
+                    <div class="d-flex gap-1 mt-2">
+                        <button class="btn btn-sm btn-outline-secondary sort-btn active" data-sort="walking">Walking</button>
+                        <button class="btn btn-sm btn-outline-secondary sort-btn" data-sort="docks-desc">Most Docks</button>
+                        <button class="btn btn-sm btn-outline-secondary sort-btn" data-sort="docks-asc">Fewest</button>
+                    </div>
+                </div>
+                <div class="card-body station-list p-2" id="station-list">
+                    <div class="text-center text-muted py-4">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                        Loading stations...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/now.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DockSense – Design Trade-offs</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #fff;
+    color: #222;
+    line-height: 1.55;
+    padding: 40px 20px;
+  }
+  .page { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; text-align: center; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 36px; }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .card {
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    break-inside: avoid;
+  }
+  .card-header {
+    padding: 10px 16px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-header .card-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    flex-shrink: 0;
+  }
+
+  .card-body { padding: 14px 16px; }
+
+  .field-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #999;
+    margin-bottom: 2px;
+    margin-top: 10px;
+  }
+  .field-label:first-child { margin-top: 0; }
+
+  .field-value {
+    font-size: 0.84rem;
+    color: #333;
+  }
+
+  .decision-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #fff;
+    margin-top: 2px;
+  }
+
+  .cost-box {
+    background: #fff8f0;
+    border-left: 3px solid #BA7517;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    color: #7a5300;
+    margin-top: 6px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* Color themes per card */
+  .card-1 .card-header { background: #378ADD; }
+  .card-1 .decision-badge { background: #378ADD; }
+
+  .card-2 .card-header { background: #1D9E75; }
+  .card-2 .decision-badge { background: #1D9E75; }
+
+  .card-3 .card-header { background: #BA7517; }
+  .card-3 .decision-badge { background: #BA7517; }
+
+  .card-4 .card-header { background: #378ADD; }
+  .card-4 .decision-badge { background: #378ADD; }
+
+  .card-5 .card-header { background: #1D9E75; }
+  .card-5 .decision-badge { background: #1D9E75; }
+
+  .card-6 .card-header { background: #E24B4A; }
+  .card-6 .decision-badge { background: #E24B4A; }
+
+  @media print {
+    body { padding: 20px; }
+    .cards { gap: 14px; }
+    .card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Design Trade-offs</h1>
+  <p class="subtitle">Key engineering decisions and their rationale</p>
+
+  <div class="cards">
+
+    <!-- Card 1 -->
+    <div class="card card-1">
+      <div class="card-header">
+        <span class="card-num">1</span>
+        Polling frequency
+      </div>
+      <div class="card-body">
+        <div class="field-label">Decision</div>
+        <span class="decision-badge">1/min over 5/min</span>
+
+        <div class="field-label">Why</div>
+        <div class="field-value">
+          TfL updates station data approximately every 5 minutes, but the exact timing is unknown.
+          Polling every minute ensures no update is missed and provides finer granularity for
+          the lag feature used by the nowcast model.
+        </div>
+
+        <div class="cost-box">
+          Trade-off: 5x more storage and API calls. ~315k rows in 16 days vs ~63k at 5/min.
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card card-2">
+      <div class="card-header">
+        <span class="card-num">2</span>
+        Two models vs one
+      </div>
+      <div class="card-body">
+        <div class="field-label">Decision</div>
+        <span class="decision-badge">Separate nowcast + forecast models</span>
+
+        <div class="field-label">Why</div>
+        <div class="field-value">
+          The lag feature (<code>empty_docks_lag1</code>) delivers a 3x accuracy improvement but is
+          only available in real-time. A single model would either sacrifice accuracy (no lag) or
+          be unusable for future planning (requires lag).
+        </div>
+
+        <div class="cost-box">
+          Trade-off: Added architectural complexity. Two model files, two API endpoints, two
+          training pipelines to maintain.
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card card-3">
+      <div class="card-header">
+        <span class="card-num">3</span>
+        Historical Average vs ML for Forecast
+      </div>
+      <div class="card-body">
+        <div class="field-label">Decision</div>
+        <span class="decision-badge">Historical Average baseline</span>
+
+        <div class="field-label">Why</div>
+        <div class="field-value">
+          With only ~16 days of training data, ML models (Random Forest, Gradient Boosting) could
+          not learn robust weather-dock relationships. The simpler baseline &mdash; mean docks by
+          station, hour, and weekday &mdash; generalised better and was more interpretable.
+        </div>
+
+        <div class="cost-box">
+          Trade-off: Loses ability to capture weather effects on dock availability. With more
+          data (months), ML would likely surpass the baseline.
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card card-4">
+      <div class="card-header">
+        <span class="card-num">4</span>
+        Open-Meteo vs OpenWeatherMap
+      </div>
+      <div class="card-body">
+        <div class="field-label">Decision</div>
+        <span class="decision-badge">Open-Meteo</span>
+
+        <div class="field-label">Why</div>
+        <div class="field-value">
+          No API key required, unlimited calls, and equivalent data quality for temperature,
+          precipitation, humidity, and wind speed. OpenWeatherMap imposes a 1,000 calls/day
+          limit on the free tier and requires key management.
+        </div>
+
+        <div class="cost-box">
+          Trade-off: Open-Meteo has less granular forecast data and no severe weather alerts.
+          Acceptable for this use case.
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card card-5">
+      <div class="card-header">
+        <span class="card-num">5</span>
+        Supabase vs MongoDB Atlas
+      </div>
+      <div class="card-body">
+        <div class="field-label">Decision</div>
+        <span class="decision-badge">Supabase PostgreSQL</span>
+
+        <div class="field-label">Why</div>
+        <div class="field-value">
+          SQL joins are essential for merging bike and weather time-series on minute-level
+          timestamps. PostgreSQL's <code>TIMESTAMPTZ</code> type handles timezone-aware queries
+          natively. Free tier (500 MB) sufficient for the project scope.
+        </div>
+
+        <div class="cost-box">
+          Trade-off: Rigid schema requires migrations for structural changes. MongoDB's flexible
+          documents would simplify schema evolution.
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card card-6">
+      <div class="card-header">
+        <span class="card-num">6</span>
+        Heroku vs Raspberry Pi
+      </div>
+      <div class="card-body">
+        <div class="field-label">Decision</div>
+        <span class="decision-badge">Heroku (cloud)</span>
+
+        <div class="field-label">Why</div>
+        <div class="field-value">
+          Reliable 24/7 uptime critical for continuous data collection. No hardware maintenance,
+          no dependency on home network. GitHub Student Pack provides free dyno hours. Separate
+          worker and web dynos for clean separation of concerns.
+        </div>
+
+        <div class="cost-box">
+          Trade-off: Higher long-term cost after student credits expire. Raspberry Pi would be
+          a one-time ~$35 investment but requires physical setup, static IP or tunneling, and
+          is vulnerable to power/network outages.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

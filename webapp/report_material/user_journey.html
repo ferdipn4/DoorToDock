@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DockSense – User Journey</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #fff;
+    color: #222;
+    line-height: 1.5;
+    padding: 40px 20px;
+  }
+  .page { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; text-align: center; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 36px; }
+
+  .scenario {
+    margin-bottom: 28px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .scenario-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #fff;
+  }
+  .scenario-header .num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+  }
+  .scenario-header .mode {
+    margin-left: auto;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(255,255,255,0.25);
+    padding: 2px 10px;
+    border-radius: 10px;
+  }
+
+  .sc1 .scenario-header { background: #1D9E75; }
+  .sc2 .scenario-header { background: #378ADD; }
+  .sc3 .scenario-header { background: #BA7517; }
+  .sc4 .scenario-header { background: #7B61A6; }
+
+  .steps {
+    display: flex;
+    align-items: stretch;
+    padding: 18px 14px;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .step {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    position: relative;
+    padding: 0 6px;
+  }
+  .step-icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin: 0 auto 8px;
+    border: 2px solid #e0e0e0;
+  }
+  .sc1 .step-icon { border-color: #1D9E75; }
+  .sc2 .step-icon { border-color: #378ADD; }
+  .sc3 .step-icon { border-color: #BA7517; }
+  .sc4 .step-icon { border-color: #7B61A6; }
+
+  .step-num {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    margin-left: 14px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sc1 .step-num { background: #1D9E75; }
+  .sc2 .step-num { background: #378ADD; }
+  .sc3 .step-num { background: #BA7517; }
+  .sc4 .step-num { background: #7B61A6; }
+
+  .step-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+  }
+  .step-desc {
+    font-size: 0.7rem;
+    color: #888;
+  }
+
+  /* connector arrow between steps */
+  .connector {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    width: 28px;
+    justify-content: center;
+    padding-bottom: 26px;
+  }
+  .connector svg { width: 20px; height: 14px; }
+  .sc1 .connector svg polyline { stroke: #1D9E75; }
+  .sc2 .connector svg polyline { stroke: #378ADD; }
+  .sc3 .connector svg polyline { stroke: #BA7517; }
+  .sc4 .connector svg polyline { stroke: #7B61A6; }
+
+  @media print {
+    body { padding: 20px; }
+    .scenario { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>User Journeys</h1>
+  <p class="subtitle">Four scenarios showing how users interact with DockSense</p>
+
+  <!-- Scenario 1 -->
+  <div class="scenario sc1">
+    <div class="scenario-header">
+      <span class="num">1</span>
+      Morning commute
+      <span class="mode">Now mode</span>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon">&#x1F4F1;</div>
+        <div class="step-label">Open app</div>
+        <div class="step-desc">Launch DockSense Now page</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon">&#x1F52E;</div>
+        <div class="step-label">Live predictions</div>
+        <div class="step-desc">See T+15 min dock forecast per station</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon">&#x1F7E2;</div>
+        <div class="step-label">Color-coded map</div>
+        <div class="step-desc">Green / yellow / red station markers</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-icon">&#x1F6B6;</div>
+        <div class="step-label">Walk to station</div>
+        <div class="step-desc">Head to recommended station</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-icon">&#x1F6B2;</div>
+        <div class="step-label">Dock bike</div>
+        <div class="step-desc">Arrive and dock successfully</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario 2 -->
+  <div class="scenario sc2">
+    <div class="scenario-header">
+      <span class="num">2</span>
+      Planning tomorrow's commute
+      <span class="mode">Plan mode</span>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon">&#x1F4C5;</div>
+        <div class="step-label">Select date/time</div>
+        <div class="step-desc">Pick date and time window</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon">&#x2611;&#xFE0F;</div>
+        <div class="step-label">Choose stations</div>
+        <div class="step-desc">Select target stations via checkboxes</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon">&#x1F50D;</div>
+        <div class="step-label">Scan window</div>
+        <div class="step-desc">System scans 5-min slots</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-icon">&#x1F4C8;</div>
+        <div class="step-label">Timeline chart</div>
+        <div class="step-desc">View predicted docks over time</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-icon">&#x23F0;</div>
+        <div class="step-label">Departure time</div>
+        <div class="step-desc">Note recommended arrival</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario 3 -->
+  <div class="scenario sc3">
+    <div class="scenario-header">
+      <span class="num">3</span>
+      PIR trigger
+      <span class="mode">Automated</span>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon">&#x1F6AA;</div>
+        <div class="step-label">Leave home</div>
+        <div class="step-desc">Walk past the sensor</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon">&#x1F4E1;</div>
+        <div class="step-label">PIR detects motion</div>
+        <div class="step-desc">HC-SR501 triggers ESP32</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon">&#x2601;&#xFE0F;</div>
+        <div class="step-label">Event sent</div>
+        <div class="step-desc">ESP32 posts HTTPS to backend</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-icon">&#x1F9E0;</div>
+        <div class="step-label">Predict docks</div>
+        <div class="step-desc">Backend runs nowcast model</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-icon">&#x1F4AC;</div>
+        <div class="step-label">Telegram push</div>
+        <div class="step-desc">Notification with recommendation</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario 4 -->
+  <div class="scenario sc4">
+    <div class="scenario-header">
+      <span class="num">4</span>
+      Checking patterns
+      <span class="mode">Insights</span>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon">&#x1F4CA;</div>
+        <div class="step-label">Open Insights</div>
+        <div class="step-desc">Navigate to Trends page</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon">&#x1F5FA;&#xFE0F;</div>
+        <div class="step-label">View heatmap</div>
+        <div class="step-desc">Hour x weekday availability grid</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon">&#x1F327;&#xFE0F;</div>
+        <div class="step-label">Check weather</div>
+        <div class="step-desc">Rain/temperature correlations</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-icon">&#x1F3AF;</div>
+        <div class="step-label">Model accuracy</div>
+        <div class="step-desc">Review prediction metrics</div>
+      </div>
+      <div class="connector"><svg viewBox="0 0 20 14"><polyline points="2,7 16,7 12,3" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="12,11 16,7" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-icon">&#x1F4A1;</div>
+        <div class="step-label">Understand patterns</div>
+        <div class="step-desc">Station fill order and peak times</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
