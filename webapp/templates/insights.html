@@ -3493,9 +3493,8 @@ async function loadSection6() {
         const values = corrVars.map(v => corrStats[v.key] ?? 0);
         const minVal = Math.min(...values);
         const maxVal = Math.max(...values);
-        // Tight axis: round outward to nearest 0.1 with one tick of padding
-        const xMin = Math.floor(minVal * 10 - 1) / 10;
-        const xMax = Math.ceil(maxVal * 10 + 1) / 10;
+        const xMin = -0.7;
+        const xMax = 0.5;
 
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark' ||
             (!document.documentElement.getAttribute('data-bs-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
