@@ -255,13 +255,7 @@ body {
 }
 
 .bottom-nav-clock-bar {
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-  padding: 3px 0 0;
-  line-height: 1;
+  display: none;
 }
 
 .bottom-nav {
